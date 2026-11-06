@@ -183,7 +183,8 @@ if(db&&authCard){
  }
  authForm.addEventListener("submit",async event=>{
   event.preventDefault();
-  const username=normalizeUsername(usernameInput.value);\n  usernameInput.value=username;
+  const username=normalizeUsername(usernameInput.value);
+  usernameInput.value=username;
   const password=passwordInput.value;
   if(!validUsername(username)){setAuthMessage("اسم المستخدم لازم يكون من 3 إلى 20 حرفاً، ويسمح بالعربي أو الإنجليزي أو الأرقام أو _ بدون مسافات.","error");return;}
   if(password.length<8){setAuthMessage("كلمة المرور لازم تكون 8 أحرف على الأقل.","error");return;}
