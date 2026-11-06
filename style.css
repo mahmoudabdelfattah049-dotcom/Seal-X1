@@ -143,3 +143,47 @@
 .admin-inline-actions{display:flex;gap:7px}.admin-inline-actions button{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:9px;cursor:pointer}.admin-inline-actions .danger-action,.admin-report .danger-action{color:#df7777}
 
 .student-quick-links{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}.student-quick-links a{font-size:9px;font-weight:800;text-decoration:none;color:var(--accent);border:1px solid #73e0c044;background:#73e0c010;padding:9px 12px;border-radius:9px}
+
+/* Compact, inline expandable workspaces */
+.learn-pace-link{display:block;color:inherit;text-decoration:none;cursor:pointer}
+.library-collapsible,.portal-collapsible,.assistant-panel{border:1px solid var(--line);border-radius:15px;background:var(--panel);overflow:hidden}
+.library-collapsible>summary,.portal-collapsible>summary,.assistant-panel>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;cursor:pointer}
+.library-collapsible>summary::-webkit-details-marker,.portal-collapsible>summary::-webkit-details-marker,.assistant-panel>summary::-webkit-details-marker{display:none}
+.library-collapsible>summary span:first-child,.portal-collapsible>summary span:first-child,.assistant-panel>summary span:first-child{display:grid;gap:3px}
+.library-collapsible summary b,.portal-collapsible summary b,.assistant-panel summary b{font-size:12px}
+.library-collapsible summary small,.portal-collapsible summary small,.assistant-panel summary small{font-size:9px;color:var(--muted)}
+.assistant-chevron,.academy-summary-arrow{color:var(--accent);font-size:20px;transition:transform .2s}
+details[open]>summary .assistant-chevron{transform:rotate(180deg)}
+.library-collapsible>.academy-layout{padding:12px;border-top:1px solid var(--line)}
+.portal-collapsible{min-width:0}
+.portal-collapsible-body{padding:0 13px 13px;border-top:1px solid var(--line)}
+.portal-collapsible-body>.portal-card{border:0;background:transparent;padding:12px 0 0}
+.student-tools-grid>.portal-collapsible,.teacher-tools-grid>.portal-collapsible,.admin-grid>.portal-collapsible{align-self:start}
+.teacher-tools-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.teacher-welcome{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px 18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-bottom:14px}
+.teacher-welcome b{font-size:15px}.teacher-welcome span{font-size:9px;color:var(--muted)}
+.teacher-resource-form{display:grid;gap:9px}
+.file-upload-label{display:grid;gap:7px;font-size:10px;color:var(--muted);padding:11px;border:1px dashed var(--line);border-radius:9px}
+.file-upload-label input{font:inherit;font-size:10px;color:var(--text)}
+.admin-user-actions select{max-width:95px;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:8px;padding:6px;font:inherit;font-size:9px}
+.admin-user-actions button[data-save-role]{background:#73e0c018;color:var(--accent);border-color:#73e0c044}
+.assistant-panel{margin-top:16px}
+.assistant-body{padding:13px;border-top:1px solid var(--line)}
+.assistant-intro{font-size:10px;color:var(--muted);line-height:1.8;margin-bottom:10px}
+.assistant-log{display:flex;flex-direction:column;gap:7px;max-height:260px;overflow:auto;padding:10px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.assistant-log p{font-size:10px;line-height:1.8;margin:0;padding:8px 10px;border-radius:9px;background:var(--panel)}
+.assistant-log .assistant-user{align-self:flex-start;border-right:2px solid var(--accent)}
+.assistant-log .assistant-answer{align-self:stretch;border-right:2px solid var(--accent2);white-space:pre-wrap}
+.assistant-form{display:flex;gap:7px;margin-top:9px}
+.assistant-form input{min-width:0;flex:1;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font:inherit;font-size:10px}
+.assistant-form button{border:0;border-radius:9px;background:var(--accent);color:#102335;font:inherit;font-size:10px;font-weight:900;padding:0 15px}
+.academy-video-card{display:block}
+.academy-video-summary{display:flex;align-items:center;gap:10px;list-style:none;padding:9px;cursor:pointer;min-height:72px}
+.academy-video-summary::-webkit-details-marker{display:none}
+.academy-video-summary img{width:100px;aspect-ratio:16/9;object-fit:cover;border-radius:7px;background:#080d16}
+.academy-summary-copy{display:grid;gap:5px;min-width:0}
+.academy-summary-copy b{font-size:10px;line-height:1.6}
+.academy-summary-copy small{font-size:8px;color:var(--muted)}
+.academy-summary-arrow{margin-right:auto}
+.academy-video-card .academy-card-body{border-top:1px solid var(--line)}
+@media(max-width:700px){.teacher-tools-grid{grid-template-columns:1fr}.teacher-welcome{align-items:flex-start;flex-direction:column}.academy-video-summary img{width:86px}.admin-user-actions{flex-wrap:wrap;justify-content:flex-end}}
