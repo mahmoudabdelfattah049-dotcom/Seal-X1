@@ -304,11 +304,11 @@ async function portalLoadStudentStats(){
  const user=window.sealCurrentUser;if(!user)return;
  const [videos,exams]=await Promise.all([
   db.from("student_video_progress").select("video_id,completed,updated_at").eq("user_id",user.id),
-  db.from("platform_exam_attempts").select("score,total_score,completed_at").eq("user_id",user.id)
+  db.from("platform_exam_attempts").select("score,total_score,completed_at,grading_status").eq("user_id",user.id)
  ]);
  if(videos.error||exams.error){console.error(videos.error||exams.error);return;}
  const videoRows=videos.data||[],done=videoRows.filter(x=>x.completed),examRows=exams.data||[];
- const average=examRows.length?examRows.reduce((a,x)=>a+(Number(x.score)/Number(x.total_score))*100,0)/examRows.length:0;
+ const gradedRows=examRows.filter(x=>x.grading_status!=="pending");\n const average=gradedRows.length?gradedRows.reduce((a,x)=>a+(Number(x.score)/Number(x.total_score))*100,0)/gradedRows.length:0;
  const now=Date.now(),days=new Set();
  [...videoRows.map(x=>x.updated_at),...examRows.map(x=>x.completed_at)].forEach(date=>{
   const stamp=date?new Date(date).getTime():0;
@@ -370,6 +370,38 @@ async function portalLoadAdminCommunity(){
  box.innerHTML=data?.length?data.map(m=>'<article class="admin-report"><div><b>'+portalEsc(m.profiles?.display_name||m.profiles?.username||"طالب")+'</b><small>'+portalEsc(portalTime(m.created_at))+'</small></div><p>'+portalEsc(m.body)+'</p><button class="danger-action" data-delete-community="'+portalEsc(m.id)+'">حذف الرسالة</button></article>').join(""):'<p class="resource-loading">لا توجد رسائل.</p>';
 }
 
+async function portalLoadEssayInbox(targetId,isAdmin=false){
+ const box=document.getElementById(targetId);if(!box||!window.sealCurrentUser)return;
+ box.innerHTML='<p class="resource-loading">جاري تحميل إجابات آخر 7 أيام...</p>';
+ try{
+  const result=await portalAdminCall("list_essay_submissions");
+  const rows=result.submissions||[];
+  box.innerHTML=rows.length?rows.map(x=>{
+   const answers=Array.isArray(x.answers)?x.answers:[];
+   const status=x.grading_status==="pending"?"بانتظار التصحيح":"تم التصحيح";
+   return '<article class="essay-review-item"><div class="essay-review-head"><b>'+portalEsc(x.exam_title)+'</b><span>'+portalEsc(x.student_name)+' · '+portalEsc(x.subject)+'</span><small>'+portalEsc(portalTime(x.completed_at))+' · '+status+'</small></div>'+answers.map((a,i)=>'<div class="essay-answer"><b>الإجابة '+(i+1)+'</b><p>'+portalEsc(a)+'</p></div>').join("")+'<div class="essay-grade-fields"><label>الدرجة<input type="number" min="0" max="'+Number(x.total_score)+'" step="0.5" value="'+Number(x.score||0)+'" data-essay-score></label><label>ملاحظة للطالب<textarea rows="2" maxlength="2000" data-essay-feedback placeholder="ملاحظات التصحيح...">'+portalEsc(x.teacher_feedback||"")+'</textarea></label></div><div class="essay-review-foot"><small>الدرجة النهائية: '+Number(x.total_score)+'</small><button type="button" data-grade-essay="'+portalEsc(x.id)+'">حفظ التصحيح</button></div></article>';
+  }).join(""):'<p class="resource-loading">لا توجد إجابات مقالية خلال آخر 7 أيام.</p>';
+ }catch(error){box.innerHTML='<p class="resource-loading">'+portalEsc(error.message)+'</p>';}
+}
+async function portalLoadTeacherEssays(){return portalLoadEssayInbox("teacherEssayInbox",false);}
+async function portalLoadAdminEssays(){return portalLoadEssayInbox("adminEssayInbox",true);}
+document.getElementById("teacherEssayInbox")?.addEventListener("click",async e=>{
+ const button=e.target.closest("[data-grade-essay]");if(!button)return;
+ const row=button.closest(".essay-review-item"),score=Number(row.querySelector("[data-essay-score]").value),feedback=row.querySelector("[data-essay-feedback]").value;
+ button.disabled=true;
+ try{await portalAdminCall("grade_essay",{attempt_id:button.dataset.gradeEssay,score,feedback});await portalLoadTeacherEssays();alert("تم حفظ التصحيح.");}
+ catch(error){alert(error.message);button.disabled=false;}
+});
+document.getElementById("adminEssayInbox")?.addEventListener("click",async e=>{
+ const button=e.target.closest("[data-grade-essay]");if(!button)return;
+ const row=button.closest(".essay-review-item"),score=Number(row.querySelector("[data-essay-score]").value),feedback=row.querySelector("[data-essay-feedback]").value;
+ button.disabled=true;
+ try{await portalAdminCall("grade_essay",{attempt_id:button.dataset.gradeEssay,score,feedback});await portalLoadAdminEssays();alert("تم حفظ التصحيح.");}
+ catch(error){alert(error.message);button.disabled=false;}
+});
+document.getElementById("refreshTeacherEssays")?.addEventListener("click",portalLoadTeacherEssays);
+document.getElementById("refreshAdminEssays")?.addEventListener("click",portalLoadAdminEssays);
+
 async function portalInitSpaces(user,profile){
  window.sealCurrentUser=user;window.sealCurrentProfile=profile;
  const role=profile?.role||"student",logged=!!user;
@@ -388,12 +420,12 @@ async function portalInitSpaces(user,profile){
   const name=document.getElementById("teacherWelcomeName");if(name)name.textContent="مرحباً، "+(profile?.display_name||profile?.username||"معلم");
   await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements(),portalLoadTeacherCommunity()]);
  }
- if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports(),portalLoadAdminAnnouncements(),portalLoadAdminCommunity()]);
+ if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports(),portalLoadAdminAnnouncements(),portalLoadAdminCommunity(),portalLoadAdminEssays()]);
  if(portalRealtime)db.removeChannel(portalRealtime);
  portalRealtime=db.channel("seal-portal-"+user.id)
   .on("postgres_changes",{event:"*",schema:"public",table:"community_messages"},()=>{if(isStudent)portalLoadCommunity();if(isTeacher)portalLoadTeacherCommunity();if(isAdmin)portalLoadAdminCommunity();})
   .on("postgres_changes",{event:"*",schema:"public",table:"admin_messages",filter:isAdmin?undefined:"user_id=eq."+user.id},async()=>{if(isAdmin&&selectedSupportUser)await portalLoadAdminThread(selectedSupportUser);else if(isStudent)await portalLoadStudentSupport();})
-  .on("postgres_changes",{event:"*",schema:"public",table:"platform_exam_attempts",filter:isAdmin?undefined:"user_id=eq."+user.id},()=>{if(isStudent){portalLoadStudentStats();portalLoadLeaderboard();}})
+  .on("postgres_changes",{event:"*",schema:"public",table:"platform_exam_attempts",filter:isAdmin?undefined:"user_id=eq."+user.id},()=>{if(isStudent){portalLoadStudentStats();portalLoadLeaderboard();}if(isTeacher&&window.sealCurrentProfile?.teacher_verified)portalLoadTeacherEssays();if(isAdmin)portalLoadAdminEssays();})
   .subscribe();
 }
 window.sealInitPortalSpaces=portalInitSpaces;
