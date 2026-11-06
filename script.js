@@ -308,7 +308,8 @@ async function portalLoadStudentStats(){
  ]);
  if(videos.error||exams.error){console.error(videos.error||exams.error);return;}
  const videoRows=videos.data||[],done=videoRows.filter(x=>x.completed),examRows=exams.data||[];
- const gradedRows=examRows.filter(x=>x.grading_status!=="pending");\n const average=gradedRows.length?gradedRows.reduce((a,x)=>a+(Number(x.score)/Number(x.total_score))*100,0)/gradedRows.length:0;
+ const gradedRows=examRows.filter(x=>x.grading_status!=="pending");
+ const average=gradedRows.length?gradedRows.reduce((a,x)=>a+(Number(x.score)/Number(x.total_score))*100,0)/gradedRows.length:0;
  const now=Date.now(),days=new Set();
  [...videoRows.map(x=>x.updated_at),...examRows.map(x=>x.completed_at)].forEach(date=>{
   const stamp=date?new Date(date).getTime():0;
@@ -417,8 +418,12 @@ async function portalInitSpaces(user,profile){
   await Promise.all([portalLoadStudentStats(),portalLoadCommunity(),portalLoadStudentSupport(),portalLoadExams(),portalLoadLeaderboard()]);
  }
  if(isTeacher){
-  const name=document.getElementById("teacherWelcomeName");if(name)name.textContent="مرحباً، "+(profile?.display_name||profile?.username||"معلم");
-  await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements(),portalLoadTeacherCommunity()]);
+  const name=document.getElementById("teacherWelcomeName");if(name)name.textContent="مرحباً، "+(profile?.teacher_verified?(profile.teacher_full_name||profile.display_name):profile?.display_name||profile?.username||"معلم");
+  const badge=document.getElementById("teacherWelcomeBadge");if(badge)badge.hidden=!profile?.teacher_verified;
+  const note=document.getElementById("teacherExamAccessNote");if(note)note.textContent=profile?.teacher_verified?"حسابك موثق في مادة "+profile.teacher_subject+"؛ يمكنك إنشاء امتحانات لهذه المادة فقط.":"إنشاء الامتحانات متاح بعد توثيق حسابك من الإدارة. يمكنك استخدام بقية أدوات المعلم.";
+  const examForm=document.getElementById("teacherExamForm");if(examForm){const subject=examForm.querySelector("[data-exam-subject]");if(subject)subject.value=profile?.teacher_subject||"";}
+  document.querySelectorAll('#teacherSpace [data-exam-create]').forEach(b=>b.disabled=!profile?.teacher_verified);
+  await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements(),portalLoadTeacherCommunity(),...(profile?.teacher_verified?[portalLoadTeacherEssays()]:[])]);
  }
  if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports(),portalLoadAdminAnnouncements(),portalLoadAdminCommunity(),portalLoadAdminEssays()]);
  if(portalRealtime)db.removeChannel(portalRealtime);
