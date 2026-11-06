@@ -67,8 +67,8 @@
       <div class="auth-card-top"><div class="auth-avatar">SX</div><div><b id="authHeading">أهلاً بك في Seal X1</b><small id="authSubheading">سجّل الدخول أو أنشئ حساب طالب جديد</small></div></div>
       <div class="auth-tabs"><button type="button" class="auth-tab active" data-auth-mode="login">تسجيل الدخول</button><button type="button" class="auth-tab" data-auth-mode="signup">إنشاء حساب</button></div>
       <form id="studentAuthForm" class="auth-form">
-        <label for="studentUsername">اسم المستخدم</label><input id="studentUsername" name="username" type="text" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" autocomplete="username" placeholder="مثال: mahmoud_16" required>
-        <p class="auth-hint">من 3 إلى 20 حرفاً إنجليزياً أو رقماً أو _ فقط.</p>
+        <label for="studentUsername">اسم المستخدم</label><input id="studentUsername" name="username" type="text" minlength="3" maxlength="20" pattern="[A-Za-z0-9_ء-ي٠-٩۰-۹]{3,20}" autocomplete="username" autocapitalize="off" spellcheck="false" dir="auto" placeholder="مثال: محمود_16 أو mahmoud_16" required>
+        <p class="auth-hint">من 3 إلى 20 حرفاً. مسموح بالعربي أو الإنجليزي أو الأرقام أو _ بدون مسافات.</p>
         <div id="studentNameField" hidden><label for="studentDisplayName">اسمك الظاهر</label><input id="studentDisplayName" name="displayName" type="text" maxlength="60" autocomplete="name" placeholder="الاسم الذي سيظهر داخل المنصة"></div>
         <label for="studentPassword">كلمة المرور</label><input id="studentPassword" name="password" type="password" minlength="8" autocomplete="current-password" placeholder="8 أحرف على الأقل" required>
         <button class="auth-submit" type="submit" id="authSubmit">دخول إلى حسابي</button>
