@@ -455,16 +455,17 @@ window.sealInitPortalSpaces=async function(user,profile){
  portalSetVisible("learnAtYourPace",student);
  portalSetVisible("studentAssistant",student);portalSetVisible("teacherAssistant",teacher);
  portalSetVisible("adminPanel",admin);portalSetVisible("adminNav",admin);portalSetVisible("adminNavMobile",admin);
+ if(logged)await loadResources();
  if(teacher){
   const name=document.getElementById("teacherWelcomeName");
   if(name)name.textContent="مرحباً، "+(profile?.display_name||profile?.username||"معلم");
-  await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements()]);
+  await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements(),portalLoadTeacherCommunity()]);
  }
 };
 
 async function portalLoadTeacherResources(){
  const box=document.getElementById("teacherResourcesList");if(!box||!window.sealCurrentUser)return;
- const {data,error}=await db.from("resources").select("id,title,description,status,external_url,file_path,created_at").order("created_at",{ascending:false}).limit(100);
+ const {data,error}=await db.from("resources").select("id,title,description,status,external_url,file_path,created_at").eq("created_by",window.sealCurrentUser.id).order("created_at",{ascending:false}).limit(100);
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المصادر: '+portalEsc(error.message)+'</p>';return;}
  box.innerHTML=data?.length?data.map(r=>'<article class="admin-report"><div><b>'+portalEsc(r.title)+'</b><small>'+portalEsc(r.status)+' · '+portalEsc(portalTime(r.created_at))+'</small></div><p>'+portalEsc(r.description||r.external_url||r.file_path||"")+'</p><div class="admin-inline-actions"><button data-edit-resource="'+portalEsc(r.id)+'">تعديل</button><button class="danger-action" data-delete-resource="'+portalEsc(r.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لم تضف أي مصادر بعد.</p>';
 }
@@ -598,3 +599,41 @@ document.getElementById("adminUsersList")?.addEventListener("click",async e=>{
  catch(error){alert(error.message);}
  finally{button.disabled=false;}
 });
+
+async function portalLoadTeacherCommunity(){
+ const box=document.getElementById("teacherCommunityMessages");if(!box||!window.sealCurrentUser)return;
+ const [messages,profiles]=await Promise.all([
+  db.from("community_messages").select("id,user_id,body,created_at").order("created_at",{ascending:false}).limit(80),
+  db.from("community_profiles_public").select("id,display_name,username")
+ ]);
+ if(messages.error||profiles.error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة.</p>';return;}
+ const names=new Map((profiles.data||[]).map(p=>[p.id,p.display_name||p.username||"عضو"]));
+ box.innerHTML=(messages.data||[]).reverse().map(m=>'<div class="chat-bubble '+(m.user_id===window.sealCurrentUser.id?'mine':'')+'"><div class="chat-bubble-meta">'+portalEsc(names.get(m.user_id)||"عضو")+' · '+portalEsc(portalTime(m.created_at))+'</div><p>'+portalEsc(m.body)+'</p></div>').join("")||'<p class="resource-loading">ابدأ أول نقاش جماعي.</p>';
+ box.scrollTop=box.scrollHeight;
+}
+document.getElementById("teacherCommunityForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const input=document.getElementById("teacherCommunityInput"),body=input.value.trim(),user=window.sealCurrentUser;if(!body||!user||window.sealCurrentProfile?.role!=="teacher")return;
+ const {error}=await db.from("community_messages").insert({user_id:user.id,body});if(error){alert("تعذر إرسال الرسالة: "+error.message);return;}input.value="";await portalLoadTeacherCommunity();
+});
+document.getElementById("adminCommunityForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const input=document.getElementById("adminCommunityInput"),body=input.value.trim(),user=window.sealCurrentUser;if(!body||!user||window.sealCurrentProfile?.role!=="admin")return;
+ const {error}=await db.from("community_messages").insert({user_id:user.id,body});if(error){alert("تعذر إرسال الرسالة: "+error.message);return;}input.value="";await portalLoadAdminCommunity();
+});
+
+/* A small in-memory index of the controls and content visible to each role. */
+window.sealPlatformKnowledge={student:[],teacher:[]};
+function portalBuildKnowledge(role){
+ const visibleSections=[...document.querySelectorAll("main section:not([hidden])")];
+ const nodes=visibleSections.flatMap(section=>[...section.querySelectorAll("h1,h2,h3,h4,summary,button,a,label")]);
+ window.sealPlatformKnowledge[role]=nodes.filter(el=>el.offsetParent!==null&&!el.closest("#adminPanel")).map(el=>({
+  label:(el.innerText||el.textContent||"").trim().replace(/\s+/g," ").slice(0,180),
+  section:el.closest("section")?.id||"",
+  href:el.getAttribute("href")||""
+ })).filter(x=>x.label);
+}
+const sealAssistantAnswerBase=portalAssistantAnswer;
+portalAssistantAnswer=function(question,role){
+ const answer=sealAssistantAnswerBase(question,role);
+ portalBuildKnowledge(role);
+ return answer;
+};
