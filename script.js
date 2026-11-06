@@ -550,12 +550,27 @@ function portalVideoMatch(query){
  });
  return bestScore>=0.34?best:null;
 }
+function portalSearchKnowledge(query,role){
+ const stop=new Set(["انا","انت","انتي","هو","هي","في","على","من","الي","الى","عن","مع","عايز","عاوزه","محتاج","ممكن","ازاي","كيف","فين","مكان","افتح","روح","وديني","لو","سمحت","هل","ده","دي","دا","ايه","اي","اعمل","اعرف","اقدر","اللي","بقى","بقا","طيب"]);
+ const words=portalNormalizeArabic(query).split(" ").filter(w=>w.length>2&&!stop.has(w));
+ if(words.length<2)return null;
+ const index=window.sealPlatformKnowledge?.[role]||[];
+ const ranked=index.map(section=>{
+  const body=portalNormalizeArabic(section.fullText+" "+section.title+" "+(section.controls||[]).map(x=>x.label).join(" "));
+  const hits=words.filter(word=>body.includes(word)).length;
+  return {section,hits,coverage:hits/words.length};
+ }).sort((a,b)=>b.hits-a.hits||b.coverage-a.coverage);
+ const best=ranked[0],second=ranked[1];
+ if(!best||best.hits<2||best.coverage<0.5)return null;
+ if(second&&second.hits===best.hits&&Math.abs(second.coverage-best.coverage)<0.18)return {ambiguous:true,choices:[best.section.title,second.section.title]};
+ return {section:best.section};
+}
 function portalAssistantAnswer(question,role){
  const q=portalNormalizeArabic(question);
  const teacher=role==="teacher";
  const admin=role==="admin";
  const how=portalHasAny(q,["ازاي","كيف","طريقه","اعمل","اضيف","انشر","ارفع","اكتب","فين","مكان","افتح","روح","وصل","عايز اوصل"]);
- const open=portalHasAny(q,["افتح","روح","وديني","وصلني","اعرض","شغل"]);
+ const open=portalHasAny(q,["افتح","افتحلي","تفتح","روح","وديني","وصلني","اعرض","شغل","ادخل"]);
  const go=(selector)=>portalOpenDetails(selector);
  const result=(text)=>text+(how?" لو تحب، اكتب اسم الجزء أو المادة بالتحديد.":"");
  if(teacher){
@@ -619,6 +634,9 @@ function portalAssistantAnswer(question,role){
  ];
  const ranked=aliases.map(x=>({...x,score:x.keys.reduce((n,k)=>n+(q.includes(portalNormalizeArabic(k))?1:0),0)})).sort((a,b)=>b.score-a.score);
  if(ranked[0]?.score>=2){go("#"+ranked[0].id);return "القسم الأقرب لطلبك هو «"+ranked[0].title+"»، فتحته لك.";}
+ const found=portalSearchKnowledge(q,role);
+ if(found?.ambiguous)return "سؤالك ممكن يقصد أكثر من قسم: «"+found.choices.join("» أو «")+"». اكتب اسم القسم المقصود وسأفتحه لك.";
+ if(found?.section?.id){go("#"+found.section.id);return "بحثت في دليل الأقسام الظاهرة لرتبتك ووجدت «"+(found.section.title||found.section.id)+"». فتحته لك، وتقدر تسألني عن خطوة محددة داخله.";}
  return result("مش قادر أحدد قصدك بثقة، ومش هفتح قسماً عشوائياً. اكتب اسم الجزء أو المادة أو الإجراء المطلوب بشكل أوضح؛ أقدر أساعدك في الامتحانات، التقدم، المكتبة، الإعلانات، QUREO"+(teacher?"، إنشاء امتحان، الإعلانات ورفع الملفات.":"."));
 }
 function portalBindAssistant(role){
