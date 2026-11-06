@@ -880,7 +880,7 @@ function portalInitExamBuilder(form){
   status.textContent="تمت إضافة السؤال. أضف السؤال التالي أو جرّب الامتحان.";
   render();return true;
  };
- form.querySelector("[data-add-question]")?.addEventListener("click",add);
+ form.addEventListener("examtypechange",syncType);\n form.querySelector("[data-add-question]")?.addEventListener("click",add);
  list.addEventListener("click",e=>{const b=e.target.closest("[data-remove-question]");if(!b)return;form.__questions.splice(Number(b.dataset.removeQuestion),1);render();});
  form.addEventListener("submit",async e=>{
   e.preventDefault();const user=window.sealCurrentUser,role=window.sealCurrentProfile?.role,isEssay=form.dataset.examType==="essay";
@@ -900,6 +900,30 @@ function portalInitExamBuilder(form){
  });
  syncType();
 }
+
+document.querySelectorAll(".exam-builder-card").forEach(card=>{
+ const form=card.querySelector(".exam-builder-form");if(!form||card.dataset.trackBound)return;card.dataset.trackBound="1";
+ const tabs=[...card.querySelectorAll("[data-exam-track-tab]")],create=card.querySelector("[data-exam-create]"),preview=card.querySelector("[data-exam-preview]");
+ const previewBox=document.createElement("div");previewBox.className="exam-draft-preview";previewBox.hidden=true;previewBox.dataset.examPreviewBox="";form.after(previewBox);
+ tabs.forEach(tab=>tab.addEventListener("click",()=>{
+  const next=tab.dataset.examTrackTab;
+  tabs.forEach(x=>x.classList.toggle("active",x===tab));
+  if(form.dataset.examType!==next){form.dataset.examType=next;form.__questions=[];const list=form.querySelector("[data-question-list]");if(list)list.innerHTML='<p class="resource-loading">لم تضف أسئلة بعد.</p>';const status=form.querySelector("[data-exam-status]");if(status)status.textContent="تم اختيار "+(next==="essay"?"مسار المقالي":"مسار الاختيار")+". أضف الأسئلة الخاصة بهذا المسار.";form.dispatchEvent(new Event("examtypechange"));}
+  if(create)create.textContent=next==="essay"?"إنشاء امتحان مقالي":"إنشاء امتحان اختيار";
+  previewBox.hidden=true;
+ }));
+ create?.addEventListener("click",()=>{
+  if(form.id==="teacherExamForm"&&!window.sealCurrentProfile?.teacher_verified){alert("توثيق حساب المعلم مطلوب قبل إنشاء الامتحانات.");return;}
+  form.scrollIntoView({behavior:"smooth",block:"center"});form.querySelector("[data-exam-title]")?.focus();
+ });
+ preview?.addEventListener("click",()=>{
+  const questions=form.__questions||[];
+  if(!questions.length){alert("أضف سؤالاً واحداً على الأقل ثم جرّب شكل الامتحان.");form.querySelector("[data-question-prompt]")?.focus();return;}
+  const essay=form.dataset.examType==="essay";
+  previewBox.innerHTML='<div class="exam-preview-heading"><b>معاينة: '+portalEsc(form.querySelector("[data-exam-title]").value||"امتحان تجريبي")+'</b><span>'+ (essay?"مسار مقالي":"مسار اختيار")+'</span></div>'+questions.map((q,i)=>'<fieldset class="exam-question"><legend>'+(i+1)+'. '+portalEsc(q.prompt)+' ('+q.points+' درجة)</legend>'+(essay?'<textarea rows="3" placeholder="مكان إجابة الطالب" disabled></textarea>':q.options.map(option=>'<div class="exam-option"><span>'+portalEsc(option)+'</span></div>').join(""))+'</fieldset>').join("");
+  previewBox.hidden=false;previewBox.scrollIntoView({behavior:"smooth",block:"center"});
+ });
+});
 portalInitExamBuilder(document.getElementById("teacherExamForm"));
 portalInitExamBuilder(document.getElementById("adminExamForm"));
 
