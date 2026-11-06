@@ -544,7 +544,7 @@ function portalAssistantAnswer(question,role){
   if(/إعلاناتي|اعلاناتي/.test(q)){portalOpenDetails("#teacherAnnouncementsList");return "إعلاناتك في بطاقة «إعلاناتي»، ويمكنك تعديلها أو حذفها.";}\n  if(/qureo|كيريو/.test(q)){portalOpenDetails("#qureo");return "لفتح منصة QUREO الرسمية اضغط رابط «افتح منصة QUREO الرسمية» في قسم QUREO. إضافة ملفات وشروحات متعلقة بها تتم من بطاقة «إضافة ملف أو مصدر».";}
   if(/رتبة|طالب|حساب|ادمن|إدارة/.test(q))return "إدارة الحسابات وتغيير رتبة طالب إلى معلم من اختصاص حساب المدير فقط.";
  }else{
-  if(/اتعلم|تقدم|إنجاز|انجاز|تقييم|مشاهدات|نتيجة/.test(q)){portalOpenDetails("#learningProgressContent");return "دي مساحة «اتعلم على مهلك». هتلاقي عدد الفيديوهات والامتحانات المسجلة وتقييم تقدمك وأيام النشاط.";}
+  if(/اتعلم|تقدم|إنجاز|انجاز|تقييم|مشاهدات|نتيجة/.test(q)){portalOpenDetails("#studentVideosDone");return "دي مساحة «اتعلم على مهلك». هتلاقي عدد الفيديوهات والامتحانات المسجلة وتقييم تقدمك وأيام النشاط.";}
   if(/فيديو|شرح|درس|يوتيوب/.test(q)){
    const terms=q.split(/\s+/).filter(x=>x.length>2&&!["افتح","فيديو","شرح","عايز","من","فضلك"].includes(x));
    const match=terms.length?academyVideos.find(v=>terms.some(t=>(v.title+" "+v.subject+" "+v.teacher).toLowerCase().includes(t))):null;
@@ -555,7 +555,7 @@ function portalAssistantAnswer(question,role){
   if(/إعلان|اعلان|قرار/.test(q)){portalOpenDetails("#announcements .empty-panel");return "إعلانات المدرسة وقراراتها في قسم الإعلانات أعلى الصفحة. فتحت لك القسم.";}
   if(/كيريو|qureo|برمج/.test(q)){portalOpenDetails("#qureo");return "مركز QUREO موجود أعلى المكتبة. فتحت لك مكانه.";}
   if(/محادث|شات|رسالة|زملاء/.test(q)){portalOpenDetails("#communityMessages");return "المحادثة الجماعية موجودة في مساحة الطلاب، افتح بطاقة الحديث الجماعي.";}
-  if(/ملف|pdf|مكتبة|مصدر/.test(q)){portalOpenDetails("#library");return "المكتبة التعليمية فيها المواد والمدرسين والفيديوهات، والملفات المنشورة تظهر أسفلها.";}
+  if(/ملف|pdf|مكتبة|مصدر/.test(q)){const library=document.querySelector(".library-collapsible");if(library)library.open=true;portalOpenDetails("#library");return "المكتبة التعليمية فيها المواد والمدرسين والفيديوهات، والملفات المنشورة تظهر أسفلها.";}
  }
  const terms=q.split(/\s+/).filter(x=>x.length>2);
  const candidates=[...document.querySelectorAll("main h1,main h2,main h3,main h4,main a,main button,main summary")].filter(el=>el.offsetParent!==null&&!el.closest("#adminPanel"));
