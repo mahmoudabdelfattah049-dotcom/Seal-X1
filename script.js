@@ -945,3 +945,16 @@ portalInitExamBuilder(document.getElementById("adminExamForm"));
 document.querySelectorAll('.student-quick-links a[href="#studentExamsList"],.student-quick-links a[href="#studentLeaderboardList"]').forEach(link=>{
  link.addEventListener("click",e=>{e.preventDefault();portalOpenDetails(link.getAttribute("href"));});
 });
+
+/* Hero shortcut: open the assistant available to the signed-in role. */
+document.getElementById("heroAssistantJump")?.addEventListener("click", function(event) {
+ event.preventDefault();
+ const candidates = ["studentAssistant", "teacherAssistant"];
+ const target = candidates.map(id => document.getElementById(id)).find(el => el && el.getClientRects().length > 0);
+ if (target) {
+  if (target.tagName === "DETAILS") target.open = true;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  return;
+ }
+ document.getElementById("studentAuth")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
