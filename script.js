@@ -110,11 +110,35 @@ const dateLabel=value=>{if(!value)return "";try{return new Date(value).toLocaleD
 function setPanelState(panel,title,body){if(!panel)return;panel.innerHTML='<div class="empty-symbol">▤</div><h3>'+escapeHTML(title)+'</h3><p>'+escapeHTML(body)+'</p>';}
 async function loadAnnouncements(){
  const panel=document.querySelector("#announcements .empty-panel");
- if(!db){setPanelState(panel,"تعذر الاتصال","مكتبة الاتصال بقاعدة البيانات لم يتم تحميلها.");return;}
- const {data,error}=await db.from("announcements").select("id,title,body,pinned,created_at").eq("status","published").order("pinned",{ascending:false}).order("created_at",{ascending:false}).limit(20);
- if(error){setPanelState(panel,"الإعلانات غير متاحة مؤقتاً","تعذر تحميل الإعلانات. حاول تحديث الصفحة لاحقاً.");console.error("Announcements:",error);return;}
- if(!data?.length){setPanelState(panel,"لا توجد إعلانات منشورة حالياً","ستظهر هنا إعلانات المدرسة فور اعتمادها ونشرها.");return;}
- panel.classList.add("live-list");panel.innerHTML=data.map(item=>'<article class="live-item"><div class="live-item-top"><span class="live-tag">'+(item.pinned?"إعلان مهم":"إعلان المدرسة")+'</span><time>'+escapeHTML(dateLabel(item.created_at))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.body||"")+'</p></article>').join("");
+ if(!panel){console.error("Announcements: public panel #announcements .empty-panel was not found.");return;}
+ try{
+  let data=null,error=null;
+  if(db){
+   const result=await db.from("announcements").select("id,title,body,pinned,created_at").eq("status","published").order("pinned",{ascending:false}).order("created_at",{ascending:false}).limit(20);
+   data=result.data;error=result.error;
+  }
+  // Fall back to the public REST endpoint if the Supabase JS client failed to load or query.
+  if(!db||error){
+   const response=await fetch(SUPABASE_URL+"/rest/v1/announcements?select=id,title,body,pinned,created_at&status=eq.published&order=pinned.desc,created_at.desc&limit=20",{
+    method:"GET",cache:"no-store",
+    headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}
+   });
+   if(!response.ok)throw new Error("HTTP "+response.status+" — "+(await response.text()).slice(0,240));
+   data=await response.json();
+   error=null;
+  }
+  if(error)throw error;
+  if(!Array.isArray(data)||!data.length){
+   panel.classList.remove("live-list");
+   setPanelState(panel,"لا توجد إعلانات منشورة حالياً","ستظهر هنا إعلانات المدرسة فور اعتمادها ونشرها.");
+   return;
+  }
+  panel.classList.add("live-list");
+  panel.innerHTML=data.map(item=>'<article class="live-item"><div class="live-item-top"><span class="live-tag">'+(item.pinned?"إعلان مهم":"إعلان المدرسة")+'</span><time>'+escapeHTML(dateLabel(item.created_at))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.body||"")+'</p></article>').join("");
+ }catch(error){
+  console.error("Announcements load failed:",error);
+  setPanelState(panel,"الإعلانات غير متاحة مؤقتاً","تعذر الاتصال بخدمة الإعلانات. حاول تحديث الصفحة لاحقاً.");
+ }
 }
 
 // Keep the public announcements section synchronized for every visitor.
@@ -125,10 +149,10 @@ if(db){
   .on("postgres_changes",{event:"*",schema:"public",table:"announcements"},async()=>{
    await loadAnnouncements();
    const role=window.sealCurrentProfile?.role;
-   if(role==="admin"||role==="moderator")await portalLoadAdminAnnouncements();
+   if(role==="admin")await portalLoadAdminAnnouncements();
    else if(role==="teacher")await portalLoadTeacherAnnouncements();
   })
-  .subscribe();
+  .subscribe(status=>{console.info("Announcements realtime:",status);});
 }
 async function loadResources(){
  const section=document.querySelector("#library");
@@ -146,8 +170,11 @@ async function loadResources(){
  }));
  container.innerHTML='<h3 class="school-files-title">ملفات المدرسة المنشورة</h3>'+cards.join("");
 }
-if(db)Promise.all([loadAnnouncements(),loadResources()]);
-else setPanelState(document.querySelector("#announcements .empty-panel"),"تعذر الاتصال","لم يتم تحميل مكتبة الاتصال بقاعدة البيانات.");
+// Load immediately, then poll as a reliable fallback if a Realtime connection is unavailable.
+loadAnnouncements();
+if(db)loadResources();
+setInterval(()=>{if(document.visibilityState==="visible")loadAnnouncements();},20000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadAnnouncements();});
 
 
 // Student accounts: usernames are mapped to an internal auth address.
