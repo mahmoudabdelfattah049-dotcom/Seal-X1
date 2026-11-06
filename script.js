@@ -270,7 +270,7 @@ function portalMessageMarkup(rows,currentId,isAdmin=false){
 }
 async function portalLoadCommunity(){
  const box=document.getElementById("communityMessages");if(!box||!window.sealCurrentUser)return;
- const {data,error}=await db.from("community_feed").select("id,user_id,body,created_at,display_name,username").order("created_at",{ascending:false}).limit(80);
+ const {data,error}=await db.rpc("get_community_feed");
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة حالياً.</p>';return;}
  const rows=(data||[]).reverse().map(x=>({...x,sender_id:x.user_id,sender_name:x.display_name||x.username||"طالب"}));
  box.innerHTML=rows.length?rows.map(row=>'<div class="chat-bubble"><div class="chat-bubble-meta">'+portalEsc(row.sender_name)+' · '+portalEsc(portalTime(row.created_at))+'</div><p>'+portalEsc(row.body)+'</p></div>').join(""):'<p class="resource-loading">لسه مفيش رسائل. ابدأ أول نقاش.</p>';
