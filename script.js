@@ -795,3 +795,7 @@ function portalInitExamBuilder(form){
 portalInitExamBuilder(document.getElementById("teacherExamForm"));
 portalInitExamBuilder(document.getElementById("adminExamForm"));
 
+
+document.querySelectorAll('.student-quick-links a[href="#studentExamsList"],.student-quick-links a[href="#studentLeaderboardList"]').forEach(link=>{
+ link.addEventListener("click",e=>{e.preventDefault();portalOpenDetails(link.getAttribute("href"));});
+});
