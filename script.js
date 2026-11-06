@@ -30,6 +30,9 @@ const academyVideos=[
  ,{id:"ZhF0xMAxBbA",subject:"اللغة الأجنبية الأولى",teacher:"ميس ياسمين إيهاب",title:"شرح Unit 1 بالكامل — Upstream B2",description:"شرح الوحدة الأولى من كتاب Upstream B2 لطلاب أولى ثانوي لغات؛ قد لا يطابق مسار العام.",kind:"شرح",duration:"—",date:"2026-09-20",recommended:3,verified:true,track:"لغات"}
  ,{id:"QJSf0f09xxU",subject:"الرياضيات",teacher:"م. محمد خالد البقري",title:"الدوال المثلثية ومقلوباتها",description:"شرح الدوال المثلثية ومقلوباتها في حساب المثلثات مع تطبيقات على المسائل.",kind:"شرح",duration:"—",date:"2026-10-14",recommended:5,verified:true}
  ,{id:"nPZFThbeaA0",subject:"الرياضيات",teacher:"مستر أحمد سليمان",title:"بداية منهج الرياضيات — أولى ثانوي 2027",description:"فيديو تمهيدي للتعرف على بداية منهج الرياضيات للترم الأول.",kind:"شرح",duration:"—",date:"2026-09-21",recommended:3,verified:true}
+ ,{id:"mvbZ2Oaqy8E",subject:"الفلسفة والمنطق",teacher:"مستر زياد أحمد",title:"نشأة الفلسفة وتعريفاتها",description:"شرح نشأة الفلسفة وأهم تعريفاتها ضمن الفصل الأول من منهج الفلسفة.",kind:"شرح",duration:"—",date:"2026-10-27",recommended:5,verified:true}
+ ,{id:"qJ234Y56kXs",subject:"الفلسفة والمنطق",teacher:"مستر زياد أحمد",title:"شرح القضايا المنطقية بالكامل",description:"شرح القضايا المنطقية في منهج المنطق للصف الأول الثانوي الترم الأول 2027.",kind:"شرح",duration:"—",date:"2026-10-29",recommended:5,verified:true}
+ ,{id:"so4dkksDOZc",subject:"الفلسفة والمنطق",teacher:"الخطة التعليمية",title:"عوامل الوقوع في أخطاء التفكير",description:"شرح درس عوامل الوقوع في أخطاء التفكير ضمن منهج المنطق للترم الأول.",kind:"شرح",duration:"—",date:"2026-09-21",recommended:4,verified:true}
 ];
 const academySubjects=[
  {name:"اللغة العربية",icon:"ع",desc:"النحو والبلاغة والقراءة والنصوص والأدب."},
