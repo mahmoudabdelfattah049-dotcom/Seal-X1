@@ -413,6 +413,8 @@ async function portalLoadAdminThread(userId){
 
 async function portalLoadAdminAnnouncements(){
  const box=document.getElementById("adminAnnouncementsList");if(!box)return;
+ // The admin cards are compact by default; reveal this list whenever it is refreshed.
+ const adminDetails=box.closest("details.portal-collapsible");if(adminDetails)adminDetails.open=true;
  const {data,error}=await db.from("announcements").select("id,title,body,pinned,status,created_at").order("created_at",{ascending:false}).limit(80);
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل الإعلانات.</p>';return;}
  box.innerHTML=data?.length?data.map(a=>'<article class="admin-report"><div><b>'+portalEsc(a.title)+'</b><small>'+portalEsc(a.status)+' · '+portalEsc(portalTime(a.created_at))+'</small></div><p>'+portalEsc(a.body||"")+'</p><div class="admin-inline-actions"><button data-edit-announcement="'+portalEsc(a.id)+'">تعديل</button><button class="danger-action" data-delete-announcement="'+portalEsc(a.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لا توجد إعلانات.</p>';
@@ -590,6 +592,8 @@ async function portalLoadTeacherResources(){
 }
 async function portalLoadTeacherAnnouncements(){
  const box=document.getElementById("teacherAnnouncementsList");if(!box||!window.sealCurrentUser)return;
+ // Keep the teacher announcement manager visible after every load.
+ const teacherDetails=box.closest("details.portal-collapsible");if(teacherDetails)teacherDetails.open=true;
  const {data,error}=await db.from("announcements").select("id,title,body,status,pinned,created_at").eq("created_by",window.sealCurrentUser.id).order("created_at",{ascending:false}).limit(80);
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل إعلاناتك.</p>';return;}
  box.innerHTML=data?.length?data.map(a=>'<article class="admin-report"><div><b>'+portalEsc(a.title)+'</b><small>'+portalEsc(a.status)+' · '+portalEsc(portalTime(a.created_at))+'</small></div><p>'+portalEsc(a.body||"")+'</p><div class="admin-inline-actions"><button data-edit-teacher-announcement="'+portalEsc(a.id)+'">تعديل</button><button class="danger-action" data-delete-teacher-announcement="'+portalEsc(a.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لم تنشر أي إعلانات بعد.</p>';
@@ -853,7 +857,7 @@ portalAssistantAnswer=function(question,role){
 document.querySelector(".learn-pace-link")?.addEventListener("click",e=>{
  if(!window.sealCurrentUser){e.preventDefault();document.getElementById("accountOpen")?.click();alert("سجّل الدخول أولاً لعرض تقدمك الشخصي.");}
 });
-portalMakeCompact("#announcements .empty-panel","الإعلانات والقرارات","اضغط لعرض الإعلانات المنشورة");
+// Keep public announcements visible: this live output must never be placed inside a closed collapsible.
 portalMakeCompact("#qureo .feature-card","قسم تعليمي","اضغط لعرض التفاصيل");
 
 async function portalExamAction(action,payload={}){return await portalAdminCall(action,payload);}
