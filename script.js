@@ -431,6 +431,7 @@ async function portalInitSpaces(user,profile){
  if(isTeacher){
   const name=document.getElementById("teacherWelcomeName");if(name)name.textContent="مرحباً، "+(profile?.teacher_verified?(profile.teacher_full_name||profile.display_name):profile?.display_name||profile?.username||"معلم");
   const badge=document.getElementById("teacherWelcomeBadge");if(badge)badge.hidden=!profile?.teacher_verified;
+  portalSetVisible("teacherEssayReviewCard",profile?.teacher_verified===true);
   const note=document.getElementById("teacherExamAccessNote");if(note)note.textContent=profile?.teacher_verified?"حسابك موثق في مادة "+profile.teacher_subject+"؛ يمكنك إنشاء امتحانات لهذه المادة فقط.":"إنشاء الامتحانات متاح بعد توثيق حسابك من الإدارة. يمكنك استخدام بقية أدوات المعلم.";
   const examForm=document.getElementById("teacherExamForm");if(examForm){const subject=examForm.querySelector("[data-exam-subject]");if(subject)subject.value=profile?.teacher_subject||"";}
   document.querySelectorAll('#teacherSpace [data-exam-create]').forEach(b=>b.disabled=!profile?.teacher_verified);
