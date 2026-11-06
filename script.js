@@ -181,12 +181,26 @@ if(db&&authCard){
    window.sealInitPortalSpaces?.(null,null);
    return;
   }
-  const {data:profile}=await db.from("profiles").select("username,display_name,role,grade").eq("id",user.id).maybeSingle();
+  const {data:profile}=await db.from("profiles").select("username,display_name,role,grade,teacher_full_name,teacher_subject,teacher_verified").eq("id",user.id).maybeSingle();
+  if(profile?.role==="admin"){
+   try{
+    let deviceToken=localStorage.getItem("seal_admin_device_v1");
+    if(!deviceToken){const bytes=crypto.getRandomValues(new Uint8Array(32));deviceToken=Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");localStorage.setItem("seal_admin_device_v1",deviceToken);}
+    const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(deviceToken));
+    const deviceHash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+    await portalAdminCall("check_admin_device",{device_hash:deviceHash});
+   }catch(deviceError){
+    await db.auth.signOut();
+    authForm.hidden=false;authSession.hidden=true;
+    setAuthMessage(deviceError.message||"تم رفض الدخول من هذا الجهاز. اطلب فتح تسجيل الدخول لحساب الإدارة.","error");
+    return;
+   }
+  }
   authForm.hidden=true;authSession.hidden=false;
   document.getElementById("accountOpen").hidden=true;
   document.getElementById("authSessionName").textContent=profile?.display_name||profile?.username||user.user_metadata?.username||"طالب Seal X1";
   authHeading.textContent=profile?.role==="admin"?"أهلاً بك يا مدير المنصة":"تم تسجيل الدخول";
-  authSubheading.textContent=profile?.role==="admin"?"صلاحيات الإدارة الكاملة مفعّلة":"حسابك متصل وجاهز لحفظ تقدمك";
+  authSubheading.textContent=profile?.role==="admin"?"صلاحيات الإدارة الكاملة مفعّلة":profile?.role==="teacher"?(profile.teacher_verified?"معلم موثق — "+profile.teacher_subject:"حساب معلم غير موثق بعد"):"حسابك متصل وجاهز لحفظ تقدمك";
   window.sealInitPortalSpaces?.(user,profile);
  }
  authForm.addEventListener("submit",async event=>{
@@ -272,12 +286,12 @@ async function portalLoadCommunity(){
  const box=document.getElementById("communityMessages");if(!box||!window.sealCurrentUser)return;
  const [messages,profiles]=await Promise.all([
   db.from("community_messages").select("id,user_id,body,created_at").order("created_at",{ascending:false}).limit(80),
-  db.from("community_profiles_public").select("id,display_name,username")
+  db.from("community_profiles_public").select("id,display_name,username,role,teacher_verified,teacher_full_name,teacher_subject")
  ]);
  if(messages.error||profiles.error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة حالياً.</p>';return;}
- const names=new Map((profiles.data||[]).map(p=>[p.id,p.display_name||p.username||"طالب"]));
- const rows=(messages.data||[]).reverse().map(x=>({...x,sender_id:x.user_id,sender_name:names.get(x.user_id)||"طالب"}));
- box.innerHTML=rows.length?rows.map(row=>'<div class="chat-bubble"><div class="chat-bubble-meta">'+portalEsc(row.sender_name)+' · '+portalEsc(portalTime(row.created_at))+'</div><p>'+portalEsc(row.body)+'</p></div>').join(""):'<p class="resource-loading">لسه مفيش رسائل. ابدأ أول نقاش.</p>';
+ const names=new Map((profiles.data||[]).map(p=>[p.id,{name:p.teacher_verified?(p.teacher_full_name||p.display_name||p.username):p.display_name||p.username||"طالب",verified:p.teacher_verified===true}]));
+ const rows=(messages.data||[]).reverse().map(x=>({...x,sender_id:x.user_id,sender_name:names.get(x.user_id)?.name||"طالب",verified:names.get(x.user_id)?.verified||false}));
+ box.innerHTML=rows.length?rows.map(row=>'<div class="chat-bubble"><div class="chat-bubble-meta">'+portalEsc(row.sender_name)+(row.verified?' <span class="verified-teacher-badge">✓ موثق</span>':"")+' · '+portalEsc(portalTime(row.created_at))+'</div><p>'+portalEsc(row.body)+'</p></div>').join(""):'<p class="resource-loading">لسه مفيش رسائل. ابدأ أول نقاش.</p>';
  box.scrollTop=box.scrollHeight;
 }
 async function portalLoadStudentSupport(){
@@ -438,7 +452,7 @@ document.addEventListener("click",async e=>{
 });
 if(db){
  db.auth.getUser().then(async({data:{user}})=>{
-  if(user){const {data:profile}=await db.from("profiles").select("username,display_name,role,grade").eq("id",user.id).maybeSingle();await portalInitSpaces(user,profile);}
+  if(user){const {data:profile}=await db.from("profiles").select("username,display_name,role,grade,teacher_full_name,teacher_subject,teacher_verified").eq("id",user.id).maybeSingle();await portalInitSpaces(user,profile);}
  });
 }
 
