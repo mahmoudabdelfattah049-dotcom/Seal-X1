@@ -27,6 +27,9 @@ const academyVideos=[
  ,{id:"TuApiiQQzqQ",subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"مراجعة Unit 2: كلمات وقواعد وأسئلة",description:"مراجعة شاملة للوحدة الثانية Hands Help, Hearts Care تشمل المفردات والقواعد والتدريب.",kind:"مراجعة",duration:"—",date:"2026-09-28",recommended:5,verified:true}
  ,{id:"3iVDH71SZtw",subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"حل تقييم الأسبوع الأول",description:"حل تقييمات الوزارة للأسبوع الأول مع شرح المفردات والجرامر والكتابة.",kind:"حل وتدريب",duration:"—",date:"2026-09-23",recommended:4,verified:true}
  ,{id:"1kODywKg0tI",subject:"اللغة الأجنبية الأولى",teacher:"عبدالحميد حامد",title:"حل تقييمات الإنجليزي — الترم الأول 2027",description:"تدريب على تقييمات أولى ثانوي ومراجعة شكل الأسئلة والإجابات.",kind:"حل وتدريب",duration:"—",date:"2026-10-17",recommended:4,verified:true}
+ ,{id:"ZhF0xMAxBbA",subject:"اللغة الأجنبية الأولى",teacher:"ميس ياسمين إيهاب",title:"شرح Unit 1 بالكامل — Upstream B2",description:"شرح الوحدة الأولى من كتاب Upstream B2 لطلاب أولى ثانوي لغات؛ قد لا يطابق مسار العام.",kind:"شرح",duration:"—",date:"2026-09-20",recommended:3,verified:true,track:"لغات"}
+ ,{id:"QJSf0f09xxU",subject:"الرياضيات",teacher:"م. محمد خالد البقري",title:"الدوال المثلثية ومقلوباتها",description:"شرح الدوال المثلثية ومقلوباتها في حساب المثلثات مع تطبيقات على المسائل.",kind:"شرح",duration:"—",date:"2026-10-14",recommended:5,verified:true}
+ ,{id:"nPZFThbeaA0",subject:"الرياضيات",teacher:"مستر أحمد سليمان",title:"بداية منهج الرياضيات — أولى ثانوي 2027",description:"فيديو تمهيدي للتعرف على بداية منهج الرياضيات للترم الأول.",kind:"شرح",duration:"—",date:"2026-09-21",recommended:3,verified:true}
 ];
 const academySubjects=[
  {name:"اللغة العربية",icon:"ع",desc:"النحو والبلاغة والقراءة والنصوص والأدب."},
