@@ -113,13 +113,13 @@
  <select data-exam-subject required><option value="">اختر المادة</option><option>اللغة العربية</option><option>اللغة الإنجليزية</option><option>الرياضيات</option><option>العلوم المتكاملة</option><option>التاريخ</option><option>الجغرافيا</option><option>الفلسفة والمنطق</option><option>اللغة الفرنسية</option><option>اللغة الألمانية</option><option>اللغة الإيطالية</option><option>اللغة الإسبانية</option><option>اللغة الأجنبية الثانية</option><option>التربية الدينية</option><option>البرمجة والذكاء الاصطناعي</option><option>الفيزياء</option><option>الكيمياء</option><option>الأحياء</option><option>الدراسات الاجتماعية</option><option>الحاسب الآلي</option></select>
  <textarea data-exam-description maxlength="1200" rows="2" placeholder="وصف أو تعليمات الامتحان (اختياري)"></textarea>
  <label>المدة المقترحة بالدقائق<input data-exam-duration type="number" min="5" max="180" value="30" required></label>
- <div class="exam-question-editor"><b>إضافة سؤال اختيار من متعدد</b>
+ <div class="exam-question-editor"><b data-question-editor-title>إضافة سؤال اختيار من متعدد</b>
   <textarea data-question-prompt maxlength="700" rows="2" placeholder="اكتب السؤال..."></textarea>
-  <input data-question-option placeholder="الاختيار الأول" maxlength="250">
-  <input data-question-option placeholder="الاختيار الثاني" maxlength="250">
-  <input data-question-option placeholder="الاختيار الثالث (اختياري)" maxlength="250">
-  <input data-question-option placeholder="الاختيار الرابع (اختياري)" maxlength="250">
-  <div class="exam-question-settings"><label>الإجابة الصحيحة<select data-question-answer><option value="0">الاختيار الأول</option><option value="1">الاختيار الثاني</option><option value="2">الاختيار الثالث</option><option value="3">الاختيار الرابع</option></select></label><label>درجة السؤال<input data-question-points type="number" min="1" max="100" value="1"></label></div>
+  <input data-choice-only data-question-option placeholder="الاختيار الأول" maxlength="250">
+  <input data-choice-only data-question-option placeholder="الاختيار الثاني" maxlength="250">
+  <input data-choice-only data-question-option placeholder="الاختيار الثالث (اختياري)" maxlength="250">
+  <input data-choice-only data-question-option placeholder="الاختيار الرابع (اختياري)" maxlength="250">
+  <div class="exam-question-settings"><label data-choice-only>الإجابة الصحيحة<select data-question-answer><option value="0">الاختيار الأول</option><option value="1">الاختيار الثاني</option><option value="2">الاختيار الثالث</option><option value="3">الاختيار الرابع</option></select></label><label>درجة السؤال<input data-question-points type="number" min="1" max="100" value="1"></label></div>
   <button type="button" class="subtle-action" data-add-question>إضافة السؤال للقائمة</button>
  </div>
  <div data-question-list class="exam-question-list"><p class="resource-loading">لم تضف أسئلة بعد.</p></div>
@@ -132,7 +132,7 @@
 
     <section class="content-section section-wrap portal-space teacher-space" id="teacherSpace" hidden>
       <div class="section-heading"><div><div class="eyebrow">TEACHERS WORKSPACE</div><h2>مجلد <span>المعلمين</span></h2><p>إضافة الإعلانات والملفات والمصادر التعليمية وإدارة ما نشرته.</p></div><span class="section-number">06 / TEACHER</span></div>
-      <div class="teacher-welcome"><b id="teacherWelcomeName">مرحباً بك</b><span>صلاحيات المعلم — لا تشمل إدارة الحسابات أو تغيير الرتب</span></div>
+      <div class="teacher-welcome"><b id="teacherWelcomeName">مرحباً بك</b><span id="teacherWelcomeBadge" class="verified-teacher-badge" hidden>✓ مدرس موثق</span><span>صلاحيات المعلم — لا تشمل إدارة الحسابات أو تغيير الرتب</span></div>
       <div class="teacher-tools-grid">
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">ANNOUNCEMENTS</span><h3>إضافة إعلان للطلاب</h3></div></div><form id="teacherAnnouncementForm" class="admin-form"><input id="teacherAnnouncementTitle" maxlength="140" placeholder="عنوان الإعلان" required><textarea id="teacherAnnouncementBody" maxlength="4000" rows="4" placeholder="تفاصيل الإعلان..." required></textarea><label class="inline-check"><input id="teacherAnnouncementPinned" type="checkbox"> إعلان مهم</label><button type="submit">نشر الإعلان</button><p id="teacherAnnouncementStatus" class="chat-note"></p></form></article>
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">LEARNING RESOURCES</span><h3>إضافة ملف أو مصدر</h3></div></div><form id="teacherResourceForm" class="admin-form teacher-resource-form"><input id="teacherResourceTitle" maxlength="160" placeholder="عنوان الملف أو المصدر" required><textarea id="teacherResourceDescription" maxlength="1200" rows="3" placeholder="وصف مختصر ومحتوى الملف"></textarea><input id="teacherResourceSubject" maxlength="80" placeholder="المادة (مثلاً: الرياضيات)"><input id="teacherResourceUrl" type="url" placeholder="رابط خارجي (اختياري)"><label class="file-upload-label">أو ارفع ملف PDF / صورة / مستند<input id="teacherResourceFile" type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.ppt,.pptx"></label><button type="submit">إضافة إلى المنصة</button><p id="teacherResourceStatus" class="chat-note">الملفات تُرفع إلى مساحة التخزين الخاصة، ويظهر الرابط للطلاب بعد النشر.</p></form></article>
@@ -148,13 +148,13 @@
  <input data-exam-subject readonly required placeholder="مادة المعلم الموثقة">
  <textarea data-exam-description maxlength="1200" rows="2" placeholder="وصف أو تعليمات الامتحان (اختياري)"></textarea>
  <label>المدة بالدقائق<input data-exam-duration type="number" min="5" max="180" value="30" required></label>
- <div class="exam-question-editor"><b>إضافة سؤال اختيار من متعدد</b>
+ <div class="exam-question-editor"><b data-question-editor-title>إضافة سؤال اختيار من متعدد</b>
   <textarea data-question-prompt maxlength="700" rows="2" placeholder="اكتب السؤال..."></textarea>
-  <input data-question-option placeholder="الاختيار الأول" maxlength="250">
-  <input data-question-option placeholder="الاختيار الثاني" maxlength="250">
-  <input data-question-option placeholder="الاختيار الثالث (اختياري)" maxlength="250">
-  <input data-question-option placeholder="الاختيار الرابع (اختياري)" maxlength="250">
-  <div class="exam-question-settings"><label>الإجابة الصحيحة<select data-question-answer><option value="0">الاختيار الأول</option><option value="1">الاختيار الثاني</option><option value="2">الاختيار الثالث</option><option value="3">الاختيار الرابع</option></select></label><label>درجة السؤال<input data-question-points type="number" min="1" max="100" value="1"></label></div>
+  <input data-choice-only data-question-option placeholder="الاختيار الأول" maxlength="250">
+  <input data-choice-only data-question-option placeholder="الاختيار الثاني" maxlength="250">
+  <input data-choice-only data-question-option placeholder="الاختيار الثالث (اختياري)" maxlength="250">
+  <input data-choice-only data-question-option placeholder="الاختيار الرابع (اختياري)" maxlength="250">
+  <div class="exam-question-settings"><label data-choice-only>الإجابة الصحيحة<select data-question-answer><option value="0">الاختيار الأول</option><option value="1">الاختيار الثاني</option><option value="2">الاختيار الثالث</option><option value="3">الاختيار الرابع</option></select></label><label>درجة السؤال<input data-question-points type="number" min="1" max="100" value="1"></label></div>
   <button type="button" class="subtle-action" data-add-question>إضافة السؤال للقائمة</button>
  </div>
  <div data-question-list class="exam-question-list"><p class="resource-loading">لم تضف أسئلة بعد.</p></div>
