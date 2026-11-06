@@ -529,10 +529,10 @@ function portalOpenDetails(selector){
 }
 function portalNormalizeArabic(value){
  return String(value||"").toLowerCase().normalize("NFD")
-  .replace(/[\\u064B-\\u065F\\u0670\\u0640]/g,"")
+  .replace(/[\u064B-\u065F\u0670\u0640]/g,"")
   .replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه")
-  .replace(/[ًٌٍَُِّْـ]/g,"").replace(/[؟?!،؛:.,()[\\]{}"'`]/g," ")
-  .replace(/\\s+/g," ").trim();
+  .replace(/[ًٌٍَُِّْـ]/g,"").replace(/[؟?!،؛:.,;'"`]/g," ")
+  .replace(/\s+/g," ").trim();
 }
 function portalHasAny(text,terms){return terms.some(term=>text.includes(portalNormalizeArabic(term)));}
 function portalVideoMatch(query){
