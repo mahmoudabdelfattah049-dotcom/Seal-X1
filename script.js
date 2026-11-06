@@ -802,15 +802,28 @@ portalMakeCompact("#announcements .empty-panel","الإعلانات والقرا
 portalMakeCompact("#qureo .feature-card","قسم تعليمي","اضغط لعرض التفاصيل");
 
 async function portalExamAction(action,payload={}){return await portalAdminCall(action,payload);}
+let sealStudentExamType="choice";
 async function portalLoadExams(){
  const box=document.getElementById("studentExamsList");if(!box||!window.sealCurrentUser)return;
  box.innerHTML='<p class="resource-loading">جاري تحميل الامتحانات المنشورة...</p>';
- const {data,error}=await db.from("platform_exams").select("id,title,subject,description,duration_minutes,total_points,questions,created_at").eq("status","published").order("subject").order("created_at",{ascending:false});
+ const {data,error}=await db.from("platform_exams").select("id,title,subject,description,duration_minutes,total_points,questions,exam_type,created_at").eq("status","published").eq("exam_type",sealStudentExamType).order("subject").order("created_at",{ascending:false});
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل الامتحانات: '+portalEsc(error.message)+'</p>';return;}
- if(!data?.length){box.innerHTML='<p class="resource-loading">لا توجد امتحانات منشورة حالياً. هتظهر هنا امتحانات المدرسين والإدارة.</p>';return;}
+ if(!data?.length){box.innerHTML='<p class="resource-loading">لا توجد امتحانات في هذا المسار حالياً.</p>';return;}
  const groups=new Map();data.forEach(exam=>{const subject=exam.subject||"مواد أخرى";if(!groups.has(subject))groups.set(subject,[]);groups.get(subject).push(exam);});
- box.innerHTML=[...groups.entries()].map(([subject,exams])=>'<details class="subject-exam-group"><summary><span><b>'+portalEsc(subject)+'</b><small>'+exams.length+' امتحان</small></span><span class="assistant-chevron">⌄</span></summary><div class="subject-exam-items">'+exams.map(exam=>'<details class="student-exam-card" data-exam-card="'+portalEsc(exam.id)+'"><summary><span><b>'+portalEsc(exam.title)+'</b><small>'+exam.questions.length+' سؤال · '+exam.duration_minutes+' دقيقة مقترحة · '+exam.total_points+' درجة</small></span><span class="assistant-chevron">⌄</span></summary><div class="student-exam-body"><p>'+portalEsc(exam.description||"")+'</p><form class="student-take-exam" data-take-exam="'+portalEsc(exam.id)+'">'+exam.questions.map((q,i)=>'<fieldset class="exam-question"><legend>'+((i+1)+". "+portalEsc(q.prompt))+' <small>('+Number(q.points||1)+' درجة)</small></legend>'+q.options.map((option,n)=>'<label class="exam-option"><input type="radio" name="question-'+i+'" value="'+n+'" required><span>'+portalEsc(option)+'</span></label>').join("")+'</fieldset>').join("")+'<button type="submit">تسليم الإجابات</button><p class="exam-result" aria-live="polite"></p></form></div></details>').join("")+'</div></details>').join("");
+ box.innerHTML=[...groups.entries()].map(([subject,exams])=>'<details class="subject-exam-group"><summary><span><b>'+portalEsc(subject)+'</b><small>'+exams.length+' امتحان</small></span><span class="assistant-chevron">⌄</span></summary><div class="subject-exam-items">'+exams.map(exam=>{
+  const questions=Array.isArray(exam.questions)?exam.questions:[];
+  const questionMarkup=questions.map((q,i)=>{
+   if(exam.exam_type==="essay")return '<fieldset class="exam-question"><legend>'+(i+1)+'. '+portalEsc(q.prompt)+' <small>('+Number(q.points||1)+' درجة)</small></legend><textarea class="essay-student-answer" rows="4" maxlength="5000" placeholder="اكتب إجابتك هنا..." required></textarea></fieldset>';
+   return '<fieldset class="exam-question"><legend>'+(i+1)+'. '+portalEsc(q.prompt)+' <small>('+Number(q.points||1)+' درجة)</small></legend>'+(q.options||[]).map((option,n)=>'<label class="exam-option"><input type="radio" name="question-'+i+'" value="'+n+'" required><span>'+portalEsc(option)+'</span></label>').join("")+'</fieldset>';
+  }).join("");
+  return '<details class="student-exam-card" data-exam-card="'+portalEsc(exam.id)+'"><summary><span><b>'+portalEsc(exam.title)+'</b><small>'+questions.length+' سؤال · '+exam.duration_minutes+' دقيقة مقترحة · '+exam.total_points+' درجة</small></span><span class="assistant-chevron">⌄</span></summary><div class="student-exam-body"><p>'+portalEsc(exam.description||"")+'</p><form class="student-take-exam" data-take-exam="'+portalEsc(exam.id)+'" data-exam-type="'+portalEsc(exam.exam_type)+'">'+questionMarkup+'<button type="submit">'+(exam.exam_type==="essay"?"إرسال الإجابات للمراجعة":"تسليم الإجابات والتصحيح الفوري")+'</button><p class="exam-result" aria-live="polite"></p></form></div></details>';
+ }).join("")+'</div></details>').join("");
 }
+document.querySelectorAll("[data-student-exam-type]").forEach(button=>button.addEventListener("click",()=>{
+ sealStudentExamType=button.dataset.studentExamType;
+ document.querySelectorAll("[data-student-exam-type]").forEach(b=>b.classList.toggle("active",b===button));
+ portalLoadExams();
+}));
 async function portalLoadLeaderboard(){
  const box=document.getElementById("studentLeaderboardList");if(!box||!window.sealCurrentUser)return;
  box.innerHTML='<p class="resource-loading">جاري حساب الترتيب...</p>';
@@ -825,47 +838,67 @@ document.getElementById("refreshLeaderboard")?.addEventListener("click",portalLo
 document.getElementById("studentExamsList")?.addEventListener("submit",async e=>{
  const form=e.target.closest("[data-take-exam]");if(!form)return;e.preventDefault();
  const button=form.querySelector('button[type="submit"]'),status=form.querySelector(".exam-result");
- const questions=[...form.querySelectorAll(".exam-question")],answers=questions.map((_,i)=>{const picked=form.querySelector('input[name="question-'+i+'"]:checked');return picked?Number(picked.value):-1;});
- if(answers.some(x=>x<0)){status.textContent="جاوب عن كل الأسئلة قبل التسليم.";return;}
- button.disabled=true;button.textContent="جاري التصحيح...";
+ const isEssay=form.dataset.examType==="essay";
+ const questions=[...form.querySelectorAll(".exam-question")];
+ const answers=isEssay?questions.map(q=>q.querySelector("textarea")?.value.trim()||""):questions.map((_,i)=>{const picked=form.querySelector('input[name="question-'+i+'"]:checked');return picked?Number(picked.value):-1;});
+ if(answers.some(x=>x===""||x===-1)){status.textContent="أكمل إجابة كل الأسئلة قبل الإرسال.";return;}
+ button.disabled=true;button.textContent="جاري الإرسال...";
  try{
   const result=await portalExamAction("submit_exam",{exam_id:form.dataset.takeExam,answers});
-  status.textContent="نتيجتك: "+result.score+" من "+result.total_score+" ("+result.percentage+"%). تم حفظ الدرجة في تقدمك.";
-  form.querySelectorAll("input,button").forEach(el=>el.disabled=true);
+  status.textContent=isEssay?"تم إرسال إجاباتك بنجاح. حالتها الآن «بانتظار التصحيح»، وستظهر الدرجة بعد مراجعة المعلم.":"نتيجتك: "+result.score+" من "+result.total_score+" ("+result.percentage+"%). تم حفظ الدرجة في تقدمك.";
+  form.querySelectorAll("input,textarea,button").forEach(el=>el.disabled=true);
   await Promise.all([portalLoadStudentStats(),portalLoadLeaderboard()]);
- }catch(error){status.textContent="تعذر تسليم الامتحان: "+error.message;button.disabled=false;button.textContent="تسليم الإجابات";}
+ }catch(error){status.textContent="تعذر تسليم الامتحان: "+error.message;button.disabled=false;button.textContent=isEssay?"إرسال الإجابات للمراجعة":"تسليم الإجابات والتصحيح الفوري";}
 });
 function portalInitExamBuilder(form){
  if(!form||form.dataset.bound)return;form.dataset.bound="1";form.__questions=[];
  const list=form.querySelector("[data-question-list]"),status=form.querySelector("[data-exam-status]");
+ const choiceOnly=form.querySelectorAll("[data-choice-only]");
+ const syncType=()=>{
+  const essay=form.dataset.examType==="essay";
+  choiceOnly.forEach(el=>el.hidden=essay);
+  const heading=form.querySelector("[data-question-editor-title]");if(heading)heading.textContent=essay?"إضافة سؤال مقالي":"إضافة سؤال اختيار من متعدد";
+  const subject=form.querySelector("[data-exam-subject]");
+  if(form.id==="teacherExamForm"&&window.sealCurrentProfile?.teacher_verified&&subject)subject.value=window.sealCurrentProfile.teacher_subject||"";
+ };
  const render=()=>{list.innerHTML=form.__questions.length?form.__questions.map((q,i)=>'<div class="exam-question-chip"><span><b>سؤال '+(i+1)+'</b> · '+portalEsc(q.prompt)+' ('+q.points+' درجة)</span><button type="button" data-remove-question="'+i+'" aria-label="حذف السؤال">×</button></div>').join(""):'<p class="resource-loading">لم تضف أسئلة بعد.</p>';};
  const add=()=>{
-  const prompt=form.querySelector("[data-question-prompt]").value.trim();
-  const rawOptions=[...form.querySelectorAll("[data-question-option]")].map(x=>x.value.trim());
-  const lastFilled=rawOptions.map((x,i)=>x?i:-1).reduce((a,b)=>Math.max(a,b),-1),options=rawOptions.slice(0,lastFilled+1);
-  const answerIndex=Number(form.querySelector("[data-question-answer]").value),points=Number(form.querySelector("[data-question-points]").value)||1;
-  if(prompt.length<3||options.length<2||options.some(x=>!x)||answerIndex>=options.length){status.textContent="اكتب السؤال واختيارين على الأقل دون ترك فراغ بين الاختيارات، وحدد إجابة صحيحة موجودة.";return false;}
-  form.__questions.push({prompt,options,answerIndex,points:Math.max(1,Math.min(100,points))});
-  form.querySelector("[data-question-prompt]").value="";form.querySelectorAll("[data-question-option]").forEach(x=>x.value="");
-  form.querySelector("[data-question-answer]").value="0";form.querySelector("[data-question-points]").value="1";status.textContent="تمت إضافة السؤال. أضف السؤال التالي أو انشر الامتحان.";
+  const prompt=form.querySelector("[data-question-prompt]").value.trim(),essay=form.dataset.examType==="essay";
+  let options=[],answerIndex=null;
+  if(!essay){
+   const rawOptions=[...form.querySelectorAll("[data-question-option]")].map(x=>x.value.trim());
+   const lastFilled=rawOptions.map((x,i)=>x?i:-1).reduce((a,b)=>Math.max(a,b),-1);options=rawOptions.slice(0,lastFilled+1);
+   answerIndex=Number(form.querySelector("[data-question-answer]").value);
+   if(prompt.length<3||options.length<2||options.some(x=>!x)||answerIndex>=options.length){status.textContent="اكتب السؤال واختيارين على الأقل دون ترك فراغ، وحدد الإجابة الصحيحة.";return false;}
+  }else if(prompt.length<3){status.textContent="اكتب نص السؤال المقالي أولاً.";return false;}
+  const points=Number(form.querySelector("[data-question-points]").value)||1;
+  form.__questions.push(essay?{type:"essay",prompt,points:Math.max(1,Math.min(100,points))}:{type:"choice",prompt,options,answerIndex,points:Math.max(1,Math.min(100,points))});
+  form.querySelector("[data-question-prompt]").value="";
+  form.querySelectorAll("[data-question-option]").forEach(x=>x.value="");
+  if(form.querySelector("[data-question-answer]"))form.querySelector("[data-question-answer]").value="0";
+  form.querySelector("[data-question-points]").value="1";
+  status.textContent="تمت إضافة السؤال. أضف السؤال التالي أو جرّب الامتحان.";
   render();return true;
  };
  form.querySelector("[data-add-question]")?.addEventListener("click",add);
  list.addEventListener("click",e=>{const b=e.target.closest("[data-remove-question]");if(!b)return;form.__questions.splice(Number(b.dataset.removeQuestion),1);render();});
  form.addEventListener("submit",async e=>{
-  e.preventDefault();const user=window.sealCurrentUser,role=window.sealCurrentProfile?.role;
+  e.preventDefault();const user=window.sealCurrentUser,role=window.sealCurrentProfile?.role,isEssay=form.dataset.examType==="essay";
   if(!user||!["teacher","admin"].includes(role)){status.textContent="إنشاء الامتحانات متاح للمعلمين والإدارة فقط.";return;}
+  if(role==="teacher"&&!window.sealCurrentProfile?.teacher_verified){status.textContent="يجب توثيق حساب المعلم قبل إنشاء الامتحانات.";return;}
+  if(role==="teacher"&&form.querySelector("[data-exam-subject]").value!==window.sealCurrentProfile.teacher_subject){status.textContent="لا يمكنك إنشاء امتحان خارج مادتك الموثقة.";return;}
   const prompt=form.querySelector("[data-question-prompt]").value.trim();
   if(prompt&&!add())return;
   if(!form.__questions.length){status.textContent="أضف سؤالاً واحداً على الأقل قبل النشر.";return;}
-  const payload={title:form.querySelector("[data-exam-title]").value.trim(),subject:form.querySelector("[data-exam-subject]").value.trim(),description:form.querySelector("[data-exam-description]").value.trim(),duration_minutes:Number(form.querySelector("[data-exam-duration]").value)||30,questions:form.__questions};
+  const payload={title:form.querySelector("[data-exam-title]").value.trim(),subject:form.querySelector("[data-exam-subject]").value.trim(),description:form.querySelector("[data-exam-description]").value.trim(),duration_minutes:Number(form.querySelector("[data-exam-duration]").value)||30,exam_type:isEssay?"essay":"choice",questions:form.__questions};
   const button=form.querySelector('button[type="submit"]');button.disabled=true;status.textContent="جاري إنشاء الامتحان...";
   try{
    const result=await portalExamAction("create_exam",payload);
    form.reset();form.__questions=[];render();status.textContent="تم نشر امتحان «"+result.exam.title+"» في مادة "+result.exam.subject+".";
   }catch(error){status.textContent="تعذر نشر الامتحان: "+error.message;}
-  finally{button.disabled=false;}
+  finally{button.disabled=false;syncType();}
  });
+ syncType();
 }
 portalInitExamBuilder(document.getElementById("teacherExamForm"));
 portalInitExamBuilder(document.getElementById("adminExamForm"));
