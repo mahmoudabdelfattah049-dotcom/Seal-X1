@@ -109,7 +109,7 @@ const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);
 const dateLabel=value=>{if(!value)return "";try{return new Date(value).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"});}catch{return "";}};
 function setPanelState(panel,title,body){if(!panel)return;panel.innerHTML='<div class="empty-symbol">▤</div><h3>'+escapeHTML(title)+'</h3><p>'+escapeHTML(body)+'</p>';}
 async function loadAnnouncements(){
- const panel=document.querySelector("#announcements .empty-panel");
+ const panel=document.getElementById("publicAnnouncementsList");
  if(!panel){console.error("Announcements: public panel #announcements .empty-panel was not found.");return;}
  try{
   let data=null,error=null;
@@ -121,7 +121,7 @@ async function loadAnnouncements(){
   if(!db||error){
    const response=await fetch(SUPABASE_URL+"/rest/v1/announcements?select=id,title,body,pinned,created_at&status=eq.published&order=pinned.desc,created_at.desc&limit=20",{
     method:"GET",cache:"no-store",
-    headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}
+    headers:{apikey:SUPABASE_KEY,Accept:"application/json"}
    });
    if(!response.ok)throw new Error("HTTP "+response.status+" — "+(await response.text()).slice(0,240));
    data=await response.json();
@@ -141,17 +141,18 @@ async function loadAnnouncements(){
  }
 }
 
-// Keep the public announcements section synchronized for every visitor.
-// Admin and teacher management lists are refreshed for their matching roles.
+// One refresh path keeps every announcement destination in sync.
+async function refreshAnnouncementOutputs(){
+ await loadAnnouncements();
+ const role=window.sealCurrentProfile?.role;
+ if(role==="admin")await portalLoadAdminAnnouncements();
+ else if(role==="teacher")await portalLoadTeacherAnnouncements();
+}
+// Keep the public section and the matching staff management list synchronized.
 let announcementsRealtime=null;
 if(db){
  announcementsRealtime=db.channel("seal-announcements-live")
-  .on("postgres_changes",{event:"*",schema:"public",table:"announcements"},async()=>{
-   await loadAnnouncements();
-   const role=window.sealCurrentProfile?.role;
-   if(role==="admin")await portalLoadAdminAnnouncements();
-   else if(role==="teacher")await portalLoadTeacherAnnouncements();
-  })
+  .on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refreshAnnouncementOutputs)
   .subscribe(status=>{console.info("Announcements realtime:",status);});
 }
 async function loadResources(){
@@ -170,11 +171,11 @@ async function loadResources(){
  }));
  container.innerHTML='<h3 class="school-files-title">ملفات المدرسة المنشورة</h3>'+cards.join("");
 }
-// Load immediately, then poll as a reliable fallback if a Realtime connection is unavailable.
-loadAnnouncements();
+// Load immediately, then refresh all destinations every 20 seconds as a Realtime fallback.
+refreshAnnouncementOutputs();
 if(db)loadResources();
-setInterval(()=>{if(document.visibilityState==="visible")loadAnnouncements();},20000);
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadAnnouncements();});
+setInterval(()=>{if(document.visibilityState==="visible")refreshAnnouncementOutputs();},20000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshAnnouncementOutputs();});
 
 
 // Student accounts: usernames are mapped to an internal auth address.
@@ -509,7 +510,7 @@ document.getElementById("adminAnnouncementForm")?.addEventListener("submit",asyn
  const title=document.getElementById("adminAnnouncementTitle").value.trim(),body=document.getElementById("adminAnnouncementBody").value.trim(),pinned=document.getElementById("adminAnnouncementPinned").checked,status=document.getElementById("adminAnnouncementStatus");
  status.textContent="جاري نشر الإعلان...";
  const {error}=await db.from("announcements").insert({title,body,pinned,status:"published",created_by:user.id});
- if(error){status.textContent="تعذر النشر: "+error.message;return;}e.target.reset();status.textContent="تم نشر الإعلان.";await loadAnnouncements();
+ if(error){status.textContent="تعذر النشر: "+error.message;return;}e.target.reset();status.textContent="تم نشر الإعلان.";await refreshAnnouncementOutputs();
 });
 document.getElementById("refreshAdminUsers")?.addEventListener("click",portalLoadAdminUsers);
 document.getElementById("refreshAdminReports")?.addEventListener("click",portalLoadReports);
@@ -599,7 +600,7 @@ document.getElementById("teacherAnnouncementForm")?.addEventListener("submit",as
  status.textContent="جاري نشر الإعلان...";
  const {error}=await db.from("announcements").insert({title,body,pinned,status:"published",created_by:user.id});
  if(error){status.textContent="تعذر النشر: "+error.message;return;}
- e.target.reset();status.textContent="تم نشر الإعلان.";await Promise.all([loadAnnouncements(),portalLoadTeacherAnnouncements()]);
+ e.target.reset();status.textContent="تم نشر الإعلان.";await refreshAnnouncementOutputs();
 });
 document.getElementById("teacherResourceForm")?.addEventListener("submit",async e=>{
  e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="teacher")return;
