@@ -270,9 +270,13 @@ function portalMessageMarkup(rows,currentId,isAdmin=false){
 }
 async function portalLoadCommunity(){
  const box=document.getElementById("communityMessages");if(!box||!window.sealCurrentUser)return;
- const {data,error}=await db.rpc("get_community_feed");
- if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة حالياً.</p>';return;}
- const rows=(data||[]).reverse().map(x=>({...x,sender_id:x.user_id,sender_name:x.display_name||x.username||"طالب"}));
+ const [messages,profiles]=await Promise.all([
+  db.from("community_messages").select("id,user_id,body,created_at").order("created_at",{ascending:false}).limit(80),
+  db.from("community_profiles_public").select("id,display_name,username")
+ ]);
+ if(messages.error||profiles.error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة حالياً.</p>';return;}
+ const names=new Map((profiles.data||[]).map(p=>[p.id,p.display_name||p.username||"طالب"]));
+ const rows=(messages.data||[]).reverse().map(x=>({...x,sender_id:x.user_id,sender_name:names.get(x.user_id)||"طالب"}));
  box.innerHTML=rows.length?rows.map(row=>'<div class="chat-bubble"><div class="chat-bubble-meta">'+portalEsc(row.sender_name)+' · '+portalEsc(portalTime(row.created_at))+'</div><p>'+portalEsc(row.body)+'</p></div>').join(""):'<p class="resource-loading">لسه مفيش رسائل. ابدأ أول نقاش.</p>';
  box.scrollTop=box.scrollHeight;
 }
