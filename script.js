@@ -12,58 +12,64 @@ const sections=[...document.querySelectorAll("main section[id]")];
 const navLinks=[...document.querySelectorAll(".desktop-nav a")];
 if("IntersectionObserver"in window){const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){navLinks.forEach(link=>link.classList.toggle("active",link.getAttribute("href")==="#"+entry.target.id));}})},{rootMargin:"-35% 0px -55% 0px"});sections.forEach(section=>observer.observe(section));}
 
-// Curated public YouTube links for Egypt's first-secondary curriculum 2026/2027.
-// Search links intentionally stay on YouTube so newly uploaded lessons appear without scraping or copying videos.
-const ytSearch=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
-const videoSources=[
- {subject:"اللغة العربية",teacher:"الخطة التعليمية — أ/ عبدالرحمن مجدي",title:"شرح اسم الفاعل — أولى ثانوي 2027",url:ytSearch("شرح اسم الفاعل اولى ثانوي 2027 عبدالرحمن مجدي"),kind:"teacher",year:"2027",note:"نتائج المدرس والدروس المرتبطة"},
- {subject:"اللغة العربية",teacher:"أ/ محمد حسني",title:"شرح عربي أولى ثانوي — الترم الأول 2027",url:ytSearch("محمد حسني عربي اولى ثانوي الترم الاول 2027"),kind:"teacher",year:"2027",note:"دروس النحو والبلاغة والنصوص"},
- {subject:"اللغة العربية",teacher:"الخطة التعليمية — قناة الأول الثانوي",title:"فيديوهات العربي أولى ثانوي",url:ytSearch("الخطة التعليمية عربي اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"شرح وتدريبات ومراجعات"},
- {subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"مراجعة Unit 1 — كلمات وجرامر",url:"https://www.youtube.com/watch?v=Z0bztPnmRVw",kind:"video",year:"2027",note:"فيديو مباشر — مراجعة الوحدة الأولى"},
- {subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"شرح الفصل الأول The Old Man and the Sea",url:"https://www.youtube.com/watch?v=LMOXrR1HZBM",kind:"video",year:"2027",note:"فيديو مباشر — قصة المنهج"},
- {subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"كل فيديوهات مستر عمرو رجب لأولى ثانوي",url:ytSearch("مستر عمرو رجب انجليزي اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"ابحث عن شروحات الوحدات والجرامر والقصة"},
- {subject:"اللغة الأجنبية الأولى",teacher:"الخطة التعليمية — قناة الأول الثانوي",title:"فيديوهات الإنجليزي أولى ثانوي",url:ytSearch("الخطة التعليمية انجليزي اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"شرح الوحدات والكلمات والجرامر"},
- {subject:"الرياضيات",teacher:"أ/ أحمد سليمان",title:"رياضيات أولى ثانوي — شرح المنهج",url:ytSearch("احمد سليمان رياضيات اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"جبر وهندسة وتدريبات"},
- {subject:"الرياضيات",teacher:"الخطة التعليمية — قناة الأول الثانوي",title:"رياضيات أولى ثانوي 2027",url:ytSearch("الخطة التعليمية رياضيات اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"شرح الدروس وحل التقييمات"},
- {subject:"العلوم المتكاملة",teacher:"الخطة التعليمية — قناة الأول الثانوي",title:"العلوم المتكاملة أولى ثانوي 2027",url:ytSearch("الخطة التعليمية علوم متكاملة اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"شرح المنهج وحل التقييمات"},
- {subject:"العلوم المتكاملة",teacher:"د. أحمد فايد",title:"شرح العلوم المتكاملة — محتوى مساعد",url:ytSearch("د احمد فايد علوم متكاملة اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"تحقق من توافق الدرس مع ترتيب منهج 2026/2027"},
- {subject:"التاريخ",teacher:"مستر كريم السبكي",title:"ملامح من تاريخ مصر القديمة الفرعونية",url:"https://www.youtube.com/watch?v=O6AfX8nfEpc",kind:"video",year:"2027",note:"فيديو مباشر — شرح الدرس"},
- {subject:"التاريخ",teacher:"صابر عيسى",title:"دروس ومراجعات تاريخ أولى ثانوي",url:ytSearch("صابر عيسى تاريخ اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"شرح الدروس ومراجعة أكتوبر"},
- {subject:"التاريخ",teacher:"الخطة التعليمية — قناة الأول الثانوي",title:"فيديوهات التاريخ أولى ثانوي",url:ytSearch("الخطة التعليمية تاريخ اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"شرح المنهج وحل التقييمات"},
- {subject:"الفلسفة والمنطق",teacher:"الخطة التعليمية — قناة الأول الثانوي",title:"الفلسفة والمنطق أولى ثانوي 2027",url:ytSearch("الخطة التعليمية فلسفة منطق اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"نشأة الفلسفة والقضايا المنطقية والتقييمات"},
- {subject:"البرمجة والذكاء الاصطناعي",teacher:"مستر أحمد السقا",title:"شرح الوحدة الأولى كاملة — المعلومات والوسائط وأخلاقيات المعلومات",url:"https://www.youtube.com/watch?v=1IzF2JG6shQ",kind:"video",year:"2027",note:"فيديو مباشر — شرح الوحدة الأولى"},
- {subject:"البرمجة والذكاء الاصطناعي",teacher:"إسماعيل محمد",title:"شرح الدرس الثاني — أخلاقيات المعلومات",url:"https://www.youtube.com/watch?v=GJeEAZAL46I",kind:"video",year:"2027",note:"فيديو مباشر — الدرس الثاني"},
- {subject:"البرمجة والذكاء الاصطناعي",teacher:"مستر أحمد السقا",title:"كل شروحات البرمجة أولى ثانوي",url:ytSearch("مستر احمد السقا برمجة وذكاء اصطناعي اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"دروس المنهج وتدريباته"},
- {subject:"البرمجة والذكاء الاصطناعي",teacher:"إسماعيل محمد",title:"فيديوهات البرمجة والذكاء الاصطناعي",url:ytSearch("اسماعيل محمد برمجة وذكاء اصطناعي اولى ثانوي 2027"),kind:"teacher",year:"2027",note:"شرح الدروس والمصطلحات"},
- {subject:"اللغة الأجنبية الثانية",teacher:"مدرسون متعددون",title:"اللغة الأجنبية الثانية — اختر لغتك",url:ytSearch("شرح لغة ثانية اولى ثانوي 2027 فرنساوي الماني ايطالي اسباني"),kind:"search",year:"2027",note:"نتائج بحث؛ اختر الفرنسية أو الألمانية أو الإيطالية أو الإسبانية"},
- {subject:"التربية الدينية",teacher:"مدرسون متعددون",title:"التربية الدينية أولى ثانوي",url:ytSearch("شرح التربية الدينية اولى ثانوي 2027"),kind:"search",year:"2027",note:"اختر المحتوى المطابق لنوع كتابك"},
- {subject:"العلوم المتكاملة",teacher:"د. أحمد فايد",title:"التكيفات البيولوجية للكائنات الحية في البيئة المائية",url:"https://www.youtube.com/watch?v=W1B7Eruwqjo",kind:"video",year:"2025",note:"شرح أقدم؛ استخدمه كمراجعة مفاهيم فقط بعد مطابقة الدرس"}
+// Curated lesson library: each card is a specific public YouTube video.
+const academyVideos=[
+ {id:"QIJXzY4a2-Y",subject:"العلوم المتكاملة",teacher:"د. أحمد مكرم",title:"الحصة الأولى: تعريف بمنهج العلوم المتكاملة 2027",description:"مدخل للمنهج وأهم الأفكار التي يبدأ بها طالب أولى ثانوي. مناسب كبداية قبل الدخول في تفاصيل الوحدات.",kind:"شرح",duration:"—",date:"2026-09-01",recommended:5},
+ {id:"W1B7Eruwqjo",subject:"العلوم المتكاملة",teacher:"د. أحمد فايد",title:"التكيفات البيولوجية للكائنات الحية في البيئة المائية",description:"شرح لمفهوم التكيفات البيولوجية في البيئة المائية. راجع توافق ترتيب الدرس مع كتابك الحالي.",kind:"شرح",duration:"—",date:"2025-01-01",recommended:3,older:true},
+ {id:"1IzF2JG6shQ",subject:"البرمجة والذكاء الاصطناعي",teacher:"مستر أحمد السقا",title:"شرح الوحدة الأولى: المعلومات والوسائط وأخلاقيات المعلومات",description:"شرح تمهيدي لموضوعات الوحدة الأولى في البرمجة والذكاء الاصطناعي.",kind:"شرح",duration:"—",date:"2026-01-01",recommended:5},
+ {id:"GJeEAZAL46I",subject:"البرمجة والذكاء الاصطناعي",teacher:"إسماعيل محمد",title:"الدرس الثاني: أخلاقيات المعلومات",description:"شرح مستقل لمفهوم أخلاقيات المعلومات ضمن محتوى البرمجة والذكاء الاصطناعي.",kind:"شرح",duration:"—",date:"2026-01-01",recommended:4},
+ {id:"Z0bztPnmRVw",subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"مراجعة Unit 1: كلمات وجرامر",description:"مراجعة للوحدة الأولى تجمع المفردات والقواعد في فيديو واحد.",kind:"مراجعة",duration:"—",date:"2026-01-01",recommended:4},
+ {id:"LMOXrR1HZBM",subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"The Old Man and the Sea — شرح الفصل الأول",description:"شرح للقصة المقررة باللغة الإنجليزية، مع التركيز على فهم الأحداث والمفردات.",kind:"شرح",duration:"—",date:"2026-01-01",recommended:4},
+ {id:"O6AfX8nfEpc",subject:"التاريخ",teacher:"مستر كريم السبكي",title:"ملامح من تاريخ مصر القديمة الفرعونية",description:"شرح لدرس من دروس تاريخ مصر القديمة للصف الأول الثانوي.",kind:"شرح",duration:"—",date:"2026-01-01",recommended:4},
+ {id:"xYin-SQjmhI",subject:"اللغة العربية",teacher:"مستر عمر ياقوت",title:"خطة تقفيل العربي: البداية الصحيحة لأولى ثانوي 2027",description:"فيديو إرشادي لتنظيم فروع العربي: النحو والبلاغة والقراءة والنصوص، وكيفية التعامل مع المادة خلال العام.",kind:"مراجعة",duration:"—",date:"2026-08-25",recommended:4},
+ {id:"ymkFII6BHIo",subject:"العلوم المتكاملة",teacher:"مدرس علوم — قناة الإبداع في الأحياء",title:"المحاضرة الأولى: علوم متكاملة أولى ثانوي 2027",description:"محاضرة مجانية منشورة للصف الأول الثانوي، مع ملف سبورة مرفق في وصف الناشر الأصلي.",kind:"شرح",duration:"—",date:"2026-09-05",recommended:4}
 ];
-const escapeHTML=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-const subjectFilter=document.getElementById("subjectFilter");
-const teacherFilter=document.getElementById("teacherFilter");
-const videoSearch=document.getElementById("videoSearch");
-const results=document.getElementById("videoLibraryResults");
-const count=document.getElementById("libraryResultCount");
-const chips=document.getElementById("subjectChips");
-const subjects=[...new Set(videoSources.map(x=>x.subject))];
-const teachers=[...new Set(videoSources.map(x=>x.teacher))];
-subjects.forEach(s=>subjectFilter.add(new Option(s,s)));
-teachers.forEach(t=>teacherFilter.add(new Option(t,t)));
-function renderLibrary(){
- const q=videoSearch.value.trim().toLocaleLowerCase("ar");
- const subject=subjectFilter.value,teacher=teacherFilter.value;
- const filtered=videoSources.filter(item=>(subject==="all"||item.subject===subject)&&(teacher==="all"||item.teacher===teacher)&&(!q||[item.subject,item.teacher,item.title,item.note].join(" ").toLocaleLowerCase("ar").includes(q)));
- count.textContent=filtered.length;
- if(!filtered.length){results.innerHTML='<div class="library-no-results">مفيش نتائج مطابقة. جرّب كلمة تانية أو اختار مادة مختلفة.</div>';return;}
- results.innerHTML=filtered.map(item=>'<article class="video-source-card"><div class="video-source-icon">'+(item.kind==="video"?"▶":"⌕")+'</div><div class="video-source-copy"><div class="video-source-tags"><span>'+escapeHTML(item.subject)+'</span><span>'+escapeHTML(item.year)+'</span><span>'+(item.kind==="video"?"فيديو مباشر":item.kind==="teacher"?"صفحة المدرس على يوتيوب":"بحث يوتيوب")+'</span></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.teacher)+' · '+escapeHTML(item.note)+'</p></div><a class="video-source-link" href="'+escapeHTML(item.url)+'" target="_blank" rel="noopener noreferrer">'+(item.kind==="video"?"شاهد الفيديو":"افتح على يوتيوب")+' ↗</a></article>').join("");
+const academySubjects=[
+ {name:"اللغة العربية",icon:"ع",desc:"النحو والبلاغة والقراءة والنصوص والأدب."},
+ {name:"اللغة الأجنبية الأولى",icon:"EN",desc:"Vocabulary, Grammar, Reading and The Old Man and the Sea."},
+ {name:"الرياضيات",icon:"∑",desc:"الجبر والهندسة والتدريبات وحل المسائل."},
+ {name:"العلوم المتكاملة",icon:"⚛",desc:"المفاهيم العلمية والبيئة والتطبيقات."},
+ {name:"التاريخ",icon:"⌛",desc:"الحضارة المصرية القديمة ومصادر التاريخ."},
+ {name:"الفلسفة والمنطق",icon:"◇",desc:"التفكير الإنساني والفلسفة والقضايا المنطقية."},
+ {name:"البرمجة والذكاء الاصطناعي",icon:"</>",desc:"أساسيات البرمجة والبيانات والذكاء الاصطناعي."},
+ {name:"اللغة الأجنبية الثانية",icon:"文",desc:"الفرنسية أو الألمانية أو الإيطالية أو الإسبانية."},
+ {name:"التربية الدينية",icon:"✦",desc:"الدروس والقيم والأنشطة المقررة."}
+];
+const academyState={subject:"العلوم المتكاملة",teacher:"all",kind:"all",sort:"recommended",activeVideo:null};
+const academySubjectsEl=document.getElementById("academySubjects");
+const academyTeachersEl=document.getElementById("academyTeachers");
+const academyGrid=document.getElementById("academyVideoGrid");
+const academyFeatured=document.getElementById("academyFeatured");
+const academyEmpty=document.getElementById("academyEmpty");
+const academyCount=document.getElementById("academyVideoCount");
+const academyEsc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function academyRender(){
+ const subject=academySubjects.find(x=>x.name===academyState.subject)||academySubjects[0];
+ document.getElementById("academyCurrentSubject").textContent=subject.name;
+ document.getElementById("academySubjectDescription").textContent=subject.desc;
+ academySubjectsEl.innerHTML=academySubjects.map((s,i)=>{const n=academyVideos.filter(v=>v.subject===s.name).length;return '<button class="academy-subject '+(s.name===academyState.subject?"selected":"")+'" data-subject="'+academyEsc(s.name)+'"><span class="academy-subject-icon">'+s.icon+'</span><span class="academy-subject-name">'+academyEsc(s.name)+'</span><span class="academy-subject-count">'+n+'</span></button>';}).join("");
+ const allTeachers=[...new Set(academyVideos.filter(v=>v.subject===academyState.subject).map(v=>v.teacher))];
+ if(academyState.teacher!=="all"&&!allTeachers.includes(academyState.teacher))academyState.teacher="all";
+ academyTeachersEl.innerHTML='<button class="academy-teacher '+(academyState.teacher==="all"?"selected":"")+'" data-teacher="all">كل المدرسين</button>'+allTeachers.map(t=>'<button class="academy-teacher '+(academyState.teacher===t?"selected":"")+'" data-teacher="'+academyEsc(t)+'">'+academyEsc(t)+'</button>').join("");
+ let items=academyVideos.filter(v=>v.subject===academyState.subject&&(academyState.teacher==="all"||v.teacher===academyState.teacher)&&(academyState.kind==="all"||v.kind===academyState.kind));
+ if(academyState.sort==="newest")items.sort((x,y)=>y.date.localeCompare(x.date));
+ else if(academyState.sort==="duration")items.sort((x,y)=>y.duration.localeCompare(x.duration));
+ else items.sort((x,y)=>y.recommended-x.recommended||y.date.localeCompare(x.date));
+ academyCount.textContent=items.length+" فيديو";
+ academyEmpty.hidden=items.length>0;
+ if(!items.length){academyGrid.innerHTML="";academyFeatured.innerHTML="";return;}
+ if(!academyState.activeVideo||!items.some(v=>v.id===academyState.activeVideo))academyState.activeVideo=items[0].id;
+ const active=items.find(v=>v.id===academyState.activeVideo);
+ academyFeatured.innerHTML='<div class="academy-player"><iframe src="https://www.youtube-nocookie.com/embed/'+active.id+'?rel=0" title="'+academyEsc(active.title)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="academy-feature-info"><div class="academy-video-badges"><span>'+academyEsc(active.kind)+'</span><span>'+academyEsc(active.teacher)+'</span>'+(active.older?'<span class="older-label">محتوى أقدم</span>':'<span class="fresh-label">محتوى تعليمي</span>')+'</div><h4>'+academyEsc(active.title)+'</h4><p>'+academyEsc(active.description)+'</p><a href="https://www.youtube.com/watch?v='+active.id+'" target="_blank" rel="noopener noreferrer">فتح الفيديو على YouTube ↗</a></div>';
+ academyGrid.innerHTML=items.map(v=>'<article class="academy-video-card '+(v.id===active.id?"playing":"")+'"><button class="academy-thumb" data-video="'+v.id+'" aria-label="شاهد '+academyEsc(v.title)+'"><img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt="" loading="lazy"><span class="academy-play">▶</span><span class="academy-duration">'+academyEsc(v.duration)+'</span></button><div class="academy-card-body"><div class="academy-video-badges"><span>'+academyEsc(v.kind)+'</span>'+(v.older?'<span class="older-label">أقدم</span>':'')+'</div><h5>'+academyEsc(v.title)+'</h5><p>'+academyEsc(v.description)+'</p><div class="academy-card-footer"><span>'+academyEsc(v.teacher)+'</span><button data-video="'+v.id+'">'+(v.id===active.id?"يُعرض الآن":"عرض الفيديو")+'</button></div></div></article>').join("");
 }
-subjectFilter.addEventListener("change",renderLibrary);
-teacherFilter.addEventListener("change",renderLibrary);
-videoSearch.addEventListener("input",renderLibrary);
-chips.innerHTML='<button type="button" class="subject-chip active" data-subject="all">الكل</button>'+subjects.map(s=>'<button type="button" class="subject-chip" data-subject="'+escapeHTML(s)+'">'+escapeHTML(s)+'</button>').join("");
-chips.addEventListener("click",event=>{const button=event.target.closest("button[data-subject]");if(!button)return;subjectFilter.value=button.dataset.subject;chips.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===button));renderLibrary();});
-renderLibrary();
+academySubjectsEl.addEventListener("click",e=>{const b=e.target.closest("[data-subject]");if(!b)return;academyState.subject=b.dataset.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=null;document.querySelectorAll(".academy-type").forEach(x=>x.classList.toggle("active",x.dataset.kind==="all"));academyRender();});
+academyTeachersEl.addEventListener("click",e=>{const b=e.target.closest("[data-teacher]");if(!b)return;academyState.teacher=b.dataset.teacher;academyState.activeVideo=null;academyRender();});
+document.querySelector(".academy-type-filters").addEventListener("click",e=>{const b=e.target.closest("[data-kind]");if(!b)return;academyState.kind=b.dataset.kind;academyState.activeVideo=null;document.querySelectorAll(".academy-type").forEach(x=>x.classList.toggle("active",x===b));academyRender();});
+document.getElementById("academySort").addEventListener("change",e=>{academyState.sort=e.target.value;academyRender();});
+academyGrid.addEventListener("click",e=>{const b=e.target.closest("[data-video]");if(!b)return;academyState.activeVideo=b.dataset.video;academyRender();document.getElementById("academyFeatured").scrollIntoView({behavior:"smooth",block:"nearest"});});
+document.getElementById("academySubjectCount").textContent=academySubjects.length;
+academyRender();
 
 // Public browser client: publishable key only. RLS restricts access to published school content.
 const SUPABASE_URL="https://glhsbvgzthsmxxguefxu.supabase.co";
