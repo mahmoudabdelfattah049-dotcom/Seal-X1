@@ -880,7 +880,8 @@ function portalInitExamBuilder(form){
   status.textContent="تمت إضافة السؤال. أضف السؤال التالي أو جرّب الامتحان.";
   render();return true;
  };
- form.addEventListener("examtypechange",syncType);\n form.querySelector("[data-add-question]")?.addEventListener("click",add);
+ form.addEventListener("examtypechange",syncType);
+ form.querySelector("[data-add-question]")?.addEventListener("click",add);
  list.addEventListener("click",e=>{const b=e.target.closest("[data-remove-question]");if(!b)return;form.__questions.splice(Number(b.dataset.removeQuestion),1);render();});
  form.addEventListener("submit",async e=>{
   e.preventDefault();const user=window.sealCurrentUser,role=window.sealCurrentProfile?.role,isEssay=form.dataset.examType==="essay";
