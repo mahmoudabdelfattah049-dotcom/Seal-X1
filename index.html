@@ -18,7 +18,7 @@
     <nav class="desktop-nav" aria-label="التنقل الرئيسي">
       <a class="nav-link active" href="#home">الرئيسية</a><a class="nav-link" href="#announcements">الإعلانات</a><a class="nav-link" href="#qureo">QUREO</a><a class="nav-link" href="#library">المكتبة</a><a class="nav-link" href="#about">عن المنصة</a>
     </nav>
-    <div class="top-actions"><button class="icon-btn" id="themeToggle" aria-label="تغيير المظهر" title="تغيير المظهر">☼</button><button class="menu-btn" id="menuToggle" aria-label="فتح القائمة">☰</button><a class="header-cta" href="#announcements">استكشف المنصة <span>↗</span></a></div>
+    <div class="top-actions"><button class="icon-btn" id="themeToggle" aria-label="تغيير المظهر" title="تغيير المظهر">☼</button><button class="menu-btn" id="menuToggle" aria-label="فتح القائمة">☰</button><button class="header-cta account-open" id="accountOpen">حساب الطالب <span>↗</span></button></div>
   </header>
   <nav class="mobile-nav" id="mobileNav"><a href="#home">الرئيسية</a><a href="#announcements">الإعلانات</a><a href="#qureo">QUREO</a><a href="#library">المكتبة</a><a href="#about">عن المنصة</a></nav>
   <main>
@@ -61,6 +61,23 @@
 </section>
     <section class="about-band section-wrap" id="about"><div class="about-mark">SX</div><div><div class="eyebrow">ABOUT SEAL X1</div><h2>الدراسة تبقى أسهل<br><span>لما كل حاجة تبقى منظمة.</span></h2><p>Seal X1 مبادرة لتنظيم الوصول للمعلومات والمصادر التعليمية لطلاب المدرسة، بواجهة واحدة سهلة الاستخدام.</p></div><a href="#home" class="back-top">للأعلى ↑</a></section>
   </main>
+  <section class="student-auth section-wrap" id="studentAuth">
+    <div class="auth-intro"><div class="eyebrow">STUDENT ACCOUNT</div><h2>حسابك في <span>SEAL X1</span></h2><p>سجّل باسم مستخدم وكلمة مرور، واحفظ تقدمك الدراسي على حسابك لتقدر تفتحه من أي جهاز.</p></div>
+    <div class="auth-card" id="authCard">
+      <div class="auth-card-top"><div class="auth-avatar">SX</div><div><b id="authHeading">أهلاً بك في Seal X1</b><small id="authSubheading">سجّل الدخول أو أنشئ حساب طالب جديد</small></div></div>
+      <div class="auth-tabs"><button type="button" class="auth-tab active" data-auth-mode="login">تسجيل الدخول</button><button type="button" class="auth-tab" data-auth-mode="signup">إنشاء حساب</button></div>
+      <form id="studentAuthForm" class="auth-form">
+        <label for="studentUsername">اسم المستخدم</label><input id="studentUsername" name="username" type="text" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" autocomplete="username" placeholder="مثال: mahmoud_16" required>
+        <p class="auth-hint">من 3 إلى 20 حرفاً إنجليزياً أو رقماً أو _ فقط.</p>
+        <div id="studentNameField" hidden><label for="studentDisplayName">اسمك الظاهر</label><input id="studentDisplayName" name="displayName" type="text" maxlength="60" autocomplete="name" placeholder="الاسم الذي سيظهر داخل المنصة"></div>
+        <label for="studentPassword">كلمة المرور</label><input id="studentPassword" name="password" type="password" minlength="8" autocomplete="current-password" placeholder="8 أحرف على الأقل" required>
+        <button class="auth-submit" type="submit" id="authSubmit">دخول إلى حسابي</button>
+        <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
+      </form>
+      <div class="auth-session" id="authSession" hidden><p>أنت مسجل الدخول باسم</p><strong id="authSessionName"></strong><button type="button" id="authSignOut" class="auth-signout">تسجيل الخروج</button></div>
+      <p class="auth-security-note">كلمة المرور تُدار بواسطة نظام المصادقة الآمن، ولا تُخزّن كنص ظاهر في قاعدة البيانات. لا تستخدم كلمة مرورك الشخصية المهمة هنا.</p>
+    </div>
+  </section>
   <footer><a class="footer-brand" href="#home">SEAL <span>X1</span></a><p>© <span id="year"></span> Seal X1. مساحة تعليمية للطلاب.</p><a href="#home">العودة للبداية ↑</a></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
