@@ -91,7 +91,7 @@ function academyRender(){
  if(!items.length){academyGrid.innerHTML="";academyFeatured.innerHTML="";return;}
  if(!academyState.activeVideo||!items.some(v=>v.id===academyState.activeVideo))academyState.activeVideo=items[0].id;
  const active=items.find(v=>v.id===academyState.activeVideo);
- academyFeatured.innerHTML='<div class="academy-player"><iframe src="https://www.youtube-nocookie.com/embed/'+active.id+'?rel=0" title="'+academyEsc(active.title)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="academy-feature-info"><div class="academy-video-badges"><span>'+academyEsc(active.kind)+'</span><span>'+academyEsc(active.teacher)+'</span>'+(active.older?'<span class="older-label">محتوى أقدم</span>':'<span class="fresh-label">محتوى تعليمي</span>')+'</div><h4>'+academyEsc(active.title)+'</h4><p>'+academyEsc(active.description)+'</p><a href="https://www.youtube.com/watch?v='+active.id+'" target="_blank" rel="noopener noreferrer">فتح الفيديو على YouTube ↗</a></div>';
+ academyFeatured.innerHTML='<div class="academy-player"><iframe src="https://www.youtube-nocookie.com/embed/'+active.id+'?rel=0" title="'+academyEsc(active.title)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="academy-feature-info"><div class="academy-video-badges"><span>'+academyEsc(active.kind)+'</span><span>'+academyEsc(active.teacher)+'</span>'+(active.older?'<span class="older-label">محتوى أقدم</span>':'<span class="fresh-label">محتوى تعليمي</span>')+'</div><h4>'+academyEsc(active.title)+'</h4><p>'+academyEsc(active.description)+'</p><a href="https://www.youtube.com/watch?v='+active.id+'" target="_blank" rel="noopener noreferrer">فتح الفيديو على YouTube ↗</a><button class="mark-watched-btn" data-mark-video="'+active.id+'" '+(window.sealCompletedVideoIds?.has(active.id)?'disabled':'')+'>'+(window.sealCompletedVideoIds?.has(active.id)?'✓ تمت المشاهدة':'✓ سجلت مشاهدة الفيديو')+'</button></div>';
  academyGrid.innerHTML=items.map(v=>'<article class="academy-video-card '+(v.id===active.id?"playing":"")+'"><button class="academy-thumb" data-video="'+v.id+'" aria-label="شاهد '+academyEsc(v.title)+'"><img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt="" loading="lazy"><span class="academy-play">▶</span><span class="academy-duration">'+academyEsc(v.duration)+'</span></button><div class="academy-card-body"><div class="academy-video-badges"><span>'+academyEsc(v.kind)+'</span>'+(v.older?'<span class="older-label">أقدم</span>':'')+'</div><h5>'+academyEsc(v.title)+'</h5><p>'+academyEsc(v.description)+'</p><div class="academy-card-footer"><span>'+academyEsc(v.teacher)+'</span><button data-video="'+v.id+'">'+(v.id===active.id?"يُعرض الآن":"عرض الفيديو")+'</button></div></div></article>').join("");
 }
 academySubjectsEl.addEventListener("click",e=>{const b=e.target.closest("[data-subject]");if(!b)return;academyState.subject=b.dataset.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=null;document.querySelectorAll(".academy-type").forEach(x=>x.classList.toggle("active",x.dataset.kind==="all"));academyRender();});
@@ -174,12 +174,19 @@ if(db&&authCard){
  document.querySelectorAll("[data-auth-mode]").forEach(b=>b.addEventListener("click",()=>setAuthMode(b.dataset.authMode)));
  async function refreshStudentSession(){
   const {data:{user}}=await db.auth.getUser();
-  if(!user){authSession.hidden=true;authForm.hidden=false;return;}
-  const {data:profile}=await db.from("profiles").select("username,display_name").eq("id",user.id).maybeSingle();
+  if(!user){
+   authSession.hidden=true;authForm.hidden=false;
+   document.getElementById("accountOpen").hidden=false;
+   window.sealInitPortalSpaces?.(null,null);
+   return;
+  }
+  const {data:profile}=await db.from("profiles").select("username,display_name,role,grade").eq("id",user.id).maybeSingle();
   authForm.hidden=true;authSession.hidden=false;
+  document.getElementById("accountOpen").hidden=true;
   document.getElementById("authSessionName").textContent=profile?.display_name||profile?.username||user.user_metadata?.username||"طالب Seal X1";
-  authHeading.textContent="تم تسجيل الدخول";
-  authSubheading.textContent="حسابك متصل وجاهز لحفظ تقدمك";
+  authHeading.textContent=profile?.role==="admin"?"أهلاً بك يا مدير المنصة":"تم تسجيل الدخول";
+  authSubheading.textContent=profile?.role==="admin"?"صلاحيات الإدارة الكاملة مفعّلة":"حسابك متصل وجاهز لحفظ تقدمك";
+  window.sealInitPortalSpaces?.(user,profile);
  }
  authForm.addEventListener("submit",async event=>{
   event.preventDefault();
@@ -222,4 +229,176 @@ if(db&&authCard){
  document.getElementById("accountOpen").addEventListener("click",()=>document.getElementById("studentAuth").scrollIntoView({behavior:"smooth"}));
  db.auth.onAuthStateChange(()=>{refreshStudentSession();});
  refreshStudentSession();
+}
+
+
+// Authenticated student area, administrator console, learning progress and messaging.
+window.sealCurrentUser=null;
+window.sealCurrentProfile=null;
+window.sealCompletedVideoIds=new Set();
+const portalEsc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const portalTime=value=>{try{return new Date(value).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"});}catch{return "";}};
+const portalSetVisible=(id,visible)=>{const el=document.getElementById(id);if(el)el.hidden=!visible;};
+let portalRealtime=null;
+let adminUserCache=[];
+let selectedSupportUser="";
+async function portalAdminCall(action,payload={}){
+ const {data:{session}}=await db.auth.getSession();
+ if(!session)throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
+ const response=await fetch(SUPABASE_URL+"/functions/v1/seal-admin"+(action==="list_users"?"?action=list_users":""),{
+  method:action==="list_users"?"GET":"POST",
+  headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},
+  ...(action==="list_users"?{}:{body:JSON.stringify({action,...payload})})
+ });
+ const result=await response.json();
+ if(!response.ok)throw new Error(result.error||"تعذر تنفيذ طلب الإدارة");
+ return result;
+}
+function portalMessageMarkup(rows,currentId,isAdmin=false){
+ if(!rows?.length)return '<p class="resource-loading">لا توجد رسائل حتى الآن. ابدأ المحادثة.</p>';
+ return rows.map(row=>{
+  const mine=row.sender_id===currentId;
+  const sender=mine?(isAdmin?"الإدارة":"أنت"):(row.sender_name||"طالب");
+  return '<div class="chat-bubble '+(mine?"mine":"")+'"><div class="chat-bubble-meta">'+portalEsc(sender)+' · '+portalEsc(portalTime(row.created_at))+'</div><p>'+portalEsc(row.body)+'</p></div>';
+ }).join("");
+}
+async function portalLoadCommunity(){
+ const box=document.getElementById("communityMessages");if(!box||!window.sealCurrentUser)return;
+ const {data,error}=await db.from("community_messages").select("id,user_id,body,created_at,profiles(display_name,username)").order("created_at",{ascending:false}).limit(80);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة حالياً.</p>';return;}
+ const rows=(data||[]).reverse().map(x=>({...x,sender_id:x.user_id,sender_name:x.profiles?.display_name||x.profiles?.username||"طالب"}));
+ box.innerHTML=rows.length?rows.map(row=>'<div class="chat-bubble"><div class="chat-bubble-meta">'+portalEsc(row.sender_name)+' · '+portalEsc(portalTime(row.created_at))+'</div><p>'+portalEsc(row.body)+'</p></div>').join(""):'<p class="resource-loading">لسه مفيش رسائل. ابدأ أول نقاش.</p>';
+ box.scrollTop=box.scrollHeight;
+}
+async function portalLoadStudentSupport(){
+ const box=document.getElementById("studentSupportMessages");if(!box||!window.sealCurrentUser)return;
+ const {data,error}=await db.from("admin_messages").select("id,user_id,sender_id,body,created_at").eq("user_id",window.sealCurrentUser.id).order("created_at").limit(100);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل رسائلك.</p>';return;}
+ box.innerHTML=portalMessageMarkup(data,window.sealCurrentUser.id,false);box.scrollTop=box.scrollHeight;
+}
+async function portalLoadStudentStats(){
+ const user=window.sealCurrentUser;if(!user)return;
+ const [videos,exams]=await Promise.all([
+  db.from("student_video_progress").select("video_id,completed,updated_at").eq("user_id",user.id),
+  db.from("student_exam_attempts").select("score,total_score,completed_at").eq("user_id",user.id)
+ ]);
+ if(videos.error||exams.error){console.error(videos.error||exams.error);return;}
+ const done=(videos.data||[]).filter(x=>x.completed);
+ const examRows=exams.data||[];
+ const average=examRows.length?examRows.reduce((a,x)=>a+(Number(x.score)/Number(x.total_score))*100,0)/examRows.length:0;
+ const now=Date.now(),days=new Set();
+ [...(videos.data||[]).map(x=>x.updated_at),...examRows.map(x=>x.completed_at)].forEach(date=>{
+  if(date&&now-new Date(date).getTime()<=7*86400000)days.add(new Date(date).toLocaleDateString("en-CA"));
+ });
+ const videoPoints=Math.min(done.length/20,1)*40;
+ const examPoints=examRows.length?(average/100)*50:0;
+ const consistencyPoints=(days.size/7)*10;
+ const score=Math.round(videoPoints+examPoints+consistencyPoints);
+ document.getElementById("studentVideosDone").textContent=done.length;
+ document.getElementById("studentExamsDone").textContent=examRows.length;
+ document.getElementById("studentScore").textContent=score;
+ document.getElementById("studentActiveDays").textContent=days.size;
+ document.getElementById("studentProgressBar").style.width=score+"%";
+ document.getElementById("studentProgressLabel").textContent="إنجازك الحالي "+score+" من 100";
+ window.sealCompletedVideoIds=new Set(done.map(x=>x.video_id));
+ if(typeof academyRender==="function")academyRender();
+}
+async function portalLoadAdminUsers(){
+ const box=document.getElementById("adminUsersList");if(!box)return;
+ box.innerHTML='<p class="resource-loading">جاري تحميل الحسابات...</p>';
+ try{
+  const result=await portalAdminCall("list_users");adminUserCache=result.users||[];
+  document.getElementById("adminUsersCount").textContent=result.total||0;
+  document.getElementById("adminVideosCount").textContent=adminUserCache.reduce((n,x)=>n+(x.videos_completed||0),0);
+  document.getElementById("adminExamsCount").textContent=adminUserCache.reduce((n,x)=>n+(x.exams_completed||0),0);
+  const select=document.getElementById("adminSupportStudent");
+  select.innerHTML='<option value="">اختر طالباً لفتح المحادثة</option>'+adminUserCache.filter(x=>x.role!=="admin").map(x=>'<option value="'+portalEsc(x.id)+'">'+portalEsc(x.display_name)+' (@'+portalEsc(x.username)+')</option>').join("");
+  box.innerHTML=adminUserCache.length?adminUserCache.map(u=>'<article class="admin-user-row"><div class="admin-user-main"><b>'+portalEsc(u.display_name)+'</b><small>@'+portalEsc(u.username)+' · '+portalEsc(u.role)+'</small><span>فيديوهات: '+u.videos_completed+' · امتحانات: '+u.exams_completed+' · آخر دخول: '+portalEsc(portalTime(u.last_sign_in_at))+'</span></div>'+(u.role==="admin"?'<span class="admin-role-tag">ADMIN</span>':'<div class="admin-user-actions"><button data-edit-user="'+portalEsc(u.id)+'">تعديل</button><button class="danger-action" data-delete-user="'+portalEsc(u.id)+'">حذف</button></div>')+'</article>').join(""):'<p class="resource-loading">لا توجد حسابات بعد.</p>';
+ }catch(error){box.innerHTML='<p class="resource-loading">'+portalEsc(error.message)+'</p>';}
+}
+async function portalLoadReports(){
+ const box=document.getElementById("adminReportsList");if(!box)return;
+ const {data,error}=await db.from("reports").select("id,user_id,kind,body,status,created_at").order("created_at",{ascending:false}).limit(100);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل التقارير.</p>';return;}
+ const open=(data||[]).filter(x=>x.status==="open");
+ document.getElementById("adminReportsCount").textContent=open.length;
+ box.innerHTML=data?.length?data.map(r=>'<article class="admin-report"><div><b>'+portalEsc(r.kind)+'</b><small>'+portalEsc(portalTime(r.created_at))+' · '+portalEsc(r.status)+'</small></div><p>'+portalEsc(r.body)+'</p>'+(r.status==="open"?'<button data-resolve-report="'+portalEsc(r.id)+'">وضع علامة تم الحل</button>':'')+'</article>').join(""):'<p class="resource-loading">لا توجد شكاوى أو ملاحظات.</p>';
+}
+async function portalLoadAdminThread(userId){
+ selectedSupportUser=userId;
+ const box=document.getElementById("adminSupportMessages");if(!userId){box.innerHTML='<p class="resource-loading">اختر طالباً لعرض الرسائل.</p>';return;}
+ const {data,error}=await db.from("admin_messages").select("id,user_id,sender_id,body,created_at").eq("user_id",userId).order("created_at").limit(150);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة.</p>';return;}
+ box.innerHTML=portalMessageMarkup(data,window.sealCurrentUser.id,true);box.scrollTop=box.scrollHeight;
+}
+async function portalInitSpaces(user,profile){
+ window.sealCurrentUser=user;window.sealCurrentProfile=profile;
+ const logged=!!user,isAdmin=profile?.role==="admin";
+ portalSetVisible("studentSpace",logged);portalSetVisible("studentNav",logged);portalSetVisible("studentNavMobile",logged);
+ portalSetVisible("adminPanel",isAdmin);portalSetVisible("adminNav",isAdmin);portalSetVisible("adminNavMobile",isAdmin);
+ if(!logged){if(portalRealtime){db.removeChannel(portalRealtime);portalRealtime=null;}return;}
+ document.getElementById("studentWelcomeName").textContent=profile?.display_name||profile?.username||"طالب Seal X1";
+ await Promise.all([portalLoadStudentStats(),portalLoadCommunity(),portalLoadStudentSupport()]);
+ if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports()]);
+ if(portalRealtime)db.removeChannel(portalRealtime);
+ portalRealtime=db.channel("seal-portal-"+user.id)
+  .on("postgres_changes",{event:"*",schema:"public",table:"community_messages"},portalLoadCommunity)
+  .on("postgres_changes",{event:"*",schema:"public",table:"admin_messages",filter:isAdmin?undefined:"user_id=eq."+user.id},async()=>{if(isAdmin&&selectedSupportUser)await portalLoadAdminThread(selectedSupportUser);else await portalLoadStudentSupport();})
+  .subscribe();
+}
+window.sealInitPortalSpaces=portalInitSpaces;
+
+document.getElementById("communityForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const input=document.getElementById("communityInput"),body=input.value.trim();if(!body||!window.sealCurrentUser)return;
+ const {error}=await db.from("community_messages").insert({user_id:window.sealCurrentUser.id,body});
+ if(error){alert("تعذر إرسال الرسالة: "+error.message);return;}input.value="";await portalLoadCommunity();
+});
+document.getElementById("studentSupportForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const input=document.getElementById("studentSupportInput"),body=input.value.trim(),user=window.sealCurrentUser;if(!body||!user)return;
+ const {error}=await db.from("admin_messages").insert({user_id:user.id,sender_id:user.id,body});
+ if(error){alert("تعذر إرسال الرسالة: "+error.message);return;}input.value="";await portalLoadStudentSupport();
+});
+document.getElementById("adminSupportForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const input=document.getElementById("adminSupportInput"),body=input.value.trim(),admin=window.sealCurrentUser;if(!body||!admin||!selectedSupportUser)return;
+ const {error}=await db.from("admin_messages").insert({user_id:selectedSupportUser,sender_id:admin.id,body});
+ if(error){alert("تعذر إرسال الرد: "+error.message);return;}input.value="";await portalLoadAdminThread(selectedSupportUser);
+});
+document.getElementById("adminSupportStudent")?.addEventListener("change",e=>portalLoadAdminThread(e.target.value));
+document.getElementById("examLogForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const user=window.sealCurrentUser;if(!user)return;
+ const title=document.getElementById("examLogTitle").value.trim(),subject=document.getElementById("examLogSubject").value.trim(),score=Number(document.getElementById("examLogScore").value);
+ const {error}=await db.from("student_exam_attempts").insert({user_id:user.id,exam_title:title,subject,score,total_score:100});
+ if(error){alert("تعذر حفظ النتيجة: "+error.message);return;}e.target.reset();await portalLoadStudentStats();alert("تم حفظ نتيجة الامتحان في سجلك.");
+});
+document.getElementById("adminAnnouncementForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="admin")return;
+ const title=document.getElementById("adminAnnouncementTitle").value.trim(),body=document.getElementById("adminAnnouncementBody").value.trim(),pinned=document.getElementById("adminAnnouncementPinned").checked,status=document.getElementById("adminAnnouncementStatus");
+ status.textContent="جاري نشر الإعلان...";
+ const {error}=await db.from("announcements").insert({title,body,pinned,status:"published",created_by:user.id});
+ if(error){status.textContent="تعذر النشر: "+error.message;return;}e.target.reset();status.textContent="تم نشر الإعلان.";await loadAnnouncements();
+});
+document.getElementById("refreshAdminUsers")?.addEventListener("click",portalLoadAdminUsers);
+document.getElementById("refreshAdminReports")?.addEventListener("click",portalLoadReports);
+document.getElementById("adminUsersList")?.addEventListener("click",async e=>{
+ const del=e.target.closest("[data-delete-user]"),edit=e.target.closest("[data-edit-user]");
+ if(del){const id=del.dataset.deleteUser;if(!confirm("تأكيد حذف حساب الطالب نهائياً؟ سيتم حذف سجلاته المرتبطة أيضاً."))return;try{await portalAdminCall("delete_user",{user_id:id});await portalLoadAdminUsers();}catch(err){alert(err.message);}return;}
+ if(edit){const u=adminUserCache.find(x=>x.id===edit.dataset.editUser);if(!u)return;const name=prompt("الاسم الظاهر:",u.display_name);if(name===null)return;const grade=prompt("الصف الدراسي:",u.grade||"");if(grade===null)return;try{await portalAdminCall("update_student",{user_id:u.id,display_name:name,grade});await portalLoadAdminUsers();}catch(err){alert(err.message);}}
+});
+document.getElementById("adminReportsList")?.addEventListener("click",async e=>{
+ const b=e.target.closest("[data-resolve-report]");if(!b)return;
+ const {error}=await db.from("reports").update({status:"resolved"}).eq("id",b.dataset.resolveReport);
+ if(error)alert("تعذر تحديث البلاغ: "+error.message);else await portalLoadReports();
+});
+document.addEventListener("click",async e=>{
+ const b=e.target.closest("[data-mark-video]");if(!b)return;
+ const user=window.sealCurrentUser;if(!user){document.getElementById("accountOpen").click();alert("سجّل الدخول أولاً لحفظ تقدمك.");return;}
+ const v=academyVideos.find(x=>x.id===b.dataset.markVideo);if(!v)return;
+ const {error}=await db.from("student_video_progress").upsert({user_id:user.id,video_id:v.id,title:v.title,subject:v.subject,completed:true,updated_at:new Date().toISOString()},{onConflict:"user_id,video_id"});
+ if(error){alert("تعذر تسجيل المشاهدة: "+error.message);return;}
+ b.textContent="✓ تمت إضافته لإنجازاتك";b.disabled=true;await portalLoadStudentStats();
+});
+if(db){
+ db.auth.getUser().then(async({data:{user}})=>{
+  if(user){const {data:profile}=await db.from("profiles").select("username,display_name,role,grade").eq("id",user.id).maybeSingle();await portalInitSpaces(user,profile);}
+ });
 }
