@@ -333,7 +333,12 @@ async function portalLoadAdminUsers(){
   document.getElementById("adminExamsCount").textContent=adminUserCache.reduce((n,x)=>n+(x.exams_completed||0),0);
   const select=document.getElementById("adminSupportStudent");
   select.innerHTML='<option value="">اختر طالباً لفتح المحادثة</option>'+adminUserCache.filter(x=>x.role==="student").map(x=>'<option value="'+portalEsc(x.id)+'">'+portalEsc(x.display_name)+' (@'+portalEsc(x.username)+')</option>').join("");
-  box.innerHTML=adminUserCache.length?adminUserCache.map(u=>'<article class="admin-user-row"><div class="admin-user-main"><b>'+portalEsc(u.display_name)+'</b><small>@'+portalEsc(u.username)+' · '+portalEsc(u.role==="teacher"?"معلم":u.role==="student"?"طالب":u.role)+'</small><span>فيديوهات: '+u.videos_completed+' · امتحانات: '+u.exams_completed+' · متوسط الامتحانات: '+(u.exam_average===null?'—':u.exam_average+'%')+' · آخر نشاط: '+portalEsc(portalTime(u.last_sign_in_at))+'</span></div>'+(u.role==="admin"?'<span class="admin-role-tag">ADMIN</span>':u.role==="moderator"?'<span class="admin-role-tag">MODERATOR</span>':'<div class="admin-user-actions"><select data-role-user="'+portalEsc(u.id)+'" aria-label="رتبة الحساب"><option value="student" '+(u.role==="student"?'selected':'')+'>طالب</option><option value="teacher" '+(u.role==="teacher"?'selected':'')+'>معلم</option></select><button data-save-role="'+portalEsc(u.id)+'">حفظ الرتبة</button><button data-edit-user="'+portalEsc(u.id)+'">تعديل</button><button class="danger-action" data-delete-user="'+portalEsc(u.id)+'">حذف</button></div>')+'</article>').join(""):'<p class="resource-loading">لا توجد حسابات بعد.</p>';
+  const teacherSubjects=["اللغة العربية","اللغة الإنجليزية","الرياضيات","العلوم المتكاملة","التاريخ","الجغرافيا","الفلسفة والمنطق","اللغة الفرنسية","اللغة الألمانية","اللغة الإيطالية","اللغة الإسبانية","اللغة الأجنبية الثانية","التربية الدينية","البرمجة والذكاء الاصطناعي","الفيزياء","الكيمياء","الأحياء","الدراسات الاجتماعية","الحاسب الآلي"];
+  box.innerHTML=adminUserCache.length?adminUserCache.map(u=>{
+   const roleLabel=u.role==="teacher"?"معلم":u.role==="student"?"طالب":u.role;
+   const teacherFields=u.role==="teacher"?'<div class="teacher-verify-fields" data-teacher-fields><input data-teacher-full-name maxlength="100" value="'+portalEsc(u.teacher_full_name||"")+'" placeholder="الاسم الكامل للمدرس"><select data-teacher-subject><option value="">اختر المادة</option>'+teacherSubjects.map(s=>'<option value="'+portalEsc(s)+'" '+(u.teacher_subject===s?'selected':'')+'>'+portalEsc(s)+'</option>').join("")+'</select><button type="button" data-verify-teacher="'+portalEsc(u.id)+'">'+(u.teacher_verified?"حفظ بيانات التوثيق":"توثيق المعلم بالعلامة الزرقاء")+'</button>'+(u.teacher_verified?'<button type="button" class="danger-action" data-unverify-teacher="'+portalEsc(u.id)+'">إلغاء التوثيق</button>':"")+'</div>':"";
+   return '<article class="admin-user-row" data-admin-user-row="'+portalEsc(u.id)+'"><div class="admin-user-main"><b>'+portalEsc(u.display_name)+'</b>'+(u.teacher_verified?'<span class="verified-teacher-badge">✓ مدرس موثق</span>':'')+'<small>@'+portalEsc(u.username)+' · '+portalEsc(roleLabel)+(u.teacher_verified?' · '+portalEsc(u.teacher_subject):"")+'</small><span>فيديوهات: '+u.videos_completed+' · امتحانات: '+u.exams_completed+' · متوسط الامتحانات: '+(u.exam_average===null?'—':u.exam_average+'%')+' · آخر نشاط: '+portalEsc(portalTime(u.last_sign_in_at))+'</span></div>'+(u.role==="admin"?'<span class="admin-role-tag">ADMIN</span>':u.role==="moderator"?'<span class="admin-role-tag">MODERATOR</span>':'<div class="admin-user-actions"><select data-role-user="'+portalEsc(u.id)+'" aria-label="رتبة الحساب"><option value="student" '+(u.role==="student"?'selected':'')+'>طالب</option><option value="teacher" '+(u.role==="teacher"?'selected':'')+'>معلم</option></select><button type="button" data-save-role="'+portalEsc(u.id)+'">حفظ الرتبة</button><button type="button" data-edit-user="'+portalEsc(u.id)+'">تعديل</button><button type="button" class="danger-action" data-delete-user="'+portalEsc(u.id)+'">حذف</button>'+teacherFields+'</div>')+'</article>';
+  }).join(""):'<p class="resource-loading">لا توجد حسابات بعد.</p>';
  }catch(error){box.innerHTML='<p class="resource-loading">'+portalEsc(error.message)+'</p>';}
 }
 async function portalLoadReports(){
@@ -420,9 +425,27 @@ document.getElementById("refreshAdminUsers")?.addEventListener("click",portalLoa
 document.getElementById("refreshAdminReports")?.addEventListener("click",portalLoadReports);
 document.getElementById("refreshAdminAnnouncements")?.addEventListener("click",portalLoadAdminAnnouncements);
 document.getElementById("refreshAdminCommunity")?.addEventListener("click",portalLoadAdminCommunity);
+document.getElementById("adminUsersList")?.addEventListener("change",e=>{
+ const select=e.target.closest("[data-role-user]");if(!select)return;
+ const row=select.closest("[data-admin-user-row]"),fields=row?.querySelector("[data-teacher-fields]");
+ if(fields)fields.hidden=select.value!=="teacher";
+});
 document.getElementById("adminUsersList")?.addEventListener("click",async e=>{
- const del=e.target.closest("[data-delete-user]"),edit=e.target.closest("[data-edit-user]");
- if(del){const id=del.dataset.deleteUser;if(!confirm("تأكيد حذف حساب الطالب نهائياً؟ سيتم حذف سجلاته المرتبطة أيضاً."))return;try{await portalAdminCall("delete_user",{user_id:id});await portalLoadAdminUsers();}catch(err){alert(err.message);}return;}
+ const del=e.target.closest("[data-delete-user]"),edit=e.target.closest("[data-edit-user]"),saveRole=e.target.closest("[data-save-role]"),verify=e.target.closest("[data-verify-teacher]"),unverify=e.target.closest("[data-unverify-teacher]");
+ if(del){const id=del.dataset.deleteUser;if(!confirm("تأكيد حذف الحساب نهائياً؟ سيتم حذف سجلاته المرتبطة أيضاً."))return;try{await portalAdminCall("delete_user",{user_id:id});await portalLoadAdminUsers();}catch(err){alert(err.message);}return;}
+ if(saveRole){const id=saveRole.dataset.saveRole,row=saveRole.closest("[data-admin-user-row]"),role=row.querySelector("[data-role-user]").value;try{await portalAdminCall("set_role",{user_id:id,role});await portalLoadAdminUsers();}catch(err){alert(err.message);}return;}
+ if(verify||unverify){
+  const id=(verify||unverify).dataset.verifyTeacher||(unverify?.dataset.unverifyTeacher),row=(verify||unverify).closest("[data-admin-user-row]");
+  try{
+   if(unverify){await portalAdminCall("verify_teacher",{user_id:id,verified:false});}
+   else{
+    const fullName=row.querySelector("[data-teacher-full-name]").value.trim(),subject=row.querySelector("[data-teacher-subject]").value;
+    if(row.querySelector("[data-role-user]").value!=="teacher")await portalAdminCall("set_role",{user_id:id,role:"teacher"});
+    await portalAdminCall("verify_teacher",{user_id:id,teacher_full_name:fullName,teacher_subject:subject,verified:true});
+   }
+   await portalLoadAdminUsers();
+  }catch(err){alert(err.message);}return;
+ }
  if(edit){const u=adminUserCache.find(x=>x.id===edit.dataset.editUser);if(!u)return;const name=prompt("الاسم الظاهر:",u.display_name);if(name===null)return;const grade=prompt("الصف الدراسي:",u.grade||"");if(grade===null)return;try{await portalAdminCall("update_student",{user_id:u.id,display_name:name,grade});await portalLoadAdminUsers();}catch(err){alert(err.message);}}
 });
 
