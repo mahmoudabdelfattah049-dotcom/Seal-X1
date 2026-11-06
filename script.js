@@ -89,7 +89,7 @@ async function loadResources(){
  const section=document.querySelector("#library");
  if(!section||!db)return;
  let container=section.querySelector("#liveResources");
- if(!container){container=document.createElement("div");container.id="liveResources";container.className="live-resources";results.after(container);}
+ if(!container){container=document.createElement("div");container.id="liveResources";container.className="live-resources";academyGrid.after(container);}
  container.innerHTML='<p class="resource-loading">جاري تحميل الملفات المدرسية المنشورة...</p>';
  const {data,error}=await db.from("resources").select("id,title,description,teacher_name,external_url,file_path,created_at,subjects(name),resource_categories(name)").eq("status","published").eq("verified",true).order("created_at",{ascending:false}).limit(60);
  if(error){container.innerHTML='<p class="resource-loading">تعذر تحميل ملفات المدرسة حالياً.</p>';console.error("Resources:",error);return;}
