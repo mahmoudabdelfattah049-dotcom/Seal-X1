@@ -481,7 +481,7 @@ document.getElementById("adminUsersList")?.addEventListener("change",e=>{
 document.getElementById("adminUsersList")?.addEventListener("click",async e=>{
  const del=e.target.closest("[data-delete-user]"),edit=e.target.closest("[data-edit-user]"),saveRole=e.target.closest("[data-save-role]"),verify=e.target.closest("[data-verify-teacher]"),unverify=e.target.closest("[data-unverify-teacher]");
  if(del){const id=del.dataset.deleteUser;if(!confirm("تأكيد حذف الحساب نهائياً؟ سيتم حذف سجلاته المرتبطة أيضاً."))return;try{await portalAdminCall("delete_user",{user_id:id});await portalLoadAdminUsers();}catch(err){alert(err.message);}return;}
- if(saveRole){const id=saveRole.dataset.saveRole,row=saveRole.closest("[data-admin-user-row]"),role=row.querySelector("[data-role-user]").value;try{await portalAdminCall("set_role",{user_id:id,role});await portalLoadAdminUsers();}catch(err){alert(err.message);}return;}
+ if(saveRole){const id=saveRole.dataset.saveRole,row=saveRole.closest("[data-admin-user-row]"),role=row.querySelector("[data-role-user]").value,current=adminUserCache.find(x=>x.id===id)?.role;if(role===current)return;try{await portalAdminCall("set_role",{user_id:id,role});await portalLoadAdminUsers();}catch(err){alert(err.message);}return;}
  if(verify||unverify){
   const id=(verify||unverify).dataset.verifyTeacher||(unverify?.dataset.unverifyTeacher),row=(verify||unverify).closest("[data-admin-user-row]");
   try{
