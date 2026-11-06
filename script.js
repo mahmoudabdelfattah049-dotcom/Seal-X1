@@ -108,53 +108,50 @@ const SUPABASE_KEY="sb_publishable_2BJmBVumRl6RRz1Ag9FLag_aeIFX3p8";
 const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);
 const dateLabel=value=>{if(!value)return "";try{return new Date(value).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"});}catch{return "";}};
 function setPanelState(panel,title,body){if(!panel)return;panel.innerHTML='<div class="empty-symbol">▤</div><h3>'+escapeHTML(title)+'</h3><p>'+escapeHTML(body)+'</p>';}
-async function loadAnnouncements(){
- const panel=document.getElementById("publicAnnouncementsList");
- if(!panel){console.error("Announcements: public panel #announcements .empty-panel was not found.");return;}
+async function loadSchoolAnnouncements(){
+ const panel=document.getElementById("schoolAnnouncementsFeed");
+ if(!panel)return;
+ panel.setAttribute("aria-busy","true");
  try{
-  let data=null,error=null;
-  if(db){
-   const result=await db.from("announcements").select("id,title,body,pinned,created_at").eq("status","published").order("pinned",{ascending:false}).order("created_at",{ascending:false}).limit(20);
-   data=result.data;error=result.error;
-  }
-  // Fall back to the public REST endpoint if the Supabase JS client failed to load or query.
-  if(!db||error){
-   const response=await fetch(SUPABASE_URL+"/rest/v1/announcements?select=id,title,body,pinned,created_at&status=eq.published&order=pinned.desc,created_at.desc&limit=20",{
-    method:"GET",cache:"no-store",
-    headers:{apikey:SUPABASE_KEY,Accept:"application/json"}
-   });
-   if(!response.ok)throw new Error("HTTP "+response.status+" — "+(await response.text()).slice(0,240));
-   data=await response.json();
-   error=null;
-  }
+  if(!db)throw new Error("خدمة قاعدة البيانات لم تبدأ.");
+  const {data,error}=await db.from("school_announcements")
+   .select("id,title,body,is_pinned,published_at,created_at")
+   .eq("status","published")
+   .order("is_pinned",{ascending:false})
+   .order("published_at",{ascending:false})
+   .order("created_at",{ascending:false})
+   .limit(30);
   if(error)throw error;
-  if(!Array.isArray(data)||!data.length){
+  if(!Array.isArray(data)||data.length===0){
    panel.classList.remove("live-list");
-   setPanelState(panel,"لا توجد إعلانات منشورة حالياً","ستظهر هنا إعلانات المدرسة فور اعتمادها ونشرها.");
+   setPanelState(panel,"لا توجد إعلانات منشورة حالياً","ستظهر هنا إعلانات المدرسة فور نشرها.");
    return;
   }
   panel.classList.add("live-list");
-  panel.innerHTML=data.map(item=>'<article class="live-item"><div class="live-item-top"><span class="live-tag">'+(item.pinned?"إعلان مهم":"إعلان المدرسة")+'</span><time>'+escapeHTML(dateLabel(item.created_at))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.body||"")+'</p></article>').join("");
+  panel.innerHTML=data.map(item=>'<article class="live-item"><div class="live-item-top"><span class="live-tag">'+(item.is_pinned?"إعلان مهم":"إعلان المدرسة")+'</span><time>'+escapeHTML(dateLabel(item.published_at||item.created_at))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.body)+'</p></article>').join("");
  }catch(error){
-  console.error("Announcements load failed:",error);
-  setPanelState(panel,"الإعلانات غير متاحة مؤقتاً","تعذر الاتصال بخدمة الإعلانات. حاول تحديث الصفحة لاحقاً.");
+  console.error("School announcements feed:",error);
+  panel.classList.remove("live-list");
+  setPanelState(panel,"تعذر تحميل الإعلانات","حدث خطأ أثناء الاتصال بخدمة الإعلانات. حاول التحديث بعد قليل.");
+ }finally{
+  panel.setAttribute("aria-busy","false");
  }
 }
 
-// One refresh path keeps every announcement destination in sync.
-async function refreshAnnouncementOutputs(){
- await loadAnnouncements();
+// One read path refreshes the public feed and the active staff workspace.
+async function refreshSchoolAnnouncementViews(){
+ await loadSchoolAnnouncements();
  const role=window.sealCurrentProfile?.role;
- if(role==="admin")await portalLoadAdminAnnouncements();
- else if(role==="teacher")await portalLoadTeacherAnnouncements();
+ if(role==="admin")await portalLoadSchoolAdminAnnouncements();
+ else if(role==="teacher")await portalLoadSchoolTeacherAnnouncements();
 }
-// Keep the public section and the matching staff management list synchronized.
-let announcementsRealtime=null;
+let schoolAnnouncementsRealtime=null;
 if(db){
- announcementsRealtime=db.channel("seal-announcements-live")
-  .on("postgres_changes",{event:"*",schema:"public",table:"announcements"},refreshAnnouncementOutputs)
-  .subscribe(status=>{console.info("Announcements realtime:",status);});
+ schoolAnnouncementsRealtime=db.channel("school-announcements-v1")
+  .on("postgres_changes",{event:"*",schema:"public",table:"school_announcements"},refreshSchoolAnnouncementViews)
+  .subscribe(status=>console.info("School announcements realtime:",status));
 }
+
 async function loadResources(){
  const section=document.querySelector("#library");
  if(!section||!db)return;
@@ -172,10 +169,10 @@ async function loadResources(){
  container.innerHTML='<h3 class="school-files-title">ملفات المدرسة المنشورة</h3>'+cards.join("");
 }
 // Load immediately, then refresh all destinations every 20 seconds as a Realtime fallback.
-refreshAnnouncementOutputs();
+refreshSchoolAnnouncementViews();
 if(db)loadResources();
-setInterval(()=>{if(document.visibilityState==="visible")refreshAnnouncementOutputs();},20000);
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshAnnouncementOutputs();});
+setInterval(()=>{if(document.visibilityState==="visible")refreshSchoolAnnouncementViews();},20000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshSchoolAnnouncementViews();});
 
 
 // Student accounts: usernames are mapped to an internal auth address.
@@ -411,13 +408,13 @@ async function portalLoadAdminThread(userId){
  box.innerHTML=portalMessageMarkup(data,window.sealCurrentUser.id,true);box.scrollTop=box.scrollHeight;
 }
 
-async function portalLoadAdminAnnouncements(){
- const box=document.getElementById("adminAnnouncementsList");if(!box)return;
+async function portalLoadSchoolAdminAnnouncements(){
+ const box=document.getElementById("schoolAdminAnnouncementsList");if(!box)return;
  // The admin cards are compact by default; reveal this list whenever it is refreshed.
  const adminDetails=box.closest("details.portal-collapsible");if(adminDetails)adminDetails.open=true;
- const {data,error}=await db.from("announcements").select("id,title,body,pinned,status,created_at").order("created_at",{ascending:false}).limit(80);
+ const {data,error}=await db.from("school_announcements").select("id,title,body,is_pinned,status,published_at,created_at").order("created_at",{ascending:false}).limit(80);
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل الإعلانات.</p>';return;}
- box.innerHTML=data?.length?data.map(a=>'<article class="admin-report"><div><b>'+portalEsc(a.title)+'</b><small>'+portalEsc(a.status)+' · '+portalEsc(portalTime(a.created_at))+'</small></div><p>'+portalEsc(a.body||"")+'</p><div class="admin-inline-actions"><button data-edit-announcement="'+portalEsc(a.id)+'">تعديل</button><button class="danger-action" data-delete-announcement="'+portalEsc(a.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لا توجد إعلانات.</p>';
+ box.innerHTML=data?.length?data.map(a=>'<article class="admin-report"><div><b>'+portalEsc(a.title)+'</b><small>'+portalEsc(a.status)+' · '+portalEsc(portalTime(a.created_at))+'</small></div><p>'+portalEsc(a.body||"")+'</p><div class="admin-inline-actions"><button data-edit-school-announcement="'+portalEsc(a.id)+'">تعديل</button><button class="danger-action" data-delete-school-announcement="'+portalEsc(a.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لا توجد إعلانات.</p>';
 }
 async function portalLoadAdminCommunity(){
  const box=document.getElementById("adminCommunityList");if(!box)return;
@@ -479,9 +476,9 @@ async function portalInitSpaces(user,profile){
   const note=document.getElementById("teacherExamAccessNote");if(note)note.textContent=profile?.teacher_verified?"حسابك موثق في مادة "+profile.teacher_subject+"؛ يمكنك إنشاء امتحانات لهذه المادة فقط.":"إنشاء الامتحانات متاح بعد توثيق حسابك من الإدارة. يمكنك استخدام بقية أدوات المعلم.";
   const examForm=document.getElementById("teacherExamForm");if(examForm){const subject=examForm.querySelector("[data-exam-subject]");if(subject)subject.value=profile?.teacher_subject||"";}
   document.querySelectorAll('#teacherSpace [data-exam-create]').forEach(b=>b.disabled=!profile?.teacher_verified);
-  await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements(),portalLoadTeacherCommunity(),...(profile?.teacher_verified?[portalLoadTeacherEssays()]:[])]);
+  await Promise.all([portalLoadTeacherResources(),portalLoadSchoolTeacherAnnouncements(),portalLoadTeacherCommunity(),...(profile?.teacher_verified?[portalLoadTeacherEssays()]:[])]);
  }
- if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports(),portalLoadAdminAnnouncements(),portalLoadAdminCommunity(),portalLoadAdminEssays()]);
+ if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports(),portalLoadSchoolAdminAnnouncements(),portalLoadAdminCommunity(),portalLoadAdminEssays()]);
  if(portalRealtime)db.removeChannel(portalRealtime);
  portalRealtime=db.channel("seal-portal-"+user.id)
   .on("postgres_changes",{event:"*",schema:"public",table:"community_messages"},()=>{if(isStudent)portalLoadCommunity();if(isTeacher)portalLoadTeacherCommunity();if(isAdmin)portalLoadAdminCommunity();})
@@ -507,16 +504,16 @@ document.getElementById("adminSupportForm")?.addEventListener("submit",async e=>
  if(error){alert("تعذر إرسال الرد: "+error.message);return;}input.value="";await portalLoadAdminThread(selectedSupportUser);
 });
 document.getElementById("adminSupportStudent")?.addEventListener("change",e=>portalLoadAdminThread(e.target.value));
-document.getElementById("adminAnnouncementForm")?.addEventListener("submit",async e=>{
+document.getElementById("schoolAdminAnnouncementForm")?.addEventListener("submit",async e=>{
  e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="admin")return;
- const title=document.getElementById("adminAnnouncementTitle").value.trim(),body=document.getElementById("adminAnnouncementBody").value.trim(),pinned=document.getElementById("adminAnnouncementPinned").checked,status=document.getElementById("adminAnnouncementStatus");
+ const title=document.getElementById("schoolAdminAnnouncementTitle").value.trim(),body=document.getElementById("schoolAdminAnnouncementBody").value.trim(),pinned=document.getElementById("schoolAdminAnnouncementPinned").checked,status=document.getElementById("schoolAdminAnnouncementStatus");
  status.textContent="جاري نشر الإعلان...";
- const {error}=await db.from("announcements").insert({title,body,pinned,status:"published",created_by:user.id});
- if(error){status.textContent="تعذر النشر: "+error.message;return;}e.target.reset();status.textContent="تم نشر الإعلان.";await refreshAnnouncementOutputs();
+ const {error}=await db.from("school_announcements").insert({title,body,is_pinned:pinned,status:"published"});
+ if(error){status.textContent="تعذر النشر: "+error.message;return;}e.target.reset();status.textContent="تم نشر الإعلان.";await refreshSchoolAnnouncementViews();
 });
 document.getElementById("refreshAdminUsers")?.addEventListener("click",portalLoadAdminUsers);
 document.getElementById("refreshAdminReports")?.addEventListener("click",portalLoadReports);
-document.getElementById("refreshAdminAnnouncements")?.addEventListener("click",portalLoadAdminAnnouncements);
+document.getElementById("refreshSchoolAdminAnnouncements")?.addEventListener("click",portalLoadSchoolAdminAnnouncements);
 document.getElementById("refreshAdminCommunity")?.addEventListener("click",portalLoadAdminCommunity);
 document.getElementById("adminUsersList")?.addEventListener("change",e=>{
  const select=e.target.closest("[data-role-user]");if(!select)return;
@@ -542,10 +539,10 @@ document.getElementById("adminUsersList")?.addEventListener("click",async e=>{
  if(edit){const u=adminUserCache.find(x=>x.id===edit.dataset.editUser);if(!u)return;const name=prompt("الاسم الظاهر:",u.display_name);if(name===null)return;const grade=prompt("الصف الدراسي:",u.grade||"");if(grade===null)return;try{await portalAdminCall("update_student",{user_id:u.id,display_name:name,grade});await portalLoadAdminUsers();}catch(err){alert(err.message);}}
 });
 
-document.getElementById("adminAnnouncementsList")?.addEventListener("click",async e=>{
- const del=e.target.closest("[data-delete-announcement]"),edit=e.target.closest("[data-edit-announcement]");
- if(del){if(!confirm("تأكيد حذف الإعلان؟"))return;const {error}=await db.from("announcements").delete().eq("id",del.dataset.deleteAnnouncement);if(error)alert("تعذر الحذف: "+error.message);else{await portalLoadAdminAnnouncements();await loadAnnouncements();}return;}
- if(edit){const {data:a}=await db.from("announcements").select("id,title,body").eq("id",edit.dataset.editAnnouncement).maybeSingle();if(!a)return;const title=prompt("عنوان الإعلان:",a.title);if(title===null)return;const body=prompt("تفاصيل الإعلان:",a.body||"");if(body===null)return;const {error}=await db.from("announcements").update({title:title.trim(),body:body.trim()}).eq("id",a.id);if(error)alert("تعذر التعديل: "+error.message);else{await portalLoadAdminAnnouncements();await loadAnnouncements();}}
+document.getElementById("schoolAdminAnnouncementsList")?.addEventListener("click",async e=>{
+ const del=e.target.closest("[data-delete-school-announcement]"),edit=e.target.closest("[data-edit-school-announcement]");
+ if(del){if(!confirm("تأكيد حذف الإعلان؟"))return;const {error}=await db.from("school_announcements").delete().eq("id",del.dataset.deleteAnnouncement);if(error)alert("تعذر الحذف: "+error.message);else{await portalLoadSchoolAdminAnnouncements();await loadSchoolAnnouncements();}return;}
+ if(edit){const {data:a}=await db.from("school_announcements").select("id,title,body").eq("id",edit.dataset.editAnnouncement).maybeSingle();if(!a)return;const title=prompt("عنوان الإعلان:",a.title);if(title===null)return;const body=prompt("تفاصيل الإعلان:",a.body||"");if(body===null)return;const {error}=await db.from("school_announcements").update({title:title.trim(),body:body.trim()}).eq("id",a.id);if(error)alert("تعذر التعديل: "+error.message);else{await portalLoadSchoolAdminAnnouncements();await loadSchoolAnnouncements();}}
 });
 document.getElementById("adminCommunityList")?.addEventListener("click",async e=>{
  const b=e.target.closest("[data-delete-community]");if(!b)return;if(!confirm("حذف الرسالة من المحادثة الجماعية؟"))return;
@@ -590,21 +587,21 @@ async function portalLoadTeacherResources(){
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المصادر: '+portalEsc(error.message)+'</p>';return;}
  box.innerHTML=data?.length?data.map(r=>'<article class="admin-report"><div><b>'+portalEsc(r.title)+'</b><small>'+portalEsc(r.status)+' · '+portalEsc(portalTime(r.created_at))+'</small></div><p>'+portalEsc(r.description||r.external_url||r.file_path||"")+'</p><div class="admin-inline-actions"><button data-edit-resource="'+portalEsc(r.id)+'">تعديل</button><button class="danger-action" data-delete-resource="'+portalEsc(r.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لم تضف أي مصادر بعد.</p>';
 }
-async function portalLoadTeacherAnnouncements(){
- const box=document.getElementById("teacherAnnouncementsList");if(!box||!window.sealCurrentUser)return;
+async function portalLoadSchoolTeacherAnnouncements(){
+ const box=document.getElementById("schoolTeacherAnnouncementsList");if(!box||!window.sealCurrentUser)return;
  // Keep the teacher announcement manager visible after every load.
  const teacherDetails=box.closest("details.portal-collapsible");if(teacherDetails)teacherDetails.open=true;
- const {data,error}=await db.from("announcements").select("id,title,body,status,pinned,created_at").eq("created_by",window.sealCurrentUser.id).order("created_at",{ascending:false}).limit(80);
+ const {data,error}=await db.from("school_announcements").select("id,title,body,is_pinned,status,published_at,created_at").eq("created_by",window.sealCurrentUser.id).order("created_at",{ascending:false}).limit(80);
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل إعلاناتك.</p>';return;}
- box.innerHTML=data?.length?data.map(a=>'<article class="admin-report"><div><b>'+portalEsc(a.title)+'</b><small>'+portalEsc(a.status)+' · '+portalEsc(portalTime(a.created_at))+'</small></div><p>'+portalEsc(a.body||"")+'</p><div class="admin-inline-actions"><button data-edit-teacher-announcement="'+portalEsc(a.id)+'">تعديل</button><button class="danger-action" data-delete-teacher-announcement="'+portalEsc(a.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لم تنشر أي إعلانات بعد.</p>';
+ box.innerHTML=data?.length?data.map(a=>'<article class="admin-report"><div><b>'+portalEsc(a.title)+'</b><small>'+portalEsc(a.status)+' · '+portalEsc(portalTime(a.created_at))+'</small></div><p>'+portalEsc(a.body||"")+'</p><div class="admin-inline-actions"><button data-edit-own-school-announcement="'+portalEsc(a.id)+'">تعديل</button><button class="danger-action" data-delete-own-school-announcement="'+portalEsc(a.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لم تنشر أي إعلانات بعد.</p>';
 }
-document.getElementById("teacherAnnouncementForm")?.addEventListener("submit",async e=>{
+document.getElementById("schoolTeacherAnnouncementForm")?.addEventListener("submit",async e=>{
  e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="teacher")return;
- const title=document.getElementById("teacherAnnouncementTitle").value.trim(),body=document.getElementById("teacherAnnouncementBody").value.trim(),pinned=document.getElementById("teacherAnnouncementPinned").checked,status=document.getElementById("teacherAnnouncementStatus");
+ const title=document.getElementById("schoolTeacherAnnouncementTitle").value.trim(),body=document.getElementById("schoolTeacherAnnouncementBody").value.trim(),pinned=document.getElementById("schoolTeacherAnnouncementPinned").checked,status=document.getElementById("schoolTeacherAnnouncementStatus");
  status.textContent="جاري نشر الإعلان...";
- const {error}=await db.from("announcements").insert({title,body,pinned,status:"published",created_by:user.id});
+ const {error}=await db.from("school_announcements").insert({title,body,is_pinned:pinned,status:"published"});
  if(error){status.textContent="تعذر النشر: "+error.message;return;}
- e.target.reset();status.textContent="تم نشر الإعلان.";await refreshAnnouncementOutputs();
+ e.target.reset();status.textContent="تم نشر الإعلان.";await refreshSchoolAnnouncementViews();
 });
 document.getElementById("teacherResourceForm")?.addEventListener("submit",async e=>{
  e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="teacher")return;
@@ -627,7 +624,7 @@ document.getElementById("teacherResourceForm")?.addEventListener("submit",async 
  }catch(err){status.textContent="تعذر إضافة المصدر: "+(err.message||"خطأ غير معروف");}
 });
 document.getElementById("refreshTeacherResources")?.addEventListener("click",portalLoadTeacherResources);
-document.getElementById("refreshTeacherAnnouncements")?.addEventListener("click",portalLoadTeacherAnnouncements);
+document.getElementById("refreshSchoolTeacherAnnouncements")?.addEventListener("click",portalLoadSchoolTeacherAnnouncements);
 document.getElementById("teacherResourcesList")?.addEventListener("click",async e=>{
  const del=e.target.closest("[data-delete-resource]"),edit=e.target.closest("[data-edit-resource]");
  if(del){
@@ -647,10 +644,10 @@ document.getElementById("teacherResourcesList")?.addEventListener("click",async 
   if(updateError)alert("تعذر التعديل: "+updateError.message);else await Promise.all([portalLoadTeacherResources(),loadResources()]);
  }
 });
-document.getElementById("teacherAnnouncementsList")?.addEventListener("click",async e=>{
- const del=e.target.closest("[data-delete-teacher-announcement]"),edit=e.target.closest("[data-edit-teacher-announcement]");
- if(del){if(!confirm("حذف الإعلان؟"))return;const {error}=await db.from("announcements").delete().eq("id",del.dataset.deleteTeacherAnnouncement);if(error)alert("تعذر الحذف: "+error.message);else await Promise.all([portalLoadTeacherAnnouncements(),loadAnnouncements()]);return;}
- if(edit){const {data:a,error}=await db.from("announcements").select("id,title,body").eq("id",edit.dataset.editTeacherAnnouncement).maybeSingle();if(error||!a)return;const title=prompt("عنوان الإعلان:",a.title);if(title===null)return;const body=prompt("التفاصيل:",a.body||"");if(body===null)return;const {error:updateError}=await db.from("announcements").update({title:title.trim(),body:body.trim()}).eq("id",a.id);if(updateError)alert("تعذر التعديل: "+updateError.message);else await Promise.all([portalLoadTeacherAnnouncements(),loadAnnouncements()]);}
+document.getElementById("schoolTeacherAnnouncementsList")?.addEventListener("click",async e=>{
+ const del=e.target.closest("[data-delete-own-school-announcement]"),edit=e.target.closest("[data-edit-own-school-announcement]");
+ if(del){if(!confirm("حذف الإعلان؟"))return;const {error}=await db.from("school_announcements").delete().eq("id",del.dataset.deleteTeacherAnnouncement);if(error)alert("تعذر الحذف: "+error.message);else await Promise.all([portalLoadSchoolTeacherAnnouncements(),loadSchoolAnnouncements()]);return;}
+ if(edit){const {data:a,error}=await db.from("school_announcements").select("id,title,body").eq("id",edit.dataset.editTeacherAnnouncement).maybeSingle();if(error||!a)return;const title=prompt("عنوان الإعلان:",a.title);if(title===null)return;const body=prompt("التفاصيل:",a.body||"");if(body===null)return;const {error:updateError}=await db.from("school_announcements").update({title:title.trim(),body:body.trim()}).eq("id",a.id);if(updateError)alert("تعذر التعديل: "+updateError.message);else await Promise.all([portalLoadSchoolTeacherAnnouncements(),loadSchoolAnnouncements()]);}
 });
 
 function portalOpenDetails(selector){
@@ -713,7 +710,7 @@ function portalAssistantAnswer(question,role){
   }
   if(portalHasAny(q,["اعلان","اعلانات","تنبيه","قرار"])){
    const manage=portalHasAny(q,["تعديل","حذف","إعلاناتي","اعلاناتي","المنشور","منشور"]);
-   go(manage?"#teacherAnnouncementsList":"#teacherAnnouncementForm");
+   go(manage?"#schoolTeacherAnnouncementsList":"#schoolTeacherAnnouncementForm");
    return manage?"إدارة إعلاناتك: افتح بطاقة «إعلاناتي»، وستجد تعديل وحذف بجوار كل إعلان.":"إضافة إعلان: افتح بطاقة «إضافة إعلان للطلاب»، اكتب العنوان والتفاصيل، ويمكنك تحديد أنه إعلان مهم، ثم اضغط «نشر الإعلان».";
   }
   if(portalHasAny(q,["pdf","بى دى اف","بي دي اف","ملف","مصدر","مصادر","مستند","رابط"])){
