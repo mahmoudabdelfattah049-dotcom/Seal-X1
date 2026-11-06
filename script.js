@@ -24,6 +24,9 @@ const academyVideos=[
  {id:"xYin-SQjmhI",subject:"اللغة العربية",teacher:"مستر عمر ياقوت",title:"خطة تقفيل العربي: البداية الصحيحة لأولى ثانوي 2027",description:"فيديو إرشادي لتنظيم فروع العربي: النحو والبلاغة والقراءة والنصوص، وكيفية التعامل مع المادة خلال العام.",kind:"مراجعة",duration:"—",date:"2026-08-25",recommended:4},
  {id:"ymkFII6BHIo",subject:"العلوم المتكاملة",teacher:"مدرس علوم — قناة الإبداع في الأحياء",title:"المحاضرة الأولى: علوم متكاملة أولى ثانوي 2027",description:"محاضرة مجانية منشورة للصف الأول الثانوي، مع ملف سبورة مرفق في وصف الناشر الأصلي.",kind:"شرح",duration:"—",date:"2026-09-05",recommended:4}
  ,{id:"AP5HVeh3jTk",subject:"اللغة الأجنبية الأولى",teacher:"مستر محمود عبداللاه",title:"شرح Unit 3: حالات If",description:"شرح قواعد If في الوحدة الثالثة مع أمثلة وتطبيقات للصف الأول الثانوي 2027.",kind:"شرح",duration:"—",date:"2026-10-24",recommended:5,verified:true}
+ ,{id:"TuApiiQQzqQ",subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"مراجعة Unit 2: كلمات وقواعد وأسئلة",description:"مراجعة شاملة للوحدة الثانية Hands Help, Hearts Care تشمل المفردات والقواعد والتدريب.",kind:"مراجعة",duration:"—",date:"2026-09-28",recommended:5,verified:true}
+ ,{id:"3iVDH71SZtw",subject:"اللغة الأجنبية الأولى",teacher:"مستر عمرو رجب",title:"حل تقييم الأسبوع الأول",description:"حل تقييمات الوزارة للأسبوع الأول مع شرح المفردات والجرامر والكتابة.",kind:"حل وتدريب",duration:"—",date:"2026-09-23",recommended:4,verified:true}
+ ,{id:"1kODywKg0tI",subject:"اللغة الأجنبية الأولى",teacher:"عبدالحميد حامد",title:"حل تقييمات الإنجليزي — الترم الأول 2027",description:"تدريب على تقييمات أولى ثانوي ومراجعة شكل الأسئلة والإجابات.",kind:"حل وتدريب",duration:"—",date:"2026-10-17",recommended:4,verified:true}
 ];
 const academySubjects=[
  {name:"اللغة العربية",icon:"ع",desc:"النحو والبلاغة والقراءة والنصوص والأدب."},
