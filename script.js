@@ -749,14 +749,14 @@ function portalAssistantAnswer(question,role){
    go("#academyVideoGrid");
    return "فتحت المكتبة. لم أجد تطابقاً مؤكداً مع اسم الفيديو؛ اكتب اسم الدرس أو المادة أو اسم المدرس لأحدد الفيديو الصحيح بدل ما أفتح لك نتيجة عشوائية.";
   }
-  if(portalHasAny(q,["اعلان","اعلانات","قرار","تنبيه","اخبار المدرسه"])){go("#announcements");return "الإعلانات والقرارات موجودة في قسم «الإعلانات والقرارات» أعلى الصفحة.";}
+  if(portalHasAny(q,["اعلان","اعلانات","قرار","تنبيه","اخبار المدرسه"])){go("#announcements");return "إعلانات المدرسة موجودة في القسم المخصص أعلى الصفحة.";}
   if(portalHasAny(q,["كيريو","qureo","برمجه","برمجة"])){go("#qureo");if(open)window.open("https://me-portal.qureo.education/login","_blank","noopener,noreferrer");return "قسم QUREO يحتوي رابط المنصة الرسمية ومصادر المساعدة المتاحة.";}
   if(portalHasAny(q,["محادثه","شات","رساله","رسائل","زملاء","جماعي"])){go("#communityMessages");return "المحادثة الجماعية داخل مساحة الطلاب. أما التواصل الخاص فمخصص للإدارة.";}
   if(portalHasAny(q,["شكوي","شكوى","استفسار","خاص","الاداره","الإدارة"])){go("#studentSupportMessages");return "للتواصل الخاص مع الإدارة استخدم بطاقة «تواصل خاص مع الإدارة» داخل مساحة الطلاب.";}
   if(portalHasAny(q,["ملف","pdf","مكتبه","مصدر","مراجع"])){const lib=document.querySelector(".library-collapsible");if(lib)lib.open=true;go("#liveResources");return "الملفات والمصادر المنشورة تظهر في قسم «ملفات المدرسة المنشورة» أسفل المكتبة التعليمية.";}
  }
  const aliases=[
-  {id:"announcements",keys:["اعلان","قرار","تنبيه"],title:"الإعلانات والقرارات"},
+  {id:"announcements",keys:["اعلان","قرار","تنبيه"],title:"إعلانات المدرسة"},
   {id:"qureo",keys:["كيريو","qureo","برمجه"],title:"مركز QUREO"},
   {id:"library",keys:["مكتبه","فيديو","درس","شرح","ماده"],title:"المكتبة التعليمية"},
   {id:teacher?"teacherExamForm":"studentExamsList",keys:["امتحان","اختبار"],title:"الامتحانات"},
@@ -854,7 +854,7 @@ portalAssistantAnswer=function(question,role){
 document.querySelector(".learn-pace-link")?.addEventListener("click",e=>{
  if(!window.sealCurrentUser){e.preventDefault();document.getElementById("accountOpen")?.click();alert("سجّل الدخول أولاً لعرض تقدمك الشخصي.");}
 });
-// Keep public announcements visible: this live output must never be placed inside a closed collapsible.
+// The public school-news feed remains outside collapsible cards.
 portalMakeCompact("#qureo .feature-card","قسم تعليمي","اضغط لعرض التفاصيل");
 
 async function portalExamAction(action,payload={}){return await portalAdminCall(action,payload);}
