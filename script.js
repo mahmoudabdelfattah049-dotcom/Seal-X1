@@ -92,7 +92,7 @@ function academyRender(){
  if(!academyState.activeVideo||!items.some(v=>v.id===academyState.activeVideo))academyState.activeVideo=items[0].id;
  const active=items.find(v=>v.id===academyState.activeVideo);
  academyFeatured.innerHTML='<div class="academy-player"><iframe src="https://www.youtube-nocookie.com/embed/'+active.id+'?rel=0" title="'+academyEsc(active.title)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="academy-feature-info"><div class="academy-video-badges"><span>'+academyEsc(active.kind)+'</span><span>'+academyEsc(active.teacher)+'</span>'+(active.older?'<span class="older-label">محتوى أقدم</span>':'<span class="fresh-label">محتوى تعليمي</span>')+'</div><h4>'+academyEsc(active.title)+'</h4><p>'+academyEsc(active.description)+'</p><a href="https://www.youtube.com/watch?v='+active.id+'" target="_blank" rel="noopener noreferrer">فتح الفيديو على YouTube ↗</a><button class="mark-watched-btn" data-mark-video="'+active.id+'" '+(window.sealCompletedVideoIds?.has(active.id)?'disabled':'')+'>'+(window.sealCompletedVideoIds?.has(active.id)?'✓ تمت المشاهدة':'✓ سجلت مشاهدة الفيديو')+'</button></div>';
- academyGrid.innerHTML=items.map(v=>'<article class="academy-video-card '+(v.id===active.id?"playing":"")+'"><button class="academy-thumb" data-video="'+v.id+'" aria-label="شاهد '+academyEsc(v.title)+'"><img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt="" loading="lazy"><span class="academy-play">▶</span><span class="academy-duration">'+academyEsc(v.duration)+'</span></button><div class="academy-card-body"><div class="academy-video-badges"><span>'+academyEsc(v.kind)+'</span>'+(v.older?'<span class="older-label">أقدم</span>':'')+'</div><h5>'+academyEsc(v.title)+'</h5><p>'+academyEsc(v.description)+'</p><div class="academy-card-footer"><span>'+academyEsc(v.teacher)+'</span><button data-video="'+v.id+'">'+(v.id===active.id?"يُعرض الآن":"عرض الفيديو")+'</button></div></div></article>').join("");
+ academyGrid.innerHTML=items.map(v=>'<details class="academy-video-card"><summary class="academy-video-summary"><img src="https://i.ytimg.com/vi/'+v.id+'/mqdefault.jpg" alt="" loading="lazy"><span class="academy-summary-copy"><b>'+academyEsc(v.title)+'</b><small>'+academyEsc(v.teacher)+' · '+academyEsc(v.duration)+' · '+academyEsc(v.kind)+'</small></span><span class="academy-summary-arrow">⌄</span></summary><div class="academy-card-body"><p>'+academyEsc(v.description)+'</p><div class="academy-card-footer"><span>'+(v.id===active.id?'يُعرض الآن':'جاهز للمشاهدة')+'</span><button data-video="'+v.id+'">افتح في المشغل الرئيسي</button></div></div></details>').join("");
 }
 academySubjectsEl.addEventListener("click",e=>{const b=e.target.closest("[data-subject]");if(!b)return;academyState.subject=b.dataset.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=null;document.querySelectorAll(".academy-type").forEach(x=>x.classList.toggle("active",x.dataset.kind==="all"));academyRender();});
 academyTeachersEl.addEventListener("click",e=>{const b=e.target.closest("[data-teacher]");if(!b)return;academyState.teacher=b.dataset.teacher;academyState.activeVideo=null;academyRender();});
@@ -127,7 +127,7 @@ async function loadResources(){
  if(!data?.length){container.innerHTML='';return;}
  const cards=await Promise.all(data.map(async item=>{
   let href=item.external_url||"",label=href?"فتح المصدر":"";
-  if(item.file_path){const {data:signed,error:signError}=await db.storage.from("school-files").createSignedUrl(item.file_path,3600);if(!signError&&signed?.signedUrl){href=signed.signedUrl;label="فتح / تحميل الملف";}}
+  if(item.file_path){const {data:signed,error:signError}=await db.storage.from("resources").createSignedUrl(item.file_path,3600);if(!signError&&signed?.signedUrl){href=signed.signedUrl;label="فتح / تحميل الملف";}}
   return '<article class="resource-item"><div class="resource-symbol">▧</div><div class="resource-copy"><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.description||"")+'</p><div class="resource-meta">'+escapeHTML(item.subjects?.name||"مصدر تعليمي")+(item.teacher_name?" · "+escapeHTML(item.teacher_name):"")+'</div></div>'+(href?'<a class="resource-link" href="'+escapeHTML(href)+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>':'<span class="resource-pending">الرابط غير متاح</span>')+'</article>';
  }));
  container.innerHTML='<h3 class="school-files-title">ملفات المدرسة المنشورة</h3>'+cards.join("");
@@ -322,8 +322,8 @@ async function portalLoadAdminUsers(){
   document.getElementById("adminVideosCount").textContent=adminUserCache.reduce((n,x)=>n+(x.videos_completed||0),0);
   document.getElementById("adminExamsCount").textContent=adminUserCache.reduce((n,x)=>n+(x.exams_completed||0),0);
   const select=document.getElementById("adminSupportStudent");
-  select.innerHTML='<option value="">اختر طالباً لفتح المحادثة</option>'+adminUserCache.filter(x=>x.role!=="admin").map(x=>'<option value="'+portalEsc(x.id)+'">'+portalEsc(x.display_name)+' (@'+portalEsc(x.username)+')</option>').join("");
-  box.innerHTML=adminUserCache.length?adminUserCache.map(u=>'<article class="admin-user-row"><div class="admin-user-main"><b>'+portalEsc(u.display_name)+'</b><small>@'+portalEsc(u.username)+' · '+portalEsc(u.role)+'</small><span>فيديوهات: '+u.videos_completed+' · امتحانات: '+u.exams_completed+' · متوسط الامتحانات: '+(u.exam_average===null?'—':u.exam_average+'%')+' · آخر نشاط: '+portalEsc(portalTime(u.last_sign_in_at))+'</span></div>'+(u.role==="admin"?'<span class="admin-role-tag">ADMIN</span>':'<div class="admin-user-actions"><button data-edit-user="'+portalEsc(u.id)+'">تعديل</button><button class="danger-action" data-delete-user="'+portalEsc(u.id)+'">حذف</button></div>')+'</article>').join(""):'<p class="resource-loading">لا توجد حسابات بعد.</p>';
+  select.innerHTML='<option value="">اختر طالباً لفتح المحادثة</option>'+adminUserCache.filter(x=>x.role==="student").map(x=>'<option value="'+portalEsc(x.id)+'">'+portalEsc(x.display_name)+' (@'+portalEsc(x.username)+')</option>').join("");
+  box.innerHTML=adminUserCache.length?adminUserCache.map(u=>'<article class="admin-user-row"><div class="admin-user-main"><b>'+portalEsc(u.display_name)+'</b><small>@'+portalEsc(u.username)+' · '+portalEsc(u.role==="teacher"?"معلم":u.role==="student"?"طالب":u.role)+'</small><span>فيديوهات: '+u.videos_completed+' · امتحانات: '+u.exams_completed+' · متوسط الامتحانات: '+(u.exam_average===null?'—':u.exam_average+'%')+' · آخر نشاط: '+portalEsc(portalTime(u.last_sign_in_at))+'</span></div>'+(u.role==="admin"?'<span class="admin-role-tag">ADMIN</span>':u.role==="moderator"?'<span class="admin-role-tag">MODERATOR</span>':'<div class="admin-user-actions"><select data-role-user="'+portalEsc(u.id)+'" aria-label="رتبة الحساب"><option value="student" '+(u.role==="student"?'selected':'')+'>طالب</option><option value="teacher" '+(u.role==="teacher"?'selected':'')+'>معلم</option></select><button data-save-role="'+portalEsc(u.id)+'">حفظ الرتبة</button><button data-edit-user="'+portalEsc(u.id)+'">تعديل</button><button class="danger-action" data-delete-user="'+portalEsc(u.id)+'">حذف</button></div>')+'</article>').join(""):'<p class="resource-loading">لا توجد حسابات بعد.</p>';
  }catch(error){box.innerHTML='<p class="resource-loading">'+portalEsc(error.message)+'</p>';}
 }
 async function portalLoadReports(){
@@ -440,3 +440,149 @@ if(db){
   if(user){const {data:profile}=await db.from("profiles").select("username,display_name,role,grade").eq("id",user.id).maybeSingle();await portalInitSpaces(user,profile);}
  });
 }
+
+/* Teacher-only workspace and contextual platform guide. */
+const sealBaseInit=window.sealInitPortalSpaces;
+window.sealInitPortalSpaces=async function(user,profile){
+ await sealBaseInit?.(user,profile);
+ const role=profile?.role||"student";
+ const logged=!!user;
+ const student=logged&&role==="student";
+ const teacher=logged&&role==="teacher";
+ const admin=logged&&role==="admin";
+ portalSetVisible("studentSpace",student);portalSetVisible("studentNav",student);portalSetVisible("studentNavMobile",student);
+ portalSetVisible("teacherSpace",teacher);portalSetVisible("teacherNav",teacher);portalSetVisible("teacherNavMobile",teacher);
+ portalSetVisible("learnAtYourPace",student);
+ portalSetVisible("studentAssistant",student);portalSetVisible("teacherAssistant",teacher);
+ portalSetVisible("adminPanel",admin);portalSetVisible("adminNav",admin);portalSetVisible("adminNavMobile",admin);
+ if(teacher){
+  const name=document.getElementById("teacherWelcomeName");
+  if(name)name.textContent="مرحباً، "+(profile?.display_name||profile?.username||"معلم");
+  await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements()]);
+ }
+};
+
+async function portalLoadTeacherResources(){
+ const box=document.getElementById("teacherResourcesList");if(!box||!window.sealCurrentUser)return;
+ const {data,error}=await db.from("resources").select("id,title,description,status,external_url,file_path,created_at").order("created_at",{ascending:false}).limit(100);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المصادر: '+portalEsc(error.message)+'</p>';return;}
+ box.innerHTML=data?.length?data.map(r=>'<article class="admin-report"><div><b>'+portalEsc(r.title)+'</b><small>'+portalEsc(r.status)+' · '+portalEsc(portalTime(r.created_at))+'</small></div><p>'+portalEsc(r.description||r.external_url||r.file_path||"")+'</p><div class="admin-inline-actions"><button data-edit-resource="'+portalEsc(r.id)+'">تعديل</button><button class="danger-action" data-delete-resource="'+portalEsc(r.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لم تضف أي مصادر بعد.</p>';
+}
+async function portalLoadTeacherAnnouncements(){
+ const box=document.getElementById("teacherAnnouncementsList");if(!box||!window.sealCurrentUser)return;
+ const {data,error}=await db.from("announcements").select("id,title,body,status,pinned,created_at").eq("created_by",window.sealCurrentUser.id).order("created_at",{ascending:false}).limit(80);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل إعلاناتك.</p>';return;}
+ box.innerHTML=data?.length?data.map(a=>'<article class="admin-report"><div><b>'+portalEsc(a.title)+'</b><small>'+portalEsc(a.status)+' · '+portalEsc(portalTime(a.created_at))+'</small></div><p>'+portalEsc(a.body||"")+'</p><div class="admin-inline-actions"><button data-edit-teacher-announcement="'+portalEsc(a.id)+'">تعديل</button><button class="danger-action" data-delete-teacher-announcement="'+portalEsc(a.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لم تنشر أي إعلانات بعد.</p>';
+}
+document.getElementById("teacherAnnouncementForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="teacher")return;
+ const title=document.getElementById("teacherAnnouncementTitle").value.trim(),body=document.getElementById("teacherAnnouncementBody").value.trim(),pinned=document.getElementById("teacherAnnouncementPinned").checked,status=document.getElementById("teacherAnnouncementStatus");
+ status.textContent="جاري نشر الإعلان...";
+ const {error}=await db.from("announcements").insert({title,body,pinned,status:"published",created_by:user.id});
+ if(error){status.textContent="تعذر النشر: "+error.message;return;}
+ e.target.reset();status.textContent="تم نشر الإعلان.";await Promise.all([loadAnnouncements(),portalLoadTeacherAnnouncements()]);
+});
+document.getElementById("teacherResourceForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="teacher")return;
+ const title=document.getElementById("teacherResourceTitle").value.trim(),description=document.getElementById("teacherResourceDescription").value.trim(),subject=document.getElementById("teacherResourceSubject").value.trim(),externalUrl=document.getElementById("teacherResourceUrl").value.trim(),file=document.getElementById("teacherResourceFile").files?.[0],status=document.getElementById("teacherResourceStatus");
+ if(!file&&!externalUrl){status.textContent="ارفع ملفاً أو أضف رابطاً خارجياً.";return;}
+ if(file&&file.size>20*1024*1024){status.textContent="الحد الأقصى لحجم الملف 20 ميجابايت.";return;}
+ status.textContent="جاري رفع المصدر...";
+ let filePath=null;
+ try{
+  if(file){
+   const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+   filePath="teachers/"+user.id+"/"+Date.now()+"-"+safeName;
+   const {error:uploadError}=await db.storage.from("resources").upload(filePath,file,{upsert:false,contentType:file.type||"application/octet-stream"});
+   if(uploadError)throw uploadError;
+  }
+  const {error}=await db.from("resources").insert({title,description,teacher_name:window.sealCurrentProfile?.display_name||window.sealCurrentProfile?.username||"معلم",file_path:filePath,external_url:externalUrl||null,status:"published",verified:true,keywords:subject?[subject]:[],view_count:0,created_by:user.id});
+  if(error){if(filePath)await db.storage.from("resources").remove([filePath]);throw error;}
+  e.target.reset();status.textContent="تمت إضافة المصدر ونشره للطلاب.";await Promise.all([portalLoadTeacherResources(),loadResources()]);
+ }catch(err){status.textContent="تعذر إضافة المصدر: "+(err.message||"خطأ غير معروف");}
+});
+document.getElementById("refreshTeacherResources")?.addEventListener("click",portalLoadTeacherResources);
+document.getElementById("refreshTeacherAnnouncements")?.addEventListener("click",portalLoadTeacherAnnouncements);
+document.getElementById("teacherResourcesList")?.addEventListener("click",async e=>{
+ const del=e.target.closest("[data-delete-resource]"),edit=e.target.closest("[data-edit-resource]");
+ if(del){
+  if(!confirm("حذف هذا المصدر نهائياً؟"))return;
+  const {data:r}=await db.from("resources").select("file_path").eq("id",del.dataset.deleteResource).maybeSingle();
+  const {error}=await db.from("resources").delete().eq("id",del.dataset.deleteResource);
+  if(error)alert("تعذر الحذف: "+error.message);
+  else{if(r?.file_path)await db.storage.from("resources").remove([r.file_path]);await Promise.all([portalLoadTeacherResources(),loadResources()]);}
+  return;
+ }
+ if(edit){
+  const {data:r,error}=await db.from("resources").select("id,title,description,external_url").eq("id",edit.dataset.editResource).maybeSingle();if(error||!r)return;
+  const title=prompt("عنوان المصدر:",r.title);if(title===null)return;
+  const description=prompt("الوصف:",r.description||"");if(description===null)return;
+  const external_url=prompt("الرابط الخارجي:",r.external_url||"");if(external_url===null)return;
+  const {error:updateError}=await db.from("resources").update({title:title.trim(),description:description.trim(),external_url:external_url.trim()||null}).eq("id",r.id);
+  if(updateError)alert("تعذر التعديل: "+updateError.message);else await Promise.all([portalLoadTeacherResources(),loadResources()]);
+ }
+});
+document.getElementById("teacherAnnouncementsList")?.addEventListener("click",async e=>{
+ const del=e.target.closest("[data-delete-teacher-announcement]"),edit=e.target.closest("[data-edit-teacher-announcement]");
+ if(del){if(!confirm("حذف الإعلان؟"))return;const {error}=await db.from("announcements").delete().eq("id",del.dataset.deleteTeacherAnnouncement);if(error)alert("تعذر الحذف: "+error.message);else await Promise.all([portalLoadTeacherAnnouncements(),loadAnnouncements()]);return;}
+ if(edit){const {data:a,error}=await db.from("announcements").select("id,title,body").eq("id",edit.dataset.editTeacherAnnouncement).maybeSingle();if(error||!a)return;const title=prompt("عنوان الإعلان:",a.title);if(title===null)return;const body=prompt("التفاصيل:",a.body||"");if(body===null)return;const {error:updateError}=await db.from("announcements").update({title:title.trim(),body:body.trim()}).eq("id",a.id);if(updateError)alert("تعذر التعديل: "+updateError.message);else await Promise.all([portalLoadTeacherAnnouncements(),loadAnnouncements()]);}
+});
+
+function portalOpenDetails(selector){
+ const el=document.querySelector(selector);if(!el)return;
+ const d=el.closest("details");if(d)d.open=true;
+ el.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function portalAssistantAnswer(question,role){
+ const q=question.toLowerCase();
+ if(role==="teacher"){
+  if(/اعلان|إعلان|announcement/.test(q)){portalOpenDetails("#teacherAnnouncementForm");return "إضافة الإعلان من مجلد المعلمين: افتح بطاقة «إضافة إعلان للطلاب»، اكتب العنوان والتفاصيل، ثم اضغط «نشر الإعلان». الإعلان سيظهر للطلاب مباشرة.";}
+  if(/pdf|بى دى اف|بي دي اف|ملف|مصدر|رفع/.test(q)){portalOpenDetails("#teacherResourceForm");return "رفع ملف: افتح بطاقة «إضافة ملف أو مصدر»، اكتب العنوان والوصف، اختَر PDF من جهازك أو أضف رابطاً خارجياً، ثم اضغط «إضافة إلى المنصة». الحد الأقصى 20 ميجابايت.";}
+  if(/تعديل|حذف|مصادري|ملفاتي|مصادر/.test(q)){portalOpenDetails("#teacherResourcesList");return "إدارة المصادر من بطاقة «مصادري المنشورة». ستجد زري التعديل والحذف بجوار كل مصدر.";}
+  if(/إعلاناتي|اعلاناتي/.test(q)){portalOpenDetails("#teacherAnnouncementsList");return "إعلاناتك في بطاقة «إعلاناتي»، ويمكنك تعديلها أو حذفها.";}
+  if(/رتبة|طالب|حساب|ادمن|إدارة/.test(q))return "إدارة الحسابات وتغيير رتبة طالب إلى معلم من اختصاص حساب المدير فقط.";
+ }else{
+  if(/اتعلم|تقدم|إنجاز|انجاز|تقييم|مشاهدات|نتيجة/.test(q)){portalOpenDetails("#learningProgressContent");return "دي مساحة «اتعلم على مهلك». هتلاقي عدد الفيديوهات والامتحانات المسجلة وتقييم تقدمك وأيام النشاط.";}
+  if(/فيديو|شرح|درس|يوتيوب/.test(q)){
+   const terms=q.split(/\s+/).filter(x=>x.length>2&&!["افتح","فيديو","شرح","عايز","من","فضلك"].includes(x));
+   const match=terms.length?academyVideos.find(v=>terms.some(t=>(v.title+" "+v.subject+" "+v.teacher).toLowerCase().includes(t))):null;
+   const lib=document.querySelector(".library-collapsible");if(lib)lib.open=true;
+   if(match){academyState.subject=match.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=match.id;academyRender();portalOpenDetails("#academyFeatured");return "لقيت الفيديو الأقرب لطلبك: "+match.title+". فتحته في مشغل المكتبة.";}
+   portalOpenDetails("#academyVideoGrid");return "فتحت مكتبة الفيديوهات. اختار المادة ثم المدرس أو نوع الفيديو.";
+  }
+  if(/إعلان|اعلان|قرار/.test(q)){portalOpenDetails("#announcements .empty-panel");return "إعلانات المدرسة وقراراتها في قسم الإعلانات أعلى الصفحة. فتحت لك القسم.";}
+  if(/كيريو|qureo|برمج/.test(q)){portalOpenDetails("#qureo");return "مركز QUREO موجود أعلى المكتبة. فتحت لك مكانه.";}
+  if(/محادث|شات|رسالة|زملاء/.test(q)){portalOpenDetails("#communityMessages");return "المحادثة الجماعية موجودة في مساحة الطلاب، افتح بطاقة الحديث الجماعي.";}
+  if(/ملف|pdf|مكتبة|مصدر/.test(q)){portalOpenDetails("#library");return "المكتبة التعليمية فيها المواد والمدرسين والفيديوهات، والملفات المنشورة تظهر أسفلها.";}
+ }
+ const terms=q.split(/\s+/).filter(x=>x.length>2);
+ const candidates=[...document.querySelectorAll("main h1,main h2,main h3,main h4,main a,main button,main summary")].filter(el=>el.offsetParent!==null&&!el.closest("#adminPanel"));
+ let best=null,score=0;
+ for(const el of candidates){const t=(el.innerText||el.textContent||"").toLowerCase();const n=terms.reduce((v,w)=>v+(t.includes(w)?1:0),0);if(n>score){best=el;score=n;}}
+ if(best&&score){const d=best.closest("details");if(d)d.open=true;best.scrollIntoView({behavior:"smooth",block:"center"});return "أقرب مكان لسؤالك هو «"+(best.innerText||best.textContent).trim()+"». نقلتك إليه؛ لو تقصد حاجة تانية اكتب اسمها بشكل أوضح.";}
+ return role==="teacher"?"أقدر أساعدك في الإعلانات ورفع ملفات PDF والمصادر وتعديل المحتوى الذي نشرته.":"أقدر أوصلك للإعلانات وQUREO والمكتبة والفيديوهات ومساحة تقدمك.";
+}
+function portalBindAssistant(role){
+ const form=document.getElementById(role+"AssistantForm"),input=document.getElementById(role+"AssistantInput"),log=document.getElementById(role+"AssistantLog");if(!form||!input||!log)return;
+ form.addEventListener("submit",e=>{e.preventDefault();const q=input.value.trim();if(!q)return;const userLine=document.createElement("p");userLine.className="assistant-user";userLine.textContent=q;log.appendChild(userLine);const answer=document.createElement("p");answer.className="assistant-answer";answer.textContent=portalAssistantAnswer(q,role);log.appendChild(answer);input.value="";log.scrollTop=log.scrollHeight;});
+}
+portalBindAssistant("student");portalBindAssistant("teacher");
+
+function portalMakeCompact(selector,title,description){
+ document.querySelectorAll(selector).forEach(el=>{
+  if(el.closest("details.portal-collapsible"))return;
+  const d=document.createElement("details");d.className="portal-collapsible";
+  const s=document.createElement("summary");s.innerHTML='<span><b>'+portalEsc(title||el.querySelector(".portal-card-heading h3,h3,h4")?.textContent||"تفاصيل القسم")+'</b><small>'+portalEsc(description||"اضغط لعرض المحتوى")+'</small></span><span class="assistant-chevron">⌄</span>';
+  const body=document.createElement("div");body.className="portal-collapsible-body";
+  el.parentNode.insertBefore(d,el);d.appendChild(s);d.appendChild(body);body.appendChild(el);
+ });
+}
+portalMakeCompact("#library #academyFeatured","الفيديو المختار","افتح المشغل والوصف");
+portalMakeCompact("#library #academyPlaylists","قوائم التشغيل","افتح قوائم الشرح الكاملة");
+portalMakeCompact("#library #academyVideoGrid","فيديوهات المادة","اضغط لعرض الفيديوهات المتاحة");
+portalMakeCompact("#studentSpace .portal-card","أداة الطالب","اضغط لفتح المحادثة أو السجل");
+portalMakeCompact("#teacherSpace .portal-card","أداة المعلم","اضغط لفتح الإضافة أو الإدارة");
+portalMakeCompact("#adminPanel .portal-card","أداة الإدارة","اضغط لفتح التفاصيل");
+portalMakeCompact("#learningProgressContent .progress-dashboard","إحصاءات تقدمك","مشاهدات وامتحانات وتقييم النشاط");
+portalMakeCompact("#learningProgressContent .progress-detail","تفاصيل اتعلم على مهلك","طريقة حساب مؤشر التقدم");
+portalMakeCompact("#adminPanel .admin-stats","ملخص الإدارة","أرقام الحسابات والنشاط");
