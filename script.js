@@ -300,6 +300,16 @@ async function portalLoadStudentSupport(){
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل رسائلك.</p>';return;}
  box.innerHTML=portalMessageMarkup(data,window.sealCurrentUser.id,false);box.scrollTop=box.scrollHeight;
 }
+async function portalLoadStudentExamHistory(){
+ const box=document.getElementById("studentExamHistory"),user=window.sealCurrentUser;if(!box||!user)return;
+ const {data,error}=await db.from("platform_exam_attempts").select("id,score,total_score,completed_at,grading_status,teacher_feedback,platform_exams(title,subject,exam_type)").eq("user_id",user.id).order("completed_at",{ascending:false}).limit(30);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل سجل الامتحانات.</p>';return;}
+ box.innerHTML=data?.length?data.map(x=>{
+  const pending=x.grading_status==="pending";
+  return '<article class="student-exam-history-row"><div><b>'+portalEsc(x.platform_exams?.title||"امتحان")+'</b><small>'+portalEsc(x.platform_exams?.subject||"")+' · '+portalEsc(portalTime(x.completed_at))+'</small></div><strong class="'+(pending?"pending":"")+'">'+(pending?"بانتظار تصحيح المعلم":Number(x.score)+" / "+Number(x.total_score))+'</strong>'+(x.teacher_feedback?'<p>ملاحظة المعلم: '+portalEsc(x.teacher_feedback)+'</p>':"")+'</article>';
+ }).join(""):'<p class="resource-loading">لم تحل أي امتحانات حتى الآن.</p>';
+}
+document.getElementById("refreshStudentExamHistory")?.addEventListener("click",portalLoadStudentExamHistory);
 async function portalLoadStudentStats(){
  const user=window.sealCurrentUser;if(!user)return;
  const [videos,exams]=await Promise.all([
@@ -754,11 +764,11 @@ async function portalLoadTeacherCommunity(){
  const box=document.getElementById("teacherCommunityMessages");if(!box||!window.sealCurrentUser)return;
  const [messages,profiles]=await Promise.all([
   db.from("community_messages").select("id,user_id,body,created_at").order("created_at",{ascending:false}).limit(80),
-  db.from("community_profiles_public").select("id,display_name,username")
+  db.from("community_profiles_public").select("id,display_name,username,teacher_verified,teacher_full_name,teacher_subject")
  ]);
  if(messages.error||profiles.error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة.</p>';return;}
- const names=new Map((profiles.data||[]).map(p=>[p.id,p.display_name||p.username||"عضو"]));
- box.innerHTML=(messages.data||[]).reverse().map(m=>'<div class="chat-bubble '+(m.user_id===window.sealCurrentUser.id?'mine':'')+'"><div class="chat-bubble-meta">'+portalEsc(names.get(m.user_id)||"عضو")+' · '+portalEsc(portalTime(m.created_at))+'</div><p>'+portalEsc(m.body)+'</p></div>').join("")||'<p class="resource-loading">ابدأ أول نقاش جماعي.</p>';
+ const names=new Map((profiles.data||[]).map(p=>[p.id,{name:p.teacher_verified?(p.teacher_full_name||p.display_name||p.username):p.display_name||p.username||"عضو",verified:p.teacher_verified===true}]));
+ box.innerHTML=(messages.data||[]).reverse().map(m=>{const sender=names.get(m.user_id)||{name:"عضو",verified:false};return '<div class="chat-bubble '+(m.user_id===window.sealCurrentUser.id?'mine':'')+'"><div class="chat-bubble-meta">'+portalEsc(sender.name)+(sender.verified?' <span class="verified-teacher-badge">✓ موثق</span>':"")+' · '+portalEsc(portalTime(m.created_at))+'</div><p>'+portalEsc(m.body)+'</p></div>';}).join("")||'<p class="resource-loading">ابدأ أول نقاش جماعي.</p>';
  box.scrollTop=box.scrollHeight;
 }
 document.getElementById("teacherCommunityForm")?.addEventListener("submit",async e=>{
