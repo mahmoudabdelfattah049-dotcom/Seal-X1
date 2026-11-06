@@ -767,9 +767,10 @@ function portalInitExamBuilder(form){
  const render=()=>{list.innerHTML=form.__questions.length?form.__questions.map((q,i)=>'<div class="exam-question-chip"><span><b>سؤال '+(i+1)+'</b> · '+portalEsc(q.prompt)+' ('+q.points+' درجة)</span><button type="button" data-remove-question="'+i+'" aria-label="حذف السؤال">×</button></div>').join(""):'<p class="resource-loading">لم تضف أسئلة بعد.</p>';};
  const add=()=>{
   const prompt=form.querySelector("[data-question-prompt]").value.trim();
-  const options=[...form.querySelectorAll("[data-question-option]")].map(x=>x.value.trim()).filter(Boolean);
+  const rawOptions=[...form.querySelectorAll("[data-question-option]")].map(x=>x.value.trim());
+  const lastFilled=rawOptions.map((x,i)=>x?i:-1).reduce((a,b)=>Math.max(a,b),-1),options=rawOptions.slice(0,lastFilled+1);
   const answerIndex=Number(form.querySelector("[data-question-answer]").value),points=Number(form.querySelector("[data-question-points]").value)||1;
-  if(prompt.length<3||options.length<2||answerIndex>=options.length){status.textContent="اكتب السؤال واختيارين على الأقل، وحدد إجابة صحيحة موجودة.";return false;}
+  if(prompt.length<3||options.length<2||options.some(x=>!x)||answerIndex>=options.length){status.textContent="اكتب السؤال واختيارين على الأقل دون ترك فراغ بين الاختيارات، وحدد إجابة صحيحة موجودة.";return false;}
   form.__questions.push({prompt,options,answerIndex,points:Math.max(1,Math.min(100,points))});
   form.querySelector("[data-question-prompt]").value="";form.querySelectorAll("[data-question-option]").forEach(x=>x.value="");
   form.querySelector("[data-question-answer]").value="0";form.querySelector("[data-question-points]").value="1";status.textContent="تمت إضافة السؤال. أضف السؤال التالي أو انشر الامتحان.";
