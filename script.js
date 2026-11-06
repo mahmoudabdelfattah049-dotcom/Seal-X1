@@ -765,7 +765,7 @@ function portalInitExamBuilder(form){
   e.preventDefault();const user=window.sealCurrentUser,role=window.sealCurrentProfile?.role;
   if(!user||!["teacher","admin"].includes(role)){status.textContent="إنشاء الامتحانات متاح للمعلمين والإدارة فقط.";return;}
   const prompt=form.querySelector("[data-question-prompt]").value.trim();
-  if(prompt&&form.__questions.length===0)add();
+  if(prompt&&!add())return;
   if(!form.__questions.length){status.textContent="أضف سؤالاً واحداً على الأقل قبل النشر.";return;}
   const payload={title:form.querySelector("[data-exam-title]").value.trim(),subject:form.querySelector("[data-exam-subject]").value.trim(),description:form.querySelector("[data-exam-description]").value.trim(),duration_minutes:Number(form.querySelector("[data-exam-duration]").value)||30,questions:form.__questions};
   const button=form.querySelector('button[type="submit"]');button.disabled=true;status.textContent="جاري إنشاء الامتحان...";
@@ -778,7 +778,4 @@ function portalInitExamBuilder(form){
 }
 portalInitExamBuilder(document.getElementById("teacherExamForm"));
 portalInitExamBuilder(document.getElementById("adminExamForm"));
-document.getElementById("studentSpace")?.addEventListener("click",e=>{
- const open=e.target.closest(".subject-exam-group>summary,.student-exam-card>summary");if(!open)return;
- const details=open.parentElement;if(details?.tagName==="DETAILS")details.open=!details.open;
-});
+
