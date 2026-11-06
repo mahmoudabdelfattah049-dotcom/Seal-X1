@@ -487,7 +487,7 @@ document.getElementById("teacherAnnouncementForm")?.addEventListener("submit",as
 document.getElementById("teacherResourceForm")?.addEventListener("submit",async e=>{
  e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="teacher")return;
  const title=document.getElementById("teacherResourceTitle").value.trim(),description=document.getElementById("teacherResourceDescription").value.trim(),subject=document.getElementById("teacherResourceSubject").value.trim(),externalUrl=document.getElementById("teacherResourceUrl").value.trim(),file=document.getElementById("teacherResourceFile").files?.[0],status=document.getElementById("teacherResourceStatus");
- if(!file&&!externalUrl){status.textContent="ارفع ملفاً أو أضف رابطاً خارجياً.";return;}
+ if(!file&&!externalUrl){status.textContent="ارفع ملفاً أو أضف رابطاً خارجياً.";return;}\n if(externalUrl&&!/^https?:\\/\\//i.test(externalUrl)){status.textContent="الرابط لازم يبدأ بـ https:// أو http://";return;}
  if(file&&file.size>20*1024*1024){status.textContent="الحد الأقصى لحجم الملف 20 ميجابايت.";return;}
  status.textContent="جاري رفع المصدر...";
  let filePath=null;
@@ -542,7 +542,7 @@ function portalAssistantAnswer(question,role){
   if(/pdf|بى دى اف|بي دي اف|ملف|مصدر|رفع/.test(q)){portalOpenDetails("#teacherResourceForm");return "رفع ملف: افتح بطاقة «إضافة ملف أو مصدر»، اكتب العنوان والوصف، اختَر PDF من جهازك أو أضف رابطاً خارجياً، ثم اضغط «إضافة إلى المنصة». الحد الأقصى 20 ميجابايت.";}
   if(/تعديل|حذف|مصادري|ملفاتي|مصادر/.test(q)){portalOpenDetails("#teacherResourcesList");return "إدارة المصادر من بطاقة «مصادري المنشورة». ستجد زري التعديل والحذف بجوار كل مصدر.";}
   if(/إعلاناتي|اعلاناتي/.test(q)){portalOpenDetails("#teacherAnnouncementsList");return "إعلاناتك في بطاقة «إعلاناتي»، ويمكنك تعديلها أو حذفها."}
-  if(/qureo|كيريو/.test(q)){portalOpenDetails("#qureo");return "لفتح منصة QUREO الرسمية اضغط رابط «افتح منصة QUREO الرسمية» في قسم QUREO. إضافة ملفات وشروحات متعلقة بها تتم من بطاقة «إضافة ملف أو مصدر».";}
+  if(/افتح.*(qureo|كيريو)|افتح منصة/.test(q)&&/qureo|كيريو/.test(q)){window.open("https://me-portal.qureo.education/login","_blank","noopener,noreferrer");portalOpenDetails("#qureo");return "فتحت منصة QUREO الرسمية في تبويب جديد.";}\n  if(/qureo|كيريو/.test(q)){portalOpenDetails("#qureo");return "لفتح منصة QUREO الرسمية اضغط رابط «افتح منصة QUREO الرسمية» في قسم QUREO. إضافة ملفات وشروحات متعلقة بها تتم من بطاقة «إضافة ملف أو مصدر».";}
   if(/رتبة|طالب|حساب|ادمن|إدارة/.test(q))return "إدارة الحسابات وتغيير رتبة طالب إلى معلم من اختصاص حساب المدير فقط.";
  }else{
   if(/اتعلم|تقدم|إنجاز|انجاز|تقييم|مشاهدات|نتيجة/.test(q)){portalOpenDetails("#studentVideosDone");return "دي مساحة «اتعلم على مهلك». هتلاقي عدد الفيديوهات والامتحانات المسجلة وتقييم تقدمك وأيام النشاط.";}
@@ -554,7 +554,7 @@ function portalAssistantAnswer(question,role){
    portalOpenDetails("#academyVideoGrid");return "فتحت مكتبة الفيديوهات. اختار المادة ثم المدرس أو نوع الفيديو.";
   }
   if(/إعلان|اعلان|قرار/.test(q)){portalOpenDetails("#announcements .empty-panel");return "إعلانات المدرسة وقراراتها في قسم الإعلانات أعلى الصفحة. فتحت لك القسم.";}
-  if(/كيريو|qureo|برمج/.test(q)){portalOpenDetails("#qureo");return "مركز QUREO موجود أعلى المكتبة. فتحت لك مكانه.";}
+  if(/افتح.*(كيريو|qureo)|افتح منصة/.test(q)&&/كيريو|qureo/.test(q)){window.open("https://me-portal.qureo.education/login","_blank","noopener,noreferrer");portalOpenDetails("#qureo");return "فتحت منصة QUREO الرسمية في تبويب جديد.";}\n   if(/كيريو|qureo|برمج/.test(q)){portalOpenDetails("#qureo");return "مركز QUREO موجود أعلى المكتبة. فتحت لك مكانه.";}
   if(/محادث|شات|رسالة|زملاء/.test(q)){portalOpenDetails("#communityMessages");return "المحادثة الجماعية موجودة في مساحة الطلاب، افتح بطاقة الحديث الجماعي.";}
   if(/ملف|pdf|مكتبة|مصدر/.test(q)){const library=document.querySelector(".library-collapsible");if(library)library.open=true;portalOpenDetails("#library");return "المكتبة التعليمية فيها المواد والمدرسين والفيديوهات، والملفات المنشورة تظهر أسفلها.";}
  }
