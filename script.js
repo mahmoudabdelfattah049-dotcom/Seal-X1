@@ -134,3 +134,84 @@ async function loadResources(){
 }
 if(db)Promise.all([loadAnnouncements(),loadResources()]);
 else setPanelState(document.querySelector("#announcements .empty-panel"),"تعذر الاتصال","لم يتم تحميل مكتبة الاتصال بقاعدة البيانات.");
+
+
+// Student accounts: usernames are mapped to an internal auth address.
+// No real email address is collected or displayed. Passwords are handled only by Supabase Auth.
+const authCard=document.getElementById("authCard");
+if(db&&authCard){
+ const authForm=document.getElementById("studentAuthForm");
+ const authMessage=document.getElementById("authMessage");
+ const authSubmit=document.getElementById("authSubmit");
+ const authSession=document.getElementById("authSession");
+ const authHeading=document.getElementById("authHeading");
+ const authSubheading=document.getElementById("authSubheading");
+ const usernameInput=document.getElementById("studentUsername");
+ const passwordInput=document.getElementById("studentPassword");
+ const displayNameInput=document.getElementById("studentDisplayName");
+ const nameField=document.getElementById("studentNameField");
+ let authMode="login";
+ const internalEmail=name=>name.trim().toLowerCase()+"@accounts.sealx1.com";
+ const setAuthMessage=(message,type="")=>{authMessage.textContent=message;authMessage.className="auth-message "+type;};
+ function setAuthMode(mode){
+  authMode=mode;
+  document.querySelectorAll("[data-auth-mode]").forEach(b=>b.classList.toggle("active",b.dataset.authMode===mode));
+  nameField.hidden=mode!=="signup";
+  displayNameInput.required=mode==="signup";
+  passwordInput.autocomplete=mode==="signup"?"new-password":"current-password";
+  authSubmit.textContent=mode==="signup"?"إنشاء حساب الطالب":"دخول إلى حسابي";
+  authHeading.textContent=mode==="signup"?"أنشئ حسابك في Seal X1":"أهلاً بك في Seal X1";
+  authSubheading.textContent=mode==="signup"?"اسم مستخدم وكلمة مرور فقط":"استخدم بيانات حسابك للدخول";
+  setAuthMessage("");
+ }
+ document.querySelectorAll("[data-auth-mode]").forEach(b=>b.addEventListener("click",()=>setAuthMode(b.dataset.authMode)));
+ async function refreshStudentSession(){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){authSession.hidden=true;authForm.hidden=false;return;}
+  const {data:profile}=await db.from("profiles").select("username,display_name").eq("id",user.id).maybeSingle();
+  authForm.hidden=true;authSession.hidden=false;
+  document.getElementById("authSessionName").textContent=profile?.display_name||profile?.username||user.user_metadata?.username||"طالب Seal X1";
+  authHeading.textContent="تم تسجيل الدخول";
+  authSubheading.textContent="حسابك متصل وجاهز لحفظ تقدمك";
+ }
+ authForm.addEventListener("submit",async event=>{
+  event.preventDefault();
+  const username=usernameInput.value.trim().toLowerCase();
+  const password=passwordInput.value;
+  if(!/^[a-z0-9_]{3,20}$/.test(username)){setAuthMessage("اسم المستخدم لازم يكون 3–20 حرفاً إنجليزياً أو رقماً أو _ فقط.","error");return;}
+  if(password.length<8){setAuthMessage("كلمة المرور لازم تكون 8 أحرف على الأقل.","error");return;}
+  authSubmit.disabled=true;authSubmit.textContent="لحظة واحدة...";
+  setAuthMessage(authMode==="signup"?"جاري إنشاء حسابك...":"جاري تسجيل الدخول...");
+  try{
+   let result;
+   if(authMode==="signup"){
+    const displayName=displayNameInput.value.trim();
+    if(!displayName){setAuthMessage("اكتب الاسم الظاهر داخل المنصة.","error");return;}
+    result=await db.auth.signUp({email:internalEmail(username),password,options:{data:{username,display_name:displayName}}});
+    if(result.error)throw result.error;
+    if(!result.data.session){
+      setAuthMessage("الحساب اتسجل، لكن إعداد تأكيد البريد في Supabase ما زال مفعّلاً. لازم تعطيله من إعدادات Authentication > Providers > Email حتى يعمل نظام اسم المستخدم بدون بريد.", "error");
+      return;
+    }
+    setAuthMessage("تم إنشاء الحساب بنجاح!","success");
+   }else{
+    result=await db.auth.signInWithPassword({email:internalEmail(username),password});
+    if(result.error)throw result.error;
+    setAuthMessage("تم تسجيل الدخول بنجاح.","success");
+   }
+   passwordInput.value="";
+   await refreshStudentSession();
+  }catch(error){
+   const msg=String(error?.message||"");
+   if(/already registered|already exists|duplicate key/i.test(msg))setAuthMessage("اسم المستخدم مستخدم بالفعل. جرّب اسماً آخر.","error");
+   else if(/invalid login credentials/i.test(msg))setAuthMessage("اسم المستخدم أو كلمة المرور غير صحيحة.","error");
+   else setAuthMessage("تعذر إكمال العملية: "+msg,"error");
+  }finally{authSubmit.disabled=false;authSubmit.textContent=authMode==="signup"?"إنشاء حساب الطالب":"دخول إلى حسابي";}
+ });
+ document.getElementById("authSignOut").addEventListener("click",async()=>{
+  await db.auth.signOut();setAuthMode("login");authHeading.textContent="تم تسجيل الخروج";authSubheading.textContent="يمكنك تسجيل الدخول مرة أخرى";await refreshStudentSession();
+ });
+ document.getElementById("accountOpen").addEventListener("click",()=>document.getElementById("studentAuth").scrollIntoView({behavior:"smooth"}));
+ db.auth.onAuthStateChange(()=>{refreshStudentSession();});
+ refreshStudentSession();
+}
