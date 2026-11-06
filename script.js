@@ -337,6 +337,20 @@ async function portalLoadAdminThread(userId){
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة.</p>';return;}
  box.innerHTML=portalMessageMarkup(data,window.sealCurrentUser.id,true);box.scrollTop=box.scrollHeight;
 }
+
+async function portalLoadAdminAnnouncements(){
+ const box=document.getElementById("adminAnnouncementsList");if(!box)return;
+ const {data,error}=await db.from("announcements").select("id,title,body,pinned,status,created_at").order("created_at",{ascending:false}).limit(80);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل الإعلانات.</p>';return;}
+ box.innerHTML=data?.length?data.map(a=>'<article class="admin-report"><div><b>'+portalEsc(a.title)+'</b><small>'+portalEsc(a.status)+' · '+portalEsc(portalTime(a.created_at))+'</small></div><p>'+portalEsc(a.body||"")+'</p><div class="admin-inline-actions"><button data-edit-announcement="'+portalEsc(a.id)+'">تعديل</button><button class="danger-action" data-delete-announcement="'+portalEsc(a.id)+'">حذف</button></div></article>').join(""):'<p class="resource-loading">لا توجد إعلانات.</p>';
+}
+async function portalLoadAdminCommunity(){
+ const box=document.getElementById("adminCommunityList");if(!box)return;
+ const {data,error}=await db.from("community_messages").select("id,user_id,body,created_at,profiles(display_name,username)").order("created_at",{ascending:false}).limit(60);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل رسائل المجموعة.</p>';return;}
+ box.innerHTML=data?.length?data.map(m=>'<article class="admin-report"><div><b>'+portalEsc(m.profiles?.display_name||m.profiles?.username||"طالب")+'</b><small>'+portalEsc(portalTime(m.created_at))+'</small></div><p>'+portalEsc(m.body)+'</p><button class="danger-action" data-delete-community="'+portalEsc(m.id)+'">حذف الرسالة</button></article>').join(""):'<p class="resource-loading">لا توجد رسائل.</p>';
+}
+
 async function portalInitSpaces(user,profile){
  window.sealCurrentUser=user;window.sealCurrentProfile=profile;
  const logged=!!user,isAdmin=profile?.role==="admin";
@@ -345,7 +359,7 @@ async function portalInitSpaces(user,profile){
  if(!logged){if(portalRealtime){db.removeChannel(portalRealtime);portalRealtime=null;}return;}
  document.getElementById("studentWelcomeName").textContent=profile?.display_name||profile?.username||"طالب Seal X1";
  await Promise.all([portalLoadStudentStats(),portalLoadCommunity(),portalLoadStudentSupport()]);
- if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports()]);
+ if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports(),portalLoadAdminAnnouncements(),portalLoadAdminCommunity()]);
  if(portalRealtime)db.removeChannel(portalRealtime);
  portalRealtime=db.channel("seal-portal-"+user.id)
   .on("postgres_changes",{event:"*",schema:"public",table:"community_messages"},portalLoadCommunity)
@@ -385,11 +399,25 @@ document.getElementById("adminAnnouncementForm")?.addEventListener("submit",asyn
 });
 document.getElementById("refreshAdminUsers")?.addEventListener("click",portalLoadAdminUsers);
 document.getElementById("refreshAdminReports")?.addEventListener("click",portalLoadReports);
+document.getElementById("refreshAdminAnnouncements")?.addEventListener("click",portalLoadAdminAnnouncements);
+document.getElementById("refreshAdminCommunity")?.addEventListener("click",portalLoadAdminCommunity);
 document.getElementById("adminUsersList")?.addEventListener("click",async e=>{
  const del=e.target.closest("[data-delete-user]"),edit=e.target.closest("[data-edit-user]");
  if(del){const id=del.dataset.deleteUser;if(!confirm("تأكيد حذف حساب الطالب نهائياً؟ سيتم حذف سجلاته المرتبطة أيضاً."))return;try{await portalAdminCall("delete_user",{user_id:id});await portalLoadAdminUsers();}catch(err){alert(err.message);}return;}
  if(edit){const u=adminUserCache.find(x=>x.id===edit.dataset.editUser);if(!u)return;const name=prompt("الاسم الظاهر:",u.display_name);if(name===null)return;const grade=prompt("الصف الدراسي:",u.grade||"");if(grade===null)return;try{await portalAdminCall("update_student",{user_id:u.id,display_name:name,grade});await portalLoadAdminUsers();}catch(err){alert(err.message);}}
 });
+
+document.getElementById("adminAnnouncementsList")?.addEventListener("click",async e=>{
+ const del=e.target.closest("[data-delete-announcement]"),edit=e.target.closest("[data-edit-announcement]");
+ if(del){if(!confirm("تأكيد حذف الإعلان؟"))return;const {error}=await db.from("announcements").delete().eq("id",del.dataset.deleteAnnouncement);if(error)alert("تعذر الحذف: "+error.message);else{await portalLoadAdminAnnouncements();await loadAnnouncements();}return;}
+ if(edit){const {data:a}=await db.from("announcements").select("id,title,body").eq("id",edit.dataset.editAnnouncement).maybeSingle();if(!a)return;const title=prompt("عنوان الإعلان:",a.title);if(title===null)return;const body=prompt("تفاصيل الإعلان:",a.body||"");if(body===null)return;const {error}=await db.from("announcements").update({title:title.trim(),body:body.trim()}).eq("id",a.id);if(error)alert("تعذر التعديل: "+error.message);else{await portalLoadAdminAnnouncements();await loadAnnouncements();}}
+});
+document.getElementById("adminCommunityList")?.addEventListener("click",async e=>{
+ const b=e.target.closest("[data-delete-community]");if(!b)return;if(!confirm("حذف الرسالة من المحادثة الجماعية؟"))return;
+ const {error}=await db.from("community_messages").delete().eq("id",b.dataset.deleteCommunity);
+ if(error)alert("تعذر حذف الرسالة: "+error.message);else await portalLoadAdminCommunity();
+});
+
 document.getElementById("adminReportsList")?.addEventListener("click",async e=>{
  const b=e.target.closest("[data-resolve-report]");if(!b)return;
  const {error}=await db.from("reports").update({status:"resolved"}).eq("id",b.dataset.resolveReport);
