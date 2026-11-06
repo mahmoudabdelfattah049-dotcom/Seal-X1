@@ -48,11 +48,11 @@
       <div class="section-heading"><div><div class="eyebrow">YOUR LEARNING JOURNEY</div><h2>اتعلم <span>على مهلك</span></h2><p>لوحة تقدمك الشخصية محفوظة على حسابك، وتقدر ترجع لها في أي وقت.</p></div><span class="section-number">03 / PROGRESS</span></div>
       <div id="learningProgressContent">      <div class="progress-dashboard">
         <article class="progress-stat"><span>الفيديوهات المكتملة</span><b id="studentVideosDone">0</b><small>فيديو تم تسجيل مشاهدته</small></article>
-        <article class="progress-stat"><span>الامتحانات المسجلة</span><b id="studentExamsDone">0</b><small>نتائج أضفتها إلى سجلك</small></article>
+        <article class="progress-stat"><span>امتحانات تم حلها</span><b id="studentExamsDone">0</b><small>درجات مصححة ومحفوظة</small></article>
         <article class="progress-stat"><span>تقييم المنصة</span><b><i id="studentScore">0</i><small>/ 100</small></b><small>مؤشر نشاط وإنجاز</small></article>
         <article class="progress-stat"><span>أيام النشاط</span><b id="studentActiveDays">0</b><small>خلال آخر 7 أيام</small></article>
       </div>
-      <div class="progress-detail"><div class="progress-detail-head"><h3>اتعلم على مهلك</h3><span id="studentProgressLabel">تقدمك بيتحدث تلقائياً</span></div><div class="progress-track"><span id="studentProgressBar"></span></div><p>التقييم من 100: 40 نقطة لتسجيل مشاهدة حتى 20 فيديو، و50 نقطة لمتوسط نتائج الامتحانات المسجلة، و10 نقاط للانتظام خلال آخر 7 أيام. النتائج المسجلة ذاتياً وليست امتحانات مراقبة.</p></div>
+      <div class="progress-detail"><div class="progress-detail-head"><h3>اتعلم على مهلك</h3><span id="studentProgressLabel">تقدمك بيتحدث تلقائياً</span></div><div class="progress-track"><span id="studentProgressBar"></span></div><p>التقييم من 100: 40 نقطة لتسجيل مشاهدة حتى 20 فيديو، و50 نقطة لمتوسط نتائج الامتحانات المسجلة، و10 نقاط للانتظام خلال آخر 7 أيام. درجات الامتحانات تُصحح تلقائياً بواسطة المنصة، ويُحتسب متوسط محاولاتك المسجلة.</p></div>
 </div>
     </section>
     <section class="content-section section-wrap" id="library">
@@ -77,8 +77,8 @@
   
     <section class="content-section section-wrap portal-space" id="studentSpace" hidden>
       <div class="section-heading"><div><div class="eyebrow">STUDENTS AREA</div><h2>مساحة <span>الطلاب</span></h2><p>محتواك الدراسي، إنجازاتك، وتواصلك مع زملائك وإدارة المنصة.</p></div><span class="section-number">04 / STUDENT</span></div>
-      <div class="student-quick-links"><a href="#library">افتح مكتبة الفيديوهات ↗</a><a href="#announcements">شاهد إعلانات المدرسة ↗</a><a href="#qureo">مركز QUREO ↗</a></div>
-      <div class="student-welcome"><div><span class="student-role-label">STUDENT SPACE</span><h3>أهلاً، <b id="studentWelcomeName">طالب Seal X1</b></h3><p>كل خطوة بتسجلها هنا بتظهر في إحصاءات تقدمك.</p></div><span class="student-private-pill">مساحة خاصة بالحسابات المسجلة</span></div>
+      <div class="student-quick-links"><a href="#library">افتح مكتبة الفيديوهات ↗</a><a href="#announcements">شاهد إعلانات المدرسة ↗</a><a href="#qureo">مركز QUREO ↗</a><a href="#studentExamsList">امتحانات المواد ↗</a><a href="#studentLeaderboardList">ترتيب المتفوقين ↗</a></div>
+      <div class="student-welcome"><div><span class="student-role-label">STUDENT SPACE</span><h3>أهلاً، <b id="studentWelcomeName">طالب Seal X1</b></h3><p>حل الامتحانات ومشاهدة الدروس بيتسجلوا تلقائياً في تقدمك.</p></div><span class="student-private-pill">مساحة خاصة بالحسابات المسجلة</span></div>
       <div class="student-tools-grid">
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">COMMUNITY</span><h3>حديث أعضاء المنصة</h3></div><span class="online-dot">مساحة جماعية</span></div><div class="chat-messages" id="communityMessages" aria-live="polite"><p class="resource-loading">جاري تحميل المحادثة...</p></div><form id="communityForm" class="chat-compose"><input id="communityInput" maxlength="1500" placeholder="اكتب رسالة محترمة للمجموعة..." required><button type="submit">إرسال</button></form><p class="chat-note">المحادثة الجماعية متاحة للمستخدمين المسجلين فقط. تجنب مشاركة أرقامك أو بياناتك الخاصة.</p></article>
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">ADMIN SUPPORT</span><h3>تواصل خاص مع الإدارة</h3></div><span class="private-pill">خاص</span></div><div class="chat-messages support-messages" id="studentSupportMessages" aria-live="polite"><p class="resource-loading">جاري تحميل رسائلك...</p></div><form id="studentSupportForm" class="chat-compose"><input id="studentSupportInput" maxlength="2000" placeholder="اكتب شكوى أو استفساراً للإدارة..." required><button type="submit">إرسال</button></form><p class="chat-note">هذه المحادثة لا يراها إلا أنت وحساب الإدارة.</p></article>
