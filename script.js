@@ -332,6 +332,7 @@ async function portalLoadStudentStats(){
  set("studentProgressLabel","إنجازك الحالي "+score+" من 100");
  window.sealCompletedVideoIds=new Set(done.map(x=>x.video_id));
  window.sealOfficialExamAverage=Math.round(average);
+ portalLoadStudentExamHistory();
  if(typeof academyRender==="function")academyRender();
 }
 async function portalLoadAdminUsers(){
