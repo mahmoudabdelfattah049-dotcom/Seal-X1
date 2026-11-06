@@ -83,8 +83,14 @@
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">COMMUNITY</span><h3>حديث أعضاء المنصة</h3></div><span class="online-dot">مساحة جماعية</span></div><div class="chat-messages" id="communityMessages" aria-live="polite"><p class="resource-loading">جاري تحميل المحادثة...</p></div><form id="communityForm" class="chat-compose"><input id="communityInput" maxlength="1500" placeholder="اكتب رسالة محترمة للمجموعة..." required><button type="submit">إرسال</button></form><p class="chat-note">المحادثة الجماعية متاحة للمستخدمين المسجلين فقط. تجنب مشاركة أرقامك أو بياناتك الخاصة.</p></article>
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">ADMIN SUPPORT</span><h3>تواصل خاص مع الإدارة</h3></div><span class="private-pill">خاص</span></div><div class="chat-messages support-messages" id="studentSupportMessages" aria-live="polite"><p class="resource-loading">جاري تحميل رسائلك...</p></div><form id="studentSupportForm" class="chat-compose"><input id="studentSupportInput" maxlength="2000" placeholder="اكتب شكوى أو استفساراً للإدارة..." required><button type="submit">إرسال</button></form><p class="chat-note">هذه المحادثة لا يراها إلا أنت وحساب الإدارة.</p></article>
       </div>
-      <article class="portal-card exam-log-card"><div class="portal-card-heading"><div><span class="card-kicker">MY LEARNING LOG</span><h3>سجّل نتيجة امتحان</h3></div></div><form id="examLogForm" class="exam-log-form"><input id="examLogTitle" maxlength="100" placeholder="اسم الامتحان" required><input id="examLogSubject" maxlength="60" placeholder="المادة"><input id="examLogScore" type="number" min="0" max="100" step="1" placeholder="درجتك من 100" required><button type="submit">حفظ النتيجة</button></form><p class="chat-note">السجل لمتابعة تقدمك الشخصي؛ لا يُعد تصحيحاً رسمياً من المنصة.</p></article>
-      <details class="assistant-panel student-assistant" id="studentAssistant">
+<section class="student-exams-block">
+ <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">SUBJECT EXAMS</span><h3>امتحانات المواد</h3></div><button type="button" class="subtle-action" id="refreshStudentExams">تحديث</button></div>
+ <p class="chat-note">اختار المادة، افتح الامتحان، جاوب على الأسئلة، ودرجتك هتتسجل تلقائياً في «اتعلم على مهلك».</p>
+ <div id="studentExamsList" class="student-exams-list"><p class="resource-loading">جاري تحميل الامتحانات...</p></div></article>
+ <article class="portal-card leaderboard-card"><div class="portal-card-heading"><div><span class="card-kicker">SEAL X1 LEADERBOARD</span><h3>ترتيب المتفوقين</h3></div><button type="button" class="subtle-action" id="refreshLeaderboard">تحديث</button></div>
+ <p class="chat-note">أعلى 10 طلاب حسب تقييم التقدم والامتحانات والنشاط.</p>
+ <div id="studentLeaderboardList" class="leaderboard-list"><p class="resource-loading">جاري تحميل الترتيب...</p></div></article>
+</section>      <details class="assistant-panel student-assistant" id="studentAssistant">
         <summary><span><b>مساعد المنصة للطلاب</b><small>اسأل عن أي مكان أو خدمة في الموقع</small></span><span class="assistant-chevron">⌄</span></summary>
         <div class="assistant-body"><div class="assistant-intro">المساعد بيقرأ أقسام المنصة المتاحة للطلاب، ويقدر يوصلك للمكان أو الفيديو المطلوب.</div><div class="assistant-log" id="studentAssistantLog"><p>مثال: «أوصل لإعلانات المدرسة إزاي؟» أو «افتح فيديو الجبر».</p></div><form class="assistant-form" id="studentAssistantForm"><input id="studentAssistantInput" maxlength="300" placeholder="اكتب سؤالك هنا..." required><button type="submit">اسأل</button></form></div>
       </details>
@@ -99,6 +105,25 @@
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">REPORTS</span><h3>شكاوى وملاحظات الطلاب</h3></div><button type="button" class="subtle-action" id="refreshAdminReports">تحديث</button></div><div id="adminReportsList" class="admin-reports-list"><p class="resource-loading">جاري تحميل التقارير...</p></div></article>
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">ANNOUNCEMENT CONTROL</span><h3>إدارة الإعلانات المنشورة</h3></div><button type="button" class="subtle-action" id="refreshAdminAnnouncements">تحديث</button></div><div id="adminAnnouncementsList" class="admin-reports-list"><p class="resource-loading">جاري تحميل الإعلانات...</p></div></article>
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">COMMUNITY MODERATION</span><h3>إدارة الحديث الجماعي</h3></div><button type="button" class="subtle-action" id="refreshAdminCommunity">تحديث</button></div><div id="adminCommunityList" class="admin-reports-list"><p class="resource-loading">جاري تحميل الرسائل...</p></div><form id="adminCommunityForm" class="chat-compose"><input id="adminCommunityInput" maxlength="1500" placeholder="اكتب رسالة في المحادثة الجماعية..." required><button type="submit">إرسال</button></form></article>
+      <article class="portal-card exam-builder-card"><div class="portal-card-heading"><div><span class="card-kicker">ASSESSMENTS</span><h3>إنشاء امتحان جديد</h3></div></div>
+<form id="adminExamForm" class="admin-form exam-builder-form">
+ <input data-exam-title maxlength="160" placeholder="اسم الامتحان" required>
+ <input data-exam-subject maxlength="80" placeholder="المادة: رياضيات، عربي، إنجليزي..." required>
+ <textarea data-exam-description maxlength="1200" rows="2" placeholder="وصف أو تعليمات الامتحان (اختياري)"></textarea>
+ <label>المدة بالدقائق<input data-exam-duration type="number" min="5" max="180" value="30" required></label>
+ <div class="exam-question-editor"><b>إضافة سؤال اختيار من متعدد</b>
+  <textarea data-question-prompt maxlength="700" rows="2" placeholder="اكتب السؤال..." required></textarea>
+  <input data-question-option placeholder="الاختيار الأول" maxlength="250" required>
+  <input data-question-option placeholder="الاختيار الثاني" maxlength="250" required>
+  <input data-question-option placeholder="الاختيار الثالث (اختياري)" maxlength="250">
+  <input data-question-option placeholder="الاختيار الرابع (اختياري)" maxlength="250">
+  <div class="exam-question-settings"><label>الإجابة الصحيحة<select data-question-answer><option value="0">الاختيار الأول</option><option value="1">الاختيار الثاني</option><option value="2">الاختيار الثالث</option><option value="3">الاختيار الرابع</option></select></label><label>درجة السؤال<input data-question-points type="number" min="1" max="100" value="1"></label></div>
+  <button type="button" class="subtle-action" data-add-question>إضافة السؤال للقائمة</button>
+ </div>
+ <div data-question-list class="exam-question-list"><p class="resource-loading">لم تضف أسئلة بعد.</p></div>
+ <button type="submit">نشر الامتحان للطلاب</button><p data-exam-status class="chat-note"></p>
+</form>
+</article>
       </div>
     </section>
 
@@ -111,6 +136,25 @@
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">MY PUBLISHED CONTENT</span><h3>مصادري المنشورة</h3></div><button type="button" class="subtle-action" id="refreshTeacherResources">تحديث</button></div><div id="teacherResourcesList" class="admin-reports-list"><p class="resource-loading">جاري تحميل الملفات...</p></div></article>
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">MY ANNOUNCEMENTS</span><h3>إعلاناتي</h3></div><button type="button" class="subtle-action" id="refreshTeacherAnnouncements">تحديث</button></div><div id="teacherAnnouncementsList" class="admin-reports-list"><p class="resource-loading">جاري تحميل الإعلانات...</p></div></article>
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">COMMUNITY</span><h3>المحادثة الجماعية</h3></div><span class="online-dot">كل أعضاء المنصة</span></div><div class="chat-messages" id="teacherCommunityMessages" aria-live="polite"><p class="resource-loading">جاري تحميل المحادثة...</p></div><form id="teacherCommunityForm" class="chat-compose"><input id="teacherCommunityInput" maxlength="1500" placeholder="اكتب رسالة للمجموعة..." required><button type="submit">إرسال</button></form></article>
+      <article class="portal-card exam-builder-card"><div class="portal-card-heading"><div><span class="card-kicker">ASSESSMENTS</span><h3>إنشاء امتحان جديد</h3></div></div>
+<form id="teacherExamForm" class="admin-form exam-builder-form">
+ <input data-exam-title maxlength="160" placeholder="اسم الامتحان" required>
+ <input data-exam-subject maxlength="80" placeholder="المادة: رياضيات، عربي، إنجليزي..." required>
+ <textarea data-exam-description maxlength="1200" rows="2" placeholder="وصف أو تعليمات الامتحان (اختياري)"></textarea>
+ <label>المدة بالدقائق<input data-exam-duration type="number" min="5" max="180" value="30" required></label>
+ <div class="exam-question-editor"><b>إضافة سؤال اختيار من متعدد</b>
+  <textarea data-question-prompt maxlength="700" rows="2" placeholder="اكتب السؤال..." required></textarea>
+  <input data-question-option placeholder="الاختيار الأول" maxlength="250" required>
+  <input data-question-option placeholder="الاختيار الثاني" maxlength="250" required>
+  <input data-question-option placeholder="الاختيار الثالث (اختياري)" maxlength="250">
+  <input data-question-option placeholder="الاختيار الرابع (اختياري)" maxlength="250">
+  <div class="exam-question-settings"><label>الإجابة الصحيحة<select data-question-answer><option value="0">الاختيار الأول</option><option value="1">الاختيار الثاني</option><option value="2">الاختيار الثالث</option><option value="3">الاختيار الرابع</option></select></label><label>درجة السؤال<input data-question-points type="number" min="1" max="100" value="1"></label></div>
+  <button type="button" class="subtle-action" data-add-question>إضافة السؤال للقائمة</button>
+ </div>
+ <div data-question-list class="exam-question-list"><p class="resource-loading">لم تضف أسئلة بعد.</p></div>
+ <button type="submit">نشر الامتحان للطلاب</button><p data-exam-status class="chat-note"></p>
+</form>
+</article>
       </div>
       <details class="assistant-panel teacher-assistant" id="teacherAssistant">
         <summary><span><b>مساعد المنصة للمعلمين</b><small>شرح خطوات الإضافة والتعديل والتنقل</small></span><span class="assistant-chevron">⌄</span></summary>
