@@ -586,3 +586,15 @@ portalMakeCompact("#adminPanel .portal-card","أداة الإدارة","اضغط
 portalMakeCompact("#learningProgressContent .progress-dashboard","إحصاءات تقدمك","مشاهدات وامتحانات وتقييم النشاط");
 portalMakeCompact("#learningProgressContent .progress-detail","تفاصيل اتعلم على مهلك","طريقة حساب مؤشر التقدم");
 portalMakeCompact("#adminPanel .admin-stats","ملخص الإدارة","أرقام الحسابات والنشاط");
+
+document.getElementById("adminUsersList")?.addEventListener("click",async e=>{
+ const button=e.target.closest("[data-save-role]");if(!button)return;
+ const id=button.dataset.saveRole,select=document.querySelector('[data-role-user="'+id+'"]');
+ if(!select)return;
+ const role=select.value;
+ if(!confirm(role==="teacher"?"تأكيد تحويل هذا الحساب إلى رتبة معلم؟":"تأكيد إعادة الحساب إلى رتبة طالب؟"))return;
+ button.disabled=true;
+ try{await portalAdminCall("set_role",{user_id:id,role});await portalLoadAdminUsers();}
+ catch(error){alert(error.message);}
+ finally{button.disabled=false;}
+});
