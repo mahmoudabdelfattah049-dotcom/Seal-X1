@@ -187,3 +187,40 @@ details[open]>summary .assistant-chevron{transform:rotate(180deg)}
 .academy-summary-arrow{margin-right:auto}
 .academy-video-card .academy-card-body{border-top:1px solid var(--line)}
 @media(max-width:700px){.teacher-tools-grid{grid-template-columns:1fr}.teacher-welcome{align-items:flex-start;flex-direction:column}.academy-video-summary img{width:86px}.admin-user-actions{flex-wrap:wrap;justify-content:flex-end}}
+
+/* Subject-based exams, automatic grading and leaderboard */
+.student-exams-block{display:grid;gap:14px;margin-top:16px}
+.student-exams-list,.leaderboard-list,.exam-question-list{display:grid;gap:9px}
+.subject-exam-group,.student-exam-card{border:1px solid var(--line);border-radius:12px;background:var(--bg);overflow:hidden}
+.subject-exam-group>summary,.student-exam-card>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;padding:13px 14px;cursor:pointer}
+.subject-exam-group>summary::-webkit-details-marker,.student-exam-card>summary::-webkit-details-marker{display:none}
+.subject-exam-group>summary span:first-child,.student-exam-card>summary span:first-child{display:grid;gap:4px}
+.subject-exam-group>summary b{font-size:12px}.student-exam-card>summary b{font-size:11px}
+.subject-exam-group>summary small,.student-exam-card>summary small{font-size:9px;color:var(--muted)}
+.subject-exam-items{display:grid;gap:8px;padding:0 10px 10px}
+.student-exam-body{padding:12px;border-top:1px solid var(--line)}
+.student-exam-body>p{font-size:10px;color:var(--muted);line-height:1.8}
+.student-take-exam{display:grid;gap:12px}
+.exam-question{border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+.exam-question legend{padding:0 5px;font-size:11px;font-weight:800;line-height:1.8}
+.exam-question legend small{font-size:9px;color:var(--muted);font-weight:500}
+.exam-option{display:flex;align-items:center;gap:9px;padding:9px;margin-top:6px;border-radius:8px;background:var(--panel);font-size:10px;cursor:pointer}
+.exam-option input{accent-color:var(--accent)}
+.student-take-exam>button,.exam-builder-form>button[type="submit"]{border:0;border-radius:9px;padding:11px 14px;background:var(--accent);color:#102335;font:inherit;font-size:10px;font-weight:900;cursor:pointer}
+.student-take-exam>button:disabled{opacity:.6;cursor:default}
+.exam-result{font-size:10px;line-height:1.8;color:var(--accent);font-weight:800}
+.exam-builder-form{display:grid;gap:9px}
+.exam-builder-form>label,.exam-question-settings label{display:grid;gap:6px;font-size:10px;color:var(--muted)}
+.exam-question-editor{display:grid;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:11px;background:var(--bg)}
+.exam-question-editor>b{font-size:11px}
+.exam-question-settings{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.exam-question-list{padding:4px 0}
+.exam-question-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);font-size:9px;line-height:1.7}
+.exam-question-chip button{flex:0 0 28px;width:28px;height:28px;border:0;border-radius:7px;background:#d94b4b18;color:#e47777;font-size:18px}
+.leaderboard-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.leaderboard-rank{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--panel);font-size:10px;font-weight:900}
+.leaderboard-first .leaderboard-rank{background:#e4b34a20;color:#d7a642}
+.leaderboard-name{font-size:10px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leaderboard-stats{font-size:8px;color:var(--muted)}
+.leaderboard-rating{font-size:10px;color:var(--accent);white-space:nowrap}
+@media(max-width:560px){.leaderboard-row{grid-template-columns:28px minmax(0,1fr) auto}.leaderboard-stats{grid-column:2;grid-row:2}.leaderboard-rating{grid-column:3;grid-row:1/3}.exam-question-settings{grid-template-columns:1fr 1fr}}
