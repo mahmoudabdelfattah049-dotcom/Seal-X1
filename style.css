@@ -141,3 +141,5 @@
 @media(max-width:760px){.progress-dashboard,.admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.student-tools-grid,.admin-grid{grid-template-columns:1fr}.exam-log-form{grid-template-columns:1fr 1fr}.exam-log-form input:first-child{grid-column:1/-1}.exam-log-form button{grid-column:1/-1;padding:12px}.student-welcome{align-items:flex-start;flex-direction:column}.admin-user-row{align-items:flex-start}.admin-user-actions{flex-direction:column}}
 
 .admin-inline-actions{display:flex;gap:7px}.admin-inline-actions button{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:9px;cursor:pointer}.admin-inline-actions .danger-action,.admin-report .danger-action{color:#df7777}
+
+.student-quick-links{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}.student-quick-links a{font-size:9px;font-weight:800;text-decoration:none;color:var(--accent);border:1px solid #73e0c044;background:#73e0c010;padding:9px 12px;border-radius:9px}
