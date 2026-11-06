@@ -33,6 +33,9 @@ const academyVideos=[
  ,{id:"mvbZ2Oaqy8E",subject:"الفلسفة والمنطق",teacher:"مستر زياد أحمد",title:"نشأة الفلسفة وتعريفاتها",description:"شرح نشأة الفلسفة وأهم تعريفاتها ضمن الفصل الأول من منهج الفلسفة.",kind:"شرح",duration:"—",date:"2026-10-27",recommended:5,verified:true}
  ,{id:"qJ234Y56kXs",subject:"الفلسفة والمنطق",teacher:"مستر زياد أحمد",title:"شرح القضايا المنطقية بالكامل",description:"شرح القضايا المنطقية في منهج المنطق للصف الأول الثانوي الترم الأول 2027.",kind:"شرح",duration:"—",date:"2026-10-29",recommended:5,verified:true}
  ,{id:"so4dkksDOZc",subject:"الفلسفة والمنطق",teacher:"الخطة التعليمية",title:"عوامل الوقوع في أخطاء التفكير",description:"شرح درس عوامل الوقوع في أخطاء التفكير ضمن منهج المنطق للترم الأول.",kind:"شرح",duration:"—",date:"2026-09-21",recommended:4,verified:true}
+ ,{id:"F0-2fa_-aqI",subject:"العلوم المتكاملة",teacher:"مستر علي للعلوم والكيمياء",title:"حل تدريبات درس الغلاف المائي — كتاب الأضواء",description:"حل تدريبات الدرس الأول من كتاب الأضواء، من صفحة 11 إلى 17، مع توضيح أسباب الاختيارات.",kind:"حل وتدريب",duration:"—",date:"2026-09-11",recommended:5,verified:true}
+ ,{id:"xuHtSZpSgpw",subject:"العلوم المتكاملة",teacher:"الخطة التعليمية",title:"شرح الدرس الأول علوم متكاملة 2027",description:"شرح الدرس الأول من منهج العلوم المتكاملة للصف الأول الثانوي عام وبكالوريا.",kind:"شرح",duration:"—",date:"2026-09-23",recommended:5,verified:true}
+ ,{id:"kY_3uyZ9VMg",subject:"التاريخ",teacher:"مستر إبراهيم الجوهري",title:"الحضارة والتاريخ — الدرس الأول",description:"شرح مفهوم الحضارة والتاريخ وعناصر الحضارة ضمن بداية منهج التاريخ للترم الأول 2027.",kind:"شرح",duration:"—",date:"2026-09-01",recommended:5,verified:true}
 ];
 const academySubjects=[
  {name:"اللغة العربية",icon:"ع",desc:"النحو والبلاغة والقراءة والنصوص والأدب."},
