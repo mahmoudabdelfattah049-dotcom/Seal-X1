@@ -541,7 +541,8 @@ function portalAssistantAnswer(question,role){
   if(/اعلان|إعلان|announcement/.test(q)){portalOpenDetails("#teacherAnnouncementForm");return "إضافة الإعلان من مجلد المعلمين: افتح بطاقة «إضافة إعلان للطلاب»، اكتب العنوان والتفاصيل، ثم اضغط «نشر الإعلان». الإعلان سيظهر للطلاب مباشرة.";}
   if(/pdf|بى دى اف|بي دي اف|ملف|مصدر|رفع/.test(q)){portalOpenDetails("#teacherResourceForm");return "رفع ملف: افتح بطاقة «إضافة ملف أو مصدر»، اكتب العنوان والوصف، اختَر PDF من جهازك أو أضف رابطاً خارجياً، ثم اضغط «إضافة إلى المنصة». الحد الأقصى 20 ميجابايت.";}
   if(/تعديل|حذف|مصادري|ملفاتي|مصادر/.test(q)){portalOpenDetails("#teacherResourcesList");return "إدارة المصادر من بطاقة «مصادري المنشورة». ستجد زري التعديل والحذف بجوار كل مصدر.";}
-  if(/إعلاناتي|اعلاناتي/.test(q)){portalOpenDetails("#teacherAnnouncementsList");return "إعلاناتك في بطاقة «إعلاناتي»، ويمكنك تعديلها أو حذفها.";}\n  if(/qureo|كيريو/.test(q)){portalOpenDetails("#qureo");return "لفتح منصة QUREO الرسمية اضغط رابط «افتح منصة QUREO الرسمية» في قسم QUREO. إضافة ملفات وشروحات متعلقة بها تتم من بطاقة «إضافة ملف أو مصدر».";}
+  if(/إعلاناتي|اعلاناتي/.test(q)){portalOpenDetails("#teacherAnnouncementsList");return "إعلاناتك في بطاقة «إعلاناتي»، ويمكنك تعديلها أو حذفها."}
+  if(/qureo|كيريو/.test(q)){portalOpenDetails("#qureo");return "لفتح منصة QUREO الرسمية اضغط رابط «افتح منصة QUREO الرسمية» في قسم QUREO. إضافة ملفات وشروحات متعلقة بها تتم من بطاقة «إضافة ملف أو مصدر».";}
   if(/رتبة|طالب|حساب|ادمن|إدارة/.test(q))return "إدارة الحسابات وتغيير رتبة طالب إلى معلم من اختصاص حساب المدير فقط.";
  }else{
   if(/اتعلم|تقدم|إنجاز|انجاز|تقييم|مشاهدات|نتيجة/.test(q)){portalOpenDetails("#studentVideosDone");return "دي مساحة «اتعلم على مهلك». هتلاقي عدد الفيديوهات والامتحانات المسجلة وتقييم تقدمك وأيام النشاط.";}
