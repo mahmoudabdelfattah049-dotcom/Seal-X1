@@ -60,6 +60,13 @@ const academySubjectsEl=document.getElementById("academySubjects");
 const academyTeachersEl=document.getElementById("academyTeachers");
 const academyGrid=document.getElementById("academyVideoGrid");
 const academyFeatured=document.getElementById("academyFeatured");
+const academyPlaylistsEl=document.getElementById("academyPlaylists");
+const academyPlaylists=[
+ {subject:"اللغة العربية",title:"قائمة تشغيل اللغة العربية",description:"دروس اللغة العربية — قائمة تشغيل كاملة من المصدر على YouTube.",id:"PLBsxNqayvozpH-MCgqjUjcrmaQs3ooXJ0"},
+ {subject:"العلوم المتكاملة",title:"قائمة تشغيل العلوم المتكاملة",description:"دروس العلوم المتكاملة — قائمة تشغيل كاملة من المصدر على YouTube.",id:"PL5oLG_oU5VxFH5RY-zITHsgwOrxNvREws"},
+ {subject:"التاريخ",title:"قائمة تشغيل التاريخ",description:"دروس التاريخ — قائمة تشغيل كاملة من المصدر على YouTube.",id:"PLaURPeK9A7u"},
+ {subject:"الفلسفة والمنطق",title:"قائمة تشغيل الفلسفة والمنطق",description:"دروس الفلسفة والمنطق — قائمة تشغيل كاملة من المصدر على YouTube.",id:"PLtiC5L61P7PqWW-q0fDdOR1BOH3qVFRVj"}
+];
 const academyEmpty=document.getElementById("academyEmpty");
 const academyCount=document.getElementById("academyVideoCount");
 const academyEsc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -75,6 +82,10 @@ function academyRender(){
  if(academyState.sort==="newest")items.sort((x,y)=>y.date.localeCompare(x.date));
  else if(academyState.sort==="duration")items.sort((x,y)=>y.duration.localeCompare(x.duration));
  else items.sort((x,y)=>y.recommended-x.recommended||y.date.localeCompare(x.date));
+ const subjectPlaylists=academyPlaylists.filter(p=>p.subject===academyState.subject);
+ academyPlaylistsEl.innerHTML=subjectPlaylists.map(p=>
+  '<article class="academy-playlist-card"><div class="academy-playlist-copy"><span class="academy-playlist-tag">قائمة تشغيل كاملة</span><h4>'+academyEsc(p.title)+'</h4><p>'+academyEsc(p.description)+'</p><a href="https://www.youtube.com/playlist?list='+p.id+'" target="_blank" rel="noopener noreferrer">فتح القائمة على YouTube ↗</a></div><div class="academy-playlist-player"><iframe src="https://www.youtube-nocookie.com/embed?listType=playlist&amp;list='+p.id+'" title="'+academyEsc(p.title)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div></article>'
+ ).join("");
  academyCount.textContent=items.length+" فيديو";
  academyEmpty.hidden=items.length>0;
  if(!items.length){academyGrid.innerHTML="";academyFeatured.innerHTML="";return;}
