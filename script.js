@@ -628,13 +628,20 @@ document.getElementById("adminCommunityForm")?.addEventListener("submit",async e
 /* A small in-memory index of the controls and content visible to each role. */
 window.sealPlatformKnowledge={student:[],teacher:[]};
 function portalBuildKnowledge(role){
- const visibleSections=[...document.querySelectorAll("main section:not([hidden])")];
- const nodes=visibleSections.flatMap(section=>[...section.querySelectorAll("h1,h2,h3,h4,summary,button,a,label")]);
- window.sealPlatformKnowledge[role]=nodes.filter(el=>el.offsetParent!==null&&!el.closest("#adminPanel")).map(el=>({
-  label:(el.innerText||el.textContent||"").trim().replace(/\s+/g," ").slice(0,180),
-  section:el.closest("section")?.id||"",
-  href:el.getAttribute("href")||""
- })).filter(x=>x.label);
+ const visibleSections=[...document.querySelectorAll("main section:not([hidden])")].filter(section=>section.offsetParent!==null);
+ window.sealPlatformKnowledge[role]=visibleSections.map(section=>{
+  const controls=[...section.querySelectorAll("h1,h2,h3,h4,summary,button,a,label,input,select")].map(el=>({
+   label:(el.innerText||el.textContent||el.getAttribute("placeholder")||el.getAttribute("aria-label")||"").trim().replace(/\s+/g," ").slice(0,180),
+   href:el.getAttribute("href")||"",
+   action:el.tagName.toLowerCase()
+  })).filter(x=>x.label);
+  return {
+   id:section.id||"",
+   title:section.querySelector("h1,h2")?.textContent?.trim()||"",
+   fullText:(section.textContent||"").replace(/\s+/g," ").trim().slice(0,12000),
+   controls
+  };
+ });
 }
 const sealAssistantAnswerBase=portalAssistantAnswer;
 portalAssistantAnswer=function(question,role){
