@@ -116,6 +116,20 @@ async function loadAnnouncements(){
  if(!data?.length){setPanelState(panel,"لا توجد إعلانات منشورة حالياً","ستظهر هنا إعلانات المدرسة فور اعتمادها ونشرها.");return;}
  panel.classList.add("live-list");panel.innerHTML=data.map(item=>'<article class="live-item"><div class="live-item-top"><span class="live-tag">'+(item.pinned?"إعلان مهم":"إعلان المدرسة")+'</span><time>'+escapeHTML(dateLabel(item.created_at))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.body||"")+'</p></article>').join("");
 }
+
+// Keep the public announcements section synchronized for every visitor.
+// Admin and teacher management lists are refreshed for their matching roles.
+let announcementsRealtime=null;
+if(db){
+ announcementsRealtime=db.channel("seal-announcements-live")
+  .on("postgres_changes",{event:"*",schema:"public",table:"announcements"},async()=>{
+   await loadAnnouncements();
+   const role=window.sealCurrentProfile?.role;
+   if(role==="admin"||role==="moderator")await portalLoadAdminAnnouncements();
+   else if(role==="teacher")await portalLoadTeacherAnnouncements();
+  })
+  .subscribe();
+}
 async function loadResources(){
  const section=document.querySelector("#library");
  if(!section||!db)return;
