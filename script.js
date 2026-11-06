@@ -290,27 +290,23 @@ async function portalLoadStudentStats(){
  const user=window.sealCurrentUser;if(!user)return;
  const [videos,exams]=await Promise.all([
   db.from("student_video_progress").select("video_id,completed,updated_at").eq("user_id",user.id),
-  db.from("student_exam_attempts").select("score,total_score,completed_at").eq("user_id",user.id)
+  db.from("platform_exam_attempts").select("score,total_score,completed_at").eq("user_id",user.id)
  ]);
  if(videos.error||exams.error){console.error(videos.error||exams.error);return;}
- const done=(videos.data||[]).filter(x=>x.completed);
- const examRows=exams.data||[];
+ const videoRows=videos.data||[],done=videoRows.filter(x=>x.completed),examRows=exams.data||[];
  const average=examRows.length?examRows.reduce((a,x)=>a+(Number(x.score)/Number(x.total_score))*100,0)/examRows.length:0;
  const now=Date.now(),days=new Set();
- [...(videos.data||[]).map(x=>x.updated_at),...examRows.map(x=>x.completed_at)].forEach(date=>{
-  if(date&&now-new Date(date).getTime()<=7*86400000)days.add(new Date(date).toLocaleDateString("en-CA"));
+ [...videoRows.map(x=>x.updated_at),...examRows.map(x=>x.completed_at)].forEach(date=>{
+  const stamp=date?new Date(date).getTime():0;
+  if(stamp&&now-stamp>=0&&now-stamp<=7*86400000)days.add(new Date(date).toISOString().slice(0,10));
  });
- const videoPoints=Math.min(done.length/20,1)*40;
- const examPoints=examRows.length?(average/100)*50:0;
- const consistencyPoints=(days.size/7)*10;
- const score=Math.round(videoPoints+examPoints+consistencyPoints);
- document.getElementById("studentVideosDone").textContent=done.length;
- document.getElementById("studentExamsDone").textContent=examRows.length;
- document.getElementById("studentScore").textContent=score;
- document.getElementById("studentActiveDays").textContent=days.size;
- document.getElementById("studentProgressBar").style.width=score+"%";
- document.getElementById("studentProgressLabel").textContent="إنجازك الحالي "+score+" من 100";
+ const score=Math.round(Math.min(done.length/20,1)*40+(examRows.length?(average/100)*50:0)+(days.size/7)*10);
+ const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+ set("studentVideosDone",done.length);set("studentExamsDone",examRows.length);set("studentScore",score);set("studentActiveDays",days.size);
+ const bar=document.getElementById("studentProgressBar");if(bar)bar.style.width=score+"%";
+ set("studentProgressLabel","إنجازك الحالي "+score+" من 100");
  window.sealCompletedVideoIds=new Set(done.map(x=>x.video_id));
+ window.sealOfficialExamAverage=Math.round(average);
  if(typeof academyRender==="function")academyRender();
 }
 async function portalLoadAdminUsers(){
@@ -357,17 +353,28 @@ async function portalLoadAdminCommunity(){
 
 async function portalInitSpaces(user,profile){
  window.sealCurrentUser=user;window.sealCurrentProfile=profile;
- const logged=!!user,isAdmin=profile?.role==="admin";
- portalSetVisible("studentSpace",logged);portalSetVisible("studentNav",logged);portalSetVisible("studentNavMobile",logged);
+ const role=profile?.role||"student",logged=!!user;
+ const isStudent=logged&&role==="student",isTeacher=logged&&role==="teacher",isAdmin=logged&&role==="admin";
+ portalSetVisible("studentSpace",isStudent);portalSetVisible("studentNav",isStudent);portalSetVisible("studentNavMobile",isStudent);
+ portalSetVisible("teacherSpace",isTeacher);portalSetVisible("teacherNav",isTeacher);portalSetVisible("teacherNavMobile",isTeacher);
  portalSetVisible("adminPanel",isAdmin);portalSetVisible("adminNav",isAdmin);portalSetVisible("adminNavMobile",isAdmin);
+ portalSetVisible("learnAtYourPace",isStudent);
+ portalSetVisible("studentAssistant",isStudent);portalSetVisible("teacherAssistant",isTeacher);
  if(!logged){if(portalRealtime){db.removeChannel(portalRealtime);portalRealtime=null;}return;}
- document.getElementById("studentWelcomeName").textContent=profile?.display_name||profile?.username||"طالب Seal X1";
- await Promise.all([portalLoadStudentStats(),portalLoadCommunity(),portalLoadStudentSupport()]);
+ if(isStudent){
+  const name=document.getElementById("studentWelcomeName");if(name)name.textContent=profile?.display_name||profile?.username||"طالب Seal X1";
+  await Promise.all([portalLoadStudentStats(),portalLoadCommunity(),portalLoadStudentSupport(),portalLoadExams(),portalLoadLeaderboard()]);
+ }
+ if(isTeacher){
+  const name=document.getElementById("teacherWelcomeName");if(name)name.textContent="مرحباً، "+(profile?.display_name||profile?.username||"معلم");
+  await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements(),portalLoadTeacherCommunity()]);
+ }
  if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports(),portalLoadAdminAnnouncements(),portalLoadAdminCommunity()]);
  if(portalRealtime)db.removeChannel(portalRealtime);
  portalRealtime=db.channel("seal-portal-"+user.id)
-  .on("postgres_changes",{event:"*",schema:"public",table:"community_messages"},()=>{portalLoadCommunity();portalLoadTeacherCommunity();portalLoadAdminCommunity();})
-  .on("postgres_changes",{event:"*",schema:"public",table:"admin_messages",filter:isAdmin?undefined:"user_id=eq."+user.id},async()=>{if(isAdmin&&selectedSupportUser)await portalLoadAdminThread(selectedSupportUser);else await portalLoadStudentSupport();})
+  .on("postgres_changes",{event:"*",schema:"public",table:"community_messages"},()=>{if(isStudent)portalLoadCommunity();if(isTeacher)portalLoadTeacherCommunity();if(isAdmin)portalLoadAdminCommunity();})
+  .on("postgres_changes",{event:"*",schema:"public",table:"admin_messages",filter:isAdmin?undefined:"user_id=eq."+user.id},async()=>{if(isAdmin&&selectedSupportUser)await portalLoadAdminThread(selectedSupportUser);else if(isStudent)await portalLoadStudentSupport();})
+  .on("postgres_changes",{event:"*",schema:"public",table:"platform_exam_attempts",filter:isAdmin?undefined:"user_id=eq."+user.id},()=>{if(isStudent){portalLoadStudentStats();portalLoadLeaderboard();}})
   .subscribe();
 }
 window.sealInitPortalSpaces=portalInitSpaces;
@@ -388,12 +395,6 @@ document.getElementById("adminSupportForm")?.addEventListener("submit",async e=>
  if(error){alert("تعذر إرسال الرد: "+error.message);return;}input.value="";await portalLoadAdminThread(selectedSupportUser);
 });
 document.getElementById("adminSupportStudent")?.addEventListener("change",e=>portalLoadAdminThread(e.target.value));
-document.getElementById("examLogForm")?.addEventListener("submit",async e=>{
- e.preventDefault();const user=window.sealCurrentUser;if(!user)return;
- const title=document.getElementById("examLogTitle").value.trim(),subject=document.getElementById("examLogSubject").value.trim(),score=Number(document.getElementById("examLogScore").value);
- const {error}=await db.from("student_exam_attempts").insert({user_id:user.id,exam_title:title,subject,score,total_score:100});
- if(error){alert("تعذر حفظ النتيجة: "+error.message);return;}e.target.reset();await portalLoadStudentStats();alert("تم حفظ نتيجة الامتحان في سجلك.");
-});
 document.getElementById("adminAnnouncementForm")?.addEventListener("submit",async e=>{
  e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="admin")return;
  const title=document.getElementById("adminAnnouncementTitle").value.trim(),body=document.getElementById("adminAnnouncementBody").value.trim(),pinned=document.getElementById("adminAnnouncementPinned").checked,status=document.getElementById("adminAnnouncementStatus");
@@ -445,23 +446,12 @@ if(db){
 const sealBaseInit=window.sealInitPortalSpaces;
 window.sealInitPortalSpaces=async function(user,profile){
  await sealBaseInit?.(user,profile);
- const role=profile?.role||"student";
- const logged=!!user;
- const student=logged&&role==="student";
- const teacher=logged&&role==="teacher";
- const admin=logged&&role==="admin";
- portalSetVisible("studentSpace",student);portalSetVisible("studentNav",student);portalSetVisible("studentNavMobile",student);
- portalSetVisible("teacherSpace",teacher);portalSetVisible("teacherNav",teacher);portalSetVisible("teacherNavMobile",teacher);
- portalSetVisible("learnAtYourPace",student);
- portalSetVisible("studentAssistant",student);portalSetVisible("teacherAssistant",teacher);
- portalSetVisible("adminPanel",admin);portalSetVisible("adminNav",admin);portalSetVisible("adminNavMobile",admin);
- if(student)portalBuildKnowledge("student");if(teacher)portalBuildKnowledge("teacher");
+ const role=profile?.role||"student",logged=!!user;
+ portalSetVisible("learnAtYourPace",logged&&role==="student");
+ portalSetVisible("studentAssistant",logged&&role==="student");
+ portalSetVisible("teacherAssistant",logged&&role==="teacher");
  if(logged)await loadResources();
- if(teacher){
-  const name=document.getElementById("teacherWelcomeName");
-  if(name)name.textContent="مرحباً، "+(profile?.display_name||profile?.username||"معلم");
-  await Promise.all([portalLoadTeacherResources(),portalLoadTeacherAnnouncements(),portalLoadTeacherCommunity()]);
- }
+ if(logged&&(role==="student"||role==="teacher"))portalBuildKnowledge(role);
 };
 
 async function portalLoadTeacherResources(){
@@ -532,44 +522,101 @@ document.getElementById("teacherAnnouncementsList")?.addEventListener("click",as
 });
 
 function portalOpenDetails(selector){
- const el=document.querySelector(selector);if(!el)return;
- const d=el.closest("details");if(d)d.open=true;
- el.scrollIntoView({behavior:"smooth",block:"center"});
+ const el=document.querySelector(selector);if(!el)return false;
+ let parent=el.parentElement;
+ while(parent){if(parent.tagName==="DETAILS")parent.open=true;parent=parent.parentElement;}
+ el.scrollIntoView({behavior:"smooth",block:"center"});return true;
+}
+function portalNormalizeArabic(value){
+ return String(value||"").toLowerCase().normalize("NFD")
+  .replace(/[\\u064B-\\u065F\\u0670\\u0640]/g,"")
+  .replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه")
+  .replace(/[ًٌٍَُِّْـ]/g,"").replace(/[؟?!،؛:.,()[\\]{}"'`]/g," ")
+  .replace(/\\s+/g," ").trim();
+}
+function portalHasAny(text,terms){return terms.some(term=>text.includes(portalNormalizeArabic(term)));}
+function portalVideoMatch(query){
+ const q=portalNormalizeArabic(query);
+ const stop=new Set(["افتح","شغل","عايز","عاوزه","فيديو","الفيديو","شرح","درس","لي","من","عن","في","على","الماده","ماده","لو","سمحت"]);
+ const words=q.split(" ").filter(w=>w.length>1&&!stop.has(w));
+ let best=null,bestScore=0;
+ (academyVideos||[]).forEach(video=>{
+  const title=portalNormalizeArabic(video.title),subject=portalNormalizeArabic(video.subject),teacher=portalNormalizeArabic(video.teacher);
+  const hay=(title+" "+subject+" "+teacher);
+  let score=0;
+  words.forEach(word=>{if(title.includes(word))score+=3;else if(subject.includes(word))score+=2;else if(teacher.includes(word))score+=1;});
+  if(words.length)score=score/(words.length*3);
+  if(score>bestScore){best=video;bestScore=score;}
+ });
+ return bestScore>=0.34?best:null;
 }
 function portalAssistantAnswer(question,role){
- const q=question.toLowerCase();
- if(role==="teacher"){
-  if(/اعلان|إعلان|announcement/.test(q)){portalOpenDetails("#teacherAnnouncementForm");return "إضافة الإعلان من مجلد المعلمين: افتح بطاقة «إضافة إعلان للطلاب»، اكتب العنوان والتفاصيل، ثم اضغط «نشر الإعلان». الإعلان سيظهر للطلاب مباشرة.";}
-  if(/pdf|بى دى اف|بي دي اف|ملف|مصدر|رفع/.test(q)){portalOpenDetails("#teacherResourceForm");return "رفع ملف: افتح بطاقة «إضافة ملف أو مصدر»، اكتب العنوان والوصف، اختَر PDF من جهازك أو أضف رابطاً خارجياً، ثم اضغط «إضافة إلى المنصة». الحد الأقصى 20 ميجابايت.";}
-  if(/تعديل|حذف|مصادري|ملفاتي|مصادر/.test(q)){portalOpenDetails("#teacherResourcesList");return "إدارة المصادر من بطاقة «مصادري المنشورة». ستجد زري التعديل والحذف بجوار كل مصدر.";}
-  if(/إعلاناتي|اعلاناتي/.test(q)){portalOpenDetails("#teacherAnnouncementsList");return "إعلاناتك في بطاقة «إعلاناتي»، ويمكنك تعديلها أو حذفها."}
-  if(/افتح.*(qureo|كيريو)|افتح منصة/.test(q)&&/qureo|كيريو/.test(q)){window.open("https://me-portal.qureo.education/login","_blank","noopener,noreferrer");portalOpenDetails("#qureo");return "فتحت منصة QUREO الرسمية في تبويب جديد.";}
-  if(/qureo|كيريو/.test(q)){portalOpenDetails("#qureo");return "لفتح منصة QUREO الرسمية اضغط رابط «افتح منصة QUREO الرسمية» في قسم QUREO. إضافة ملفات وشروحات متعلقة بها تتم من بطاقة «إضافة ملف أو مصدر».";}
-  if(/رتبة|طالب|حساب|ادمن|إدارة/.test(q))return "إدارة الحسابات وتغيير رتبة طالب إلى معلم من اختصاص حساب المدير فقط.";
- }else{
-  if(/اتعلم|تقدم|إنجاز|انجاز|تقييم|مشاهدات|نتيجة/.test(q)){portalOpenDetails("#studentVideosDone");return "دي مساحة «اتعلم على مهلك». هتلاقي عدد الفيديوهات والامتحانات المسجلة وتقييم تقدمك وأيام النشاط.";}
-  if(/فيديو|شرح|درس|يوتيوب/.test(q)){
-   const terms=q.split(/\s+/).filter(x=>x.length>2&&!["افتح","فيديو","شرح","عايز","من","فضلك"].includes(x));
-   const match=terms.length?academyVideos.find(v=>terms.some(t=>(v.title+" "+v.subject+" "+v.teacher).toLowerCase().includes(t))):null;
-   const lib=document.querySelector(".library-collapsible");if(lib)lib.open=true;
-   if(match){academyState.subject=match.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=match.id;academyRender();portalOpenDetails("#academyFeatured");return "لقيت الفيديو الأقرب لطلبك: "+match.title+". فتحته في مشغل المكتبة.";}
-   portalOpenDetails("#academyVideoGrid");return "فتحت مكتبة الفيديوهات. اختار المادة ثم المدرس أو نوع الفيديو.";
+ const q=portalNormalizeArabic(question);
+ const teacher=role==="teacher";
+ const admin=role==="admin";
+ const how=portalHasAny(q,["ازاي","كيف","طريقه","اعمل","اضيف","انشر","ارفع","اكتب","فين","مكان","افتح","روح","وصل","عايز اوصل"]);
+ const open=portalHasAny(q,["افتح","روح","وديني","وصلني","اعرض","شغل"]);
+ const go=(selector)=>portalOpenDetails(selector);
+ const result=(text)=>text+(how?" لو تحب، اكتب اسم الجزء أو المادة بالتحديد.":"");
+ if(teacher){
+  if(portalHasAny(q,["امتحان","امتحانات","اختبار","اختبارات"])){
+   go("#teacherExamForm");
+   return "إنشاء امتحان: اكتب اسم الامتحان والمادة والمدة، ثم اكتب السؤال والاختيارات وحدد الإجابة الصحيحة واضغط «إضافة السؤال للقائمة». كرر ذلك لكل سؤال، وبعدها اضغط «نشر الامتحان للطلاب». التصحيح والدرجات يتمان تلقائياً.";
   }
-  if(/إعلان|اعلان|قرار/.test(q)){portalOpenDetails("#announcements .empty-panel");return "إعلانات المدرسة وقراراتها في قسم الإعلانات أعلى الصفحة. فتحت لك القسم.";}
-  if(/افتح.*(كيريو|qureo)|افتح منصة/.test(q)&&/كيريو|qureo/.test(q)){window.open("https://me-portal.qureo.education/login","_blank","noopener,noreferrer");portalOpenDetails("#qureo");return "فتحت منصة QUREO الرسمية في تبويب جديد.";}
-   if(/كيريو|qureo|برمج/.test(q)){portalOpenDetails("#qureo");return "مركز QUREO موجود أعلى المكتبة. فتحت لك مكانه.";}
-  if(/محادث|شات|رسالة|زملاء/.test(q)){portalOpenDetails("#communityMessages");return "المحادثة الجماعية موجودة في مساحة الطلاب، افتح بطاقة الحديث الجماعي.";}
-  if(/ملف|pdf|مكتبة|مصدر/.test(q)){const library=document.querySelector(".library-collapsible");if(library)library.open=true;portalOpenDetails("#library");return "المكتبة التعليمية فيها المواد والمدرسين والفيديوهات، والملفات المنشورة تظهر أسفلها.";}
+  if(portalHasAny(q,["اعلان","اعلانات","تنبيه","قرار"])){
+   const manage=portalHasAny(q,["تعديل","حذف","إعلاناتي","اعلاناتي","المنشور","منشور"]);
+   go(manage?"#teacherAnnouncementsList":"#teacherAnnouncementForm");
+   return manage?"إدارة إعلاناتك: افتح بطاقة «إعلاناتي»، وستجد تعديل وحذف بجوار كل إعلان.":"إضافة إعلان: افتح بطاقة «إضافة إعلان للطلاب»، اكتب العنوان والتفاصيل، ويمكنك تحديد أنه إعلان مهم، ثم اضغط «نشر الإعلان».";
+  }
+  if(portalHasAny(q,["pdf","بى دى اف","بي دي اف","ملف","مصدر","مصادر","مستند","رابط"])){
+   const manage=portalHasAny(q,["تعديل","حذف","مصادري","ملفاتي","المنشور","منشور"]);
+   go(manage?"#teacherResourcesList":"#teacherResourceForm");
+   return manage?"إدارة ملفاتك: افتح «مصادري المنشورة» واستخدم تعديل أو حذف بجوار الملف.":"رفع ملف: افتح «إضافة ملف أو مصدر»، اكتب العنوان والوصف، ثم ارفع PDF أو مستنداً أو أضف رابطاً خارجياً واضغط «إضافة إلى المنصة».";
+  }
+  if(portalHasAny(q,["كيريو","qureo","برمجه","برمجة"])){
+   go("#qureo");if(open)window.open("https://me-portal.qureo.education/login","_blank","noopener,noreferrer");
+   return "قسم QUREO فيه رابط المنصة الرسمية. افتحه من الرابط أعلى القسم؛ ولإضافة مذكرة أو شرح متعلق بها استخدم «إضافة ملف أو مصدر».";
+  }
+  if(portalHasAny(q,["محادثه","شات","رساله","رسائل","جماعي"])){go("#teacherCommunityMessages");return "المحادثة الجماعية داخل مجلد المعلمين، ويمكنك إرسال رسالة لجميع أعضاء المنصة.";}
+  if(portalHasAny(q,["حساب","رتبه","طالب","معلم","ادمن","مدير"])){return "تغيير رتب الحسابات وإدارة المستخدمين متاحان لحساب المدير فقط، وليس لحساب المعلم.";}
+ }else if(!admin){
+  if(portalHasAny(q,["امتحان","امتحانات","اختبار","اختبارات","امتحن","حل امتحان"])){
+   go("#studentExamsList");
+   return "الامتحانات مقسمة حسب المادة. افتح اسم المادة، ثم افتح الامتحان، أجب عن كل الأسئلة واضغط «تسليم الإجابات». المنصة تصحح الاختيارات وتسجل درجتك تلقائياً في «اتعلم على مهلك».";
+  }
+  if(portalHasAny(q,["ليدربورد","ترتيب","المتفوقين","الأوائل","اعلي تقييم","اعلى تقييم","المتصدرين"])){
+   go("#studentLeaderboardList");document.getElementById("refreshLeaderboard")?.click();
+   return "فتحت ترتيب المتفوقين. القائمة تعرض أعلى 10 طلاب حسب تقييم التقدم ونتائج الامتحانات والنشاط.";
+  }
+  if(portalHasAny(q,["اتعلم","تقدم","انجاز","تقييم","مشاهدات","درجاتي","نتائجي","سجلي"])){
+   go("#learnAtYourPace");return "قسم «اتعلم على مهلك» يعرض مشاهدات الفيديوهات ودرجات الامتحانات وعدد أيام نشاطك وتقييمك الحالي. درجات الامتحانات هنا تأتي من امتحانات المنصة المصححة تلقائياً.";
+  }
+  if(portalHasAny(q,["فيديو","فيديوهات","شرح","درس","يوتيوب","الجبر","الهندسه","الرياضيات","الانجليزي","العربي","علوم","دراسات"])){
+   const video=portalVideoMatch(q);
+   const lib=document.querySelector(".library-collapsible");if(lib)lib.open=true;
+   if(video){
+    academyState.subject=video.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=video.id;academyRender();
+    go("#academyFeatured");return "وجدت فيديو بعنوان «"+video.title+"» في مادة "+video.subject+" وفتحته في المشغل. لو تقصد درساً آخر اكتب اسم الدرس أو المدرس.";
+   }
+   go("#academyVideoGrid");
+   return "فتحت المكتبة. لم أجد تطابقاً مؤكداً مع اسم الفيديو؛ اكتب اسم الدرس أو المادة أو اسم المدرس لأحدد الفيديو الصحيح بدل ما أفتح لك نتيجة عشوائية.";
+  }
+  if(portalHasAny(q,["اعلان","اعلانات","قرار","تنبيه","اخبار المدرسه"])){go("#announcements");return "الإعلانات والقرارات موجودة في قسم «الإعلانات والقرارات» أعلى الصفحة.";}
+  if(portalHasAny(q,["كيريو","qureo","برمجه","برمجة"])){go("#qureo");if(open)window.open("https://me-portal.qureo.education/login","_blank","noopener,noreferrer");return "قسم QUREO يحتوي رابط المنصة الرسمية ومصادر المساعدة المتاحة.";}
+  if(portalHasAny(q,["محادثه","شات","رساله","رسائل","زملاء","جماعي"])){go("#communityMessages");return "المحادثة الجماعية داخل مساحة الطلاب. أما التواصل الخاص فمخصص للإدارة.";}
+  if(portalHasAny(q,["شكوي","شكوى","استفسار","خاص","الاداره","الإدارة"])){go("#studentSupportMessages");return "للتواصل الخاص مع الإدارة استخدم بطاقة «تواصل خاص مع الإدارة» داخل مساحة الطلاب.";}
+  if(portalHasAny(q,["ملف","pdf","مكتبه","مصدر","مراجع"])){const lib=document.querySelector(".library-collapsible");if(lib)lib.open=true;go("#liveResources");return "الملفات والمصادر المنشورة تظهر في قسم «ملفات المدرسة المنشورة» أسفل المكتبة التعليمية.";}
  }
- const terms=q.split(/\s+/).filter(x=>x.length>2);
- const indexed=(window.sealPlatformKnowledge?.[role]||[]);
- const indexedMatch=indexed.map(section=>({section,score:terms.reduce((n,term)=>n+(section.fullText.toLowerCase().includes(term)?1:0),0)})).sort((a,b)=>b.score-a.score)[0];
- if(indexedMatch?.score&&indexedMatch.section.id){portalOpenDetails("#"+indexedMatch.section.id);return "راجعت دليل المنصة المحفوظ لرتبتك. القسم الأقرب لسؤالك هو «"+indexedMatch.section.title+"»، وفتحته لك.";}
- const candidates=[...document.querySelectorAll("main h1,main h2,main h3,main h4,main a,main button,main summary")].filter(el=>el.offsetParent!==null&&!el.closest("#adminPanel"));
- let best=null,score=0;
- for(const el of candidates){const t=(el.innerText||el.textContent||"").toLowerCase();const n=terms.reduce((v,w)=>v+(t.includes(w)?1:0),0);if(n>score){best=el;score=n;}}
- if(best&&score){const d=best.closest("details");if(d)d.open=true;best.scrollIntoView({behavior:"smooth",block:"center"});return "أقرب مكان لسؤالك هو «"+(best.innerText||best.textContent).trim()+"». نقلتك إليه؛ لو تقصد حاجة تانية اكتب اسمها بشكل أوضح.";}
- return role==="teacher"?"أقدر أساعدك في الإعلانات ورفع ملفات PDF والمصادر وتعديل المحتوى الذي نشرته.":"أقدر أوصلك للإعلانات وQUREO والمكتبة والفيديوهات ومساحة تقدمك.";
+ const aliases=[
+  {id:"announcements",keys:["اعلان","قرار","تنبيه"],title:"الإعلانات والقرارات"},
+  {id:"qureo",keys:["كيريو","qureo","برمجه"],title:"مركز QUREO"},
+  {id:"library",keys:["مكتبه","فيديو","درس","شرح","ماده"],title:"المكتبة التعليمية"},
+  {id:teacher?"teacherExamForm":"studentExamsList",keys:["امتحان","اختبار"],title:"الامتحانات"},
+  {id:teacher?"teacherResourcesList":"learnAtYourPace",keys:["تقدم","درجات","انجاز"],title:teacher?"مصادري المنشورة":"اتعلم على مهلك"}
+ ];
+ const ranked=aliases.map(x=>({...x,score:x.keys.reduce((n,k)=>n+(q.includes(portalNormalizeArabic(k))?1:0),0)})).sort((a,b)=>b.score-a.score);
+ if(ranked[0]?.score>=2){go("#"+ranked[0].id);return "القسم الأقرب لطلبك هو «"+ranked[0].title+"»، فتحته لك.";}
+ return result("مش قادر أحدد قصدك بثقة، ومش هفتح قسماً عشوائياً. اكتب اسم الجزء أو المادة أو الإجراء المطلوب بشكل أوضح؛ أقدر أساعدك في الامتحانات، التقدم، المكتبة، الإعلانات، QUREO"+(teacher?"، إنشاء امتحان، الإعلانات ورفع الملفات.":"."));
 }
 function portalBindAssistant(role){
  const form=document.getElementById(role+"AssistantForm"),input=document.getElementById(role+"AssistantInput"),log=document.getElementById(role+"AssistantLog");if(!form||!input||!log)return;
@@ -589,11 +636,11 @@ function portalMakeCompact(selector,title,description){
 portalMakeCompact("#library #academyFeatured","الفيديو المختار","افتح المشغل والوصف");
 portalMakeCompact("#library #academyPlaylists","قوائم التشغيل","افتح قوائم الشرح الكاملة");
 portalMakeCompact("#library #academyVideoGrid","فيديوهات المادة","اضغط لعرض الفيديوهات المتاحة");
-portalMakeCompact("#studentSpace .portal-card","أداة الطالب","اضغط لفتح المحادثة أو السجل");
-portalMakeCompact("#teacherSpace .portal-card","أداة المعلم","اضغط لفتح الإضافة أو الإدارة");
-portalMakeCompact("#adminPanel .portal-card","أداة الإدارة","اضغط لفتح التفاصيل");
+portalMakeCompact("#studentSpace .portal-card",null,"افتح المحادثة أو بيانات القسم");
+portalMakeCompact("#teacherSpace .portal-card",null,"افتح الإضافة أو إدارة المحتوى");
+portalMakeCompact("#adminPanel .portal-card",null,"افتح تفاصيل هذا القسم");
 portalMakeCompact("#learningProgressContent .progress-dashboard","إحصاءات تقدمك","مشاهدات وامتحانات وتقييم النشاط");
-portalMakeCompact("#learningProgressContent .progress-detail","تفاصيل اتعلم على مهلك","طريقة حساب مؤشر التقدم");
+portalMakeCompact("#learningProgressContent .progress-detail","طريقة حساب تقييمك","تفاصيل نقاط التقدم والنشاط");
 portalMakeCompact("#adminPanel .admin-stats","ملخص الإدارة","أرقام الحسابات والنشاط");
 
 document.getElementById("adminUsersList")?.addEventListener("click",async e=>{
@@ -658,3 +705,80 @@ document.querySelector(".learn-pace-link")?.addEventListener("click",e=>{
 });
 portalMakeCompact("#announcements .empty-panel","الإعلانات والقرارات","اضغط لعرض الإعلانات المنشورة");
 portalMakeCompact("#qureo .feature-card","قسم تعليمي","اضغط لعرض التفاصيل");
+
+async function portalExamAction(action,payload={}){
+ const {data,error}=await db.functions.invoke("seal-admin",{body:{action,...payload}});
+ if(error)throw new Error(data?.error||error.message||"تعذر تنفيذ العملية.");
+ if(data?.error)throw new Error(data.error);
+ return data;
+}
+async function portalLoadExams(){
+ const box=document.getElementById("studentExamsList");if(!box||!window.sealCurrentUser)return;
+ box.innerHTML='<p class="resource-loading">جاري تحميل الامتحانات المنشورة...</p>';
+ const {data,error}=await db.from("platform_exams").select("id,title,subject,description,duration_minutes,total_points,questions,created_at").eq("status","published").order("subject").order("created_at",{ascending:false});
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل الامتحانات: '+portalEsc(error.message)+'</p>';return;}
+ if(!data?.length){box.innerHTML='<p class="resource-loading">لا توجد امتحانات منشورة حالياً. هتظهر هنا امتحانات المدرسين والإدارة.</p>';return;}
+ const groups=new Map();data.forEach(exam=>{const subject=exam.subject||"مواد أخرى";if(!groups.has(subject))groups.set(subject,[]);groups.get(subject).push(exam);});
+ box.innerHTML=[...groups.entries()].map(([subject,exams])=>'<details class="subject-exam-group"><summary><span><b>'+portalEsc(subject)+'</b><small>'+exams.length+' امتحان</small></span><span class="assistant-chevron">⌄</span></summary><div class="subject-exam-items">'+exams.map(exam=>'<details class="student-exam-card" data-exam-card="'+portalEsc(exam.id)+'"><summary><span><b>'+portalEsc(exam.title)+'</b><small>'+exam.questions.length+' سؤال · '+exam.duration_minutes+' دقيقة · '+exam.total_points+' درجة</small></span><span class="assistant-chevron">⌄</span></summary><div class="student-exam-body"><p>'+portalEsc(exam.description||"")+'</p><form class="student-take-exam" data-take-exam="'+portalEsc(exam.id)+'">'+exam.questions.map((q,i)=>'<fieldset class="exam-question"><legend>'+((i+1)+". "+portalEsc(q.prompt))+' <small>('+Number(q.points||1)+' درجة)</small></legend>'+q.options.map((option,n)=>'<label class="exam-option"><input type="radio" name="question-'+i+'" value="'+n+'" required><span>'+portalEsc(option)+'</span></label>').join("")+'</fieldset>').join("")+'<button type="submit">تسليم الإجابات</button><p class="exam-result" aria-live="polite"></p></form></div></details>').join("")+'</div></details>').join("");
+}
+async function portalLoadLeaderboard(){
+ const box=document.getElementById("studentLeaderboardList");if(!box||!window.sealCurrentUser)return;
+ box.innerHTML='<p class="resource-loading">جاري حساب الترتيب...</p>';
+ try{
+  const result=await portalExamAction("get_leaderboard");
+  const rows=result.leaderboard||[];
+  box.innerHTML=rows.length?rows.map(row=>'<div class="leaderboard-row '+(row.rank===1?"leaderboard-first":"")+'"><span class="leaderboard-rank">'+row.rank+'</span><span class="leaderboard-name">'+portalEsc(row.display_name)+'</span><span class="leaderboard-stats">'+row.videos_completed+' فيديو · '+row.exams_completed+' امتحان</span><b class="leaderboard-rating">'+row.rating+'/100</b></div>').join(""):'<p class="resource-loading">لسه مفيش نتائج كفاية لعرض ترتيب المتفوقين.</p>';
+ }catch(error){box.innerHTML='<p class="resource-loading">تعذر تحميل الترتيب: '+portalEsc(error.message)+'</p>';}
+}
+document.getElementById("refreshStudentExams")?.addEventListener("click",portalLoadExams);
+document.getElementById("refreshLeaderboard")?.addEventListener("click",portalLoadLeaderboard);
+document.getElementById("studentExamsList")?.addEventListener("submit",async e=>{
+ const form=e.target.closest("[data-take-exam]");if(!form)return;e.preventDefault();
+ const button=form.querySelector('button[type="submit"]'),status=form.querySelector(".exam-result");
+ const questions=[...form.querySelectorAll(".exam-question")],answers=questions.map((_,i)=>{const picked=form.querySelector('input[name="question-'+i+'"]:checked');return picked?Number(picked.value):-1;});
+ if(answers.some(x=>x<0)){status.textContent="جاوب عن كل الأسئلة قبل التسليم.";return;}
+ button.disabled=true;button.textContent="جاري التصحيح...";
+ try{
+  const result=await portalExamAction("submit_exam",{exam_id:form.dataset.takeExam,answers});
+  status.textContent="نتيجتك: "+result.score+" من "+result.total_score+" ("+result.percentage+"%). تم حفظ الدرجة في تقدمك.";
+  form.querySelectorAll("input,button").forEach(el=>el.disabled=true);
+  await Promise.all([portalLoadStudentStats(),portalLoadLeaderboard()]);
+ }catch(error){status.textContent="تعذر تسليم الامتحان: "+error.message;button.disabled=false;button.textContent="تسليم الإجابات";}
+});
+function portalInitExamBuilder(form){
+ if(!form||form.dataset.bound)return;form.dataset.bound="1";form.__questions=[];
+ const list=form.querySelector("[data-question-list]"),status=form.querySelector("[data-exam-status]");
+ const render=()=>{list.innerHTML=form.__questions.length?form.__questions.map((q,i)=>'<div class="exam-question-chip"><span><b>سؤال '+(i+1)+'</b> · '+portalEsc(q.prompt)+' ('+q.points+' درجة)</span><button type="button" data-remove-question="'+i+'" aria-label="حذف السؤال">×</button></div>').join(""):'<p class="resource-loading">لم تضف أسئلة بعد.</p>';};
+ const add=()=>{
+  const prompt=form.querySelector("[data-question-prompt]").value.trim();
+  const options=[...form.querySelectorAll("[data-question-option]")].map(x=>x.value.trim()).filter(Boolean);
+  const answerIndex=Number(form.querySelector("[data-question-answer]").value),points=Number(form.querySelector("[data-question-points]").value)||1;
+  if(prompt.length<3||options.length<2||answerIndex>=options.length){status.textContent="اكتب السؤال واختيارين على الأقل، وحدد إجابة صحيحة موجودة.";return false;}
+  form.__questions.push({prompt,options,answerIndex,points:Math.max(1,Math.min(100,points))});
+  form.querySelector("[data-question-prompt]").value="";form.querySelectorAll("[data-question-option]").forEach(x=>x.value="");
+  form.querySelector("[data-question-answer]").value="0";form.querySelector("[data-question-points]").value="1";status.textContent="تمت إضافة السؤال. أضف السؤال التالي أو انشر الامتحان.";
+  render();return true;
+ };
+ form.querySelector("[data-add-question]")?.addEventListener("click",add);
+ list.addEventListener("click",e=>{const b=e.target.closest("[data-remove-question]");if(!b)return;form.__questions.splice(Number(b.dataset.removeQuestion),1);render();});
+ form.addEventListener("submit",async e=>{
+  e.preventDefault();const user=window.sealCurrentUser,role=window.sealCurrentProfile?.role;
+  if(!user||!["teacher","admin"].includes(role)){status.textContent="إنشاء الامتحانات متاح للمعلمين والإدارة فقط.";return;}
+  const prompt=form.querySelector("[data-question-prompt]").value.trim();
+  if(prompt&&form.__questions.length===0)add();
+  if(!form.__questions.length){status.textContent="أضف سؤالاً واحداً على الأقل قبل النشر.";return;}
+  const payload={title:form.querySelector("[data-exam-title]").value.trim(),subject:form.querySelector("[data-exam-subject]").value.trim(),description:form.querySelector("[data-exam-description]").value.trim(),duration_minutes:Number(form.querySelector("[data-exam-duration]").value)||30,questions:form.__questions};
+  const button=form.querySelector('button[type="submit"]');button.disabled=true;status.textContent="جاري إنشاء الامتحان...";
+  try{
+   const result=await portalExamAction("create_exam",payload);
+   form.reset();form.__questions=[];render();status.textContent="تم نشر امتحان «"+result.exam.title+"» في مادة "+result.exam.subject+".";
+  }catch(error){status.textContent="تعذر نشر الامتحان: "+error.message;}
+  finally{button.disabled=false;}
+ });
+}
+portalInitExamBuilder(document.getElementById("teacherExamForm"));
+portalInitExamBuilder(document.getElementById("adminExamForm"));
+document.getElementById("studentSpace")?.addEventListener("click",e=>{
+ const open=e.target.closest(".subject-exam-group>summary,.student-exam-card>summary");if(!open)return;
+ const details=open.parentElement;if(details?.tagName==="DETAILS")details.open=!details.open;
+});
