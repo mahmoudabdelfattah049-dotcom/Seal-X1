@@ -16,11 +16,11 @@
   <header class="topbar">
     <a class="brand" href="#home" aria-label="Seal X1 الصفحة الرئيسية"><span class="brand-mark">S<span>X</span></span><span class="brand-copy"><b>SEAL X1</b><small>بوابتك المدرسية</small></span></a>
     <nav class="desktop-nav" aria-label="التنقل الرئيسي">
-      <a class="nav-link active" href="#home">الرئيسية</a><a class="nav-link" href="#announcements">الإعلانات</a><a class="nav-link" href="#qureo">QUREO</a><a class="nav-link" href="#library">المكتبة</a><a class="nav-link" href="#about">عن المنصة</a>
+      <a class="nav-link active" href="#home">الرئيسية</a><a class="nav-link" href="#announcements">الإعلانات</a><a class="nav-link" href="#qureo">QUREO</a><a class="nav-link" href="#library">المكتبة</a><a class="nav-link" href="#about">عن المنصة</a><a class="nav-link" id="studentNav" href="#studentSpace" hidden>مساحة الطلاب</a><a class="nav-link" id="adminNav" href="#adminPanel" hidden>لوحة الإدارة</a>
     </nav>
     <div class="top-actions"><button class="icon-btn" id="themeToggle" aria-label="تغيير المظهر" title="تغيير المظهر">☼</button><button class="menu-btn" id="menuToggle" aria-label="فتح القائمة">☰</button><button class="header-cta account-open" id="accountOpen">حساب الطالب <span>↗</span></button></div>
   </header>
-  <nav class="mobile-nav" id="mobileNav"><a href="#home">الرئيسية</a><a href="#announcements">الإعلانات</a><a href="#qureo">QUREO</a><a href="#library">المكتبة</a><a href="#about">عن المنصة</a></nav>
+  <nav class="mobile-nav" id="mobileNav"><a href="#home">الرئيسية</a><a href="#announcements">الإعلانات</a><a href="#qureo">QUREO</a><a href="#library">المكتبة</a><a href="#about">عن المنصة</a><a id="studentNavMobile" href="#studentSpace" hidden>مساحة الطلاب</a><a id="adminNavMobile" href="#adminPanel" hidden>لوحة الإدارة</a></nav>
   <main>
     <section class="hero section-wrap" id="home">
       <div class="hero-copy"><div class="eyebrow"><span class="pulse"></span> مساحة واحدة لكل ما يهمك في المدرسة</div>
@@ -60,6 +60,34 @@
   <div class="academy-footnote">المكتبة تعرض روابط عامة لفيديوهات مجانية على YouTube. لا نعرض فيديو على أنه مجاني أو تابع لمدرس بعينه إلا عندما تكون بياناته ورابطه متاحة. بعض الروابط قد تقود إلى محتوى أقدم؛ راجع سنة المنهج قبل المشاهدة.</div>
 </section>
     <section class="about-band section-wrap" id="about"><div class="about-mark">SX</div><div><div class="eyebrow">ABOUT SEAL X1</div><h2>الدراسة تبقى أسهل<br><span>لما كل حاجة تبقى منظمة.</span></h2><p>Seal X1 مبادرة لتنظيم الوصول للمعلومات والمصادر التعليمية لطلاب المدرسة، بواجهة واحدة سهلة الاستخدام.</p></div><a href="#home" class="back-top">للأعلى ↑</a></section>
+  
+    <section class="content-section section-wrap portal-space" id="studentSpace" hidden>
+      <div class="section-heading"><div><div class="eyebrow">STUDENTS AREA</div><h2>مساحة <span>الطلاب</span></h2><p>محتواك الدراسي، إنجازاتك، وتواصلك مع زملائك وإدارة المنصة.</p></div><span class="section-number">04 / STUDENT</span></div>
+      <div class="student-welcome"><div><span class="student-role-label">STUDENT SPACE</span><h3>أهلاً، <b id="studentWelcomeName">طالب Seal X1</b></h3><p>كل خطوة بتسجلها هنا بتظهر في إحصاءات تقدمك.</p></div><span class="student-private-pill">مساحة خاصة بالحسابات المسجلة</span></div>
+      <div class="progress-dashboard">
+        <article class="progress-stat"><span>الفيديوهات المكتملة</span><b id="studentVideosDone">0</b><small>فيديو تم تسجيل مشاهدته</small></article>
+        <article class="progress-stat"><span>الامتحانات المسجلة</span><b id="studentExamsDone">0</b><small>نتائج أضفتها إلى سجلك</small></article>
+        <article class="progress-stat"><span>تقييم المنصة</span><b><i id="studentScore">0</i><small>/ 100</small></b><small>مؤشر نشاط وإنجاز</small></article>
+        <article class="progress-stat"><span>أيام النشاط</span><b id="studentActiveDays">0</b><small>خلال آخر 7 أيام</small></article>
+      </div>
+      <div class="progress-detail"><div class="progress-detail-head"><h3>اتعلم على مهلك</h3><span id="studentProgressLabel">تقدمك بيتحدث تلقائياً</span></div><div class="progress-track"><span id="studentProgressBar"></span></div><p>التقييم من 100: 40 نقطة لتسجيل مشاهدة حتى 20 فيديو، و50 نقطة لمتوسط نتائج الامتحانات المسجلة، و10 نقاط للانتظام خلال آخر 7 أيام. النتائج المسجلة ذاتياً وليست امتحانات مراقبة.</p></div>
+      <div class="student-tools-grid">
+        <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">COMMUNITY</span><h3>حديث أعضاء المنصة</h3></div><span class="online-dot">مساحة جماعية</span></div><div class="chat-messages" id="communityMessages" aria-live="polite"><p class="resource-loading">جاري تحميل المحادثة...</p></div><form id="communityForm" class="chat-compose"><input id="communityInput" maxlength="1500" placeholder="اكتب رسالة محترمة للمجموعة..." required><button type="submit">إرسال</button></form><p class="chat-note">المحادثة الجماعية متاحة للمستخدمين المسجلين فقط. تجنب مشاركة أرقامك أو بياناتك الخاصة.</p></article>
+        <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">ADMIN SUPPORT</span><h3>تواصل خاص مع الإدارة</h3></div><span class="private-pill">خاص</span></div><div class="chat-messages support-messages" id="studentSupportMessages" aria-live="polite"><p class="resource-loading">جاري تحميل رسائلك...</p></div><form id="studentSupportForm" class="chat-compose"><input id="studentSupportInput" maxlength="2000" placeholder="اكتب شكوى أو استفساراً للإدارة..." required><button type="submit">إرسال</button></form><p class="chat-note">هذه المحادثة لا يراها إلا أنت وحساب الإدارة.</p></article>
+      </div>
+      <article class="portal-card exam-log-card"><div class="portal-card-heading"><div><span class="card-kicker">MY LEARNING LOG</span><h3>سجّل نتيجة امتحان</h3></div></div><form id="examLogForm" class="exam-log-form"><input id="examLogTitle" maxlength="100" placeholder="اسم الامتحان" required><input id="examLogSubject" maxlength="60" placeholder="المادة"><input id="examLogScore" type="number" min="0" max="100" step="1" placeholder="درجتك من 100" required><button type="submit">حفظ النتيجة</button></form><p class="chat-note">السجل لمتابعة تقدمك الشخصي؛ لا يُعد تصحيحاً رسمياً من المنصة.</p></article>
+    </section>
+    <section class="content-section section-wrap portal-space admin-space" id="adminPanel" hidden>
+      <div class="section-heading"><div><div class="eyebrow">SEAL X1 CONTROL CENTER</div><h2>لوحة <span>الإدارة</span></h2><p>إدارة حسابات الطلاب، الإعلانات، التقارير، ومتابعة النشاط من مكان واحد.</p></div><span class="section-number">05 / ADMIN</span></div>
+      <div class="admin-stats"><article><span>الحسابات</span><b id="adminUsersCount">0</b></article><article><span>مشاهدات مسجلة</span><b id="adminVideosCount">0</b></article><article><span>امتحانات مسجلة</span><b id="adminExamsCount">0</b></article><article><span>تقارير مفتوحة</span><b id="adminReportsCount">0</b></article></div>
+      <div class="admin-grid">
+        <article class="portal-card admin-users-card"><div class="portal-card-heading"><div><span class="card-kicker">STUDENT DIRECTORY</span><h3>حسابات الطلاب</h3></div><button type="button" class="subtle-action" id="refreshAdminUsers">تحديث</button></div><div class="admin-users-list" id="adminUsersList"><p class="resource-loading">جاري تحميل الحسابات...</p></div></article>
+        <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">PUBLISHING</span><h3>إضافة إعلان جديد</h3></div></div><form id="adminAnnouncementForm" class="admin-form"><input id="adminAnnouncementTitle" maxlength="140" placeholder="عنوان الإعلان" required><textarea id="adminAnnouncementBody" maxlength="4000" rows="4" placeholder="تفاصيل الإعلان..." required></textarea><label class="inline-check"><input id="adminAnnouncementPinned" type="checkbox"> تثبيت الإعلان كإعلان مهم</label><button type="submit">نشر الإعلان للطلاب</button><p id="adminAnnouncementStatus" class="chat-note"></p></form></article>
+        <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">PRIVATE SUPPORT</span><h3>رسائل الطلاب الخاصة</h3></div></div><select id="adminSupportStudent" class="admin-select"><option value="">اختر طالباً لفتح المحادثة</option></select><div class="chat-messages support-messages" id="adminSupportMessages"><p class="resource-loading">اختر طالباً لعرض الرسائل.</p></div><form id="adminSupportForm" class="chat-compose"><input id="adminSupportInput" maxlength="2000" placeholder="اكتب رد الإدارة..." required><button type="submit">إرسال</button></form></article>
+        <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">REPORTS</span><h3>شكاوى وملاحظات الطلاب</h3></div><button type="button" class="subtle-action" id="refreshAdminReports">تحديث</button></div><div id="adminReportsList" class="admin-reports-list"><p class="resource-loading">جاري تحميل التقارير...</p></div></article>
+      </div>
+    </section>
+
   </main>
   <section class="student-auth section-wrap" id="studentAuth">
     <div class="auth-intro"><div class="eyebrow">STUDENT ACCOUNT</div><h2>حسابك في <span>SEAL X1</span></h2><p>سجّل باسم مستخدم وكلمة مرور، واحفظ تقدمك الدراسي على حسابك لتقدر تفتحه من أي جهاز.</p></div>
