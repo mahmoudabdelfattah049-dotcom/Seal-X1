@@ -366,7 +366,7 @@ async function portalInitSpaces(user,profile){
  if(isAdmin)await Promise.all([portalLoadAdminUsers(),portalLoadReports(),portalLoadAdminAnnouncements(),portalLoadAdminCommunity()]);
  if(portalRealtime)db.removeChannel(portalRealtime);
  portalRealtime=db.channel("seal-portal-"+user.id)
-  .on("postgres_changes",{event:"*",schema:"public",table:"community_messages"},portalLoadCommunity)
+  .on("postgres_changes",{event:"*",schema:"public",table:"community_messages"},()=>{portalLoadCommunity();portalLoadTeacherCommunity();portalLoadAdminCommunity();})
   .on("postgres_changes",{event:"*",schema:"public",table:"admin_messages",filter:isAdmin?undefined:"user_id=eq."+user.id},async()=>{if(isAdmin&&selectedSupportUser)await portalLoadAdminThread(selectedSupportUser);else await portalLoadStudentSupport();})
   .subscribe();
 }
@@ -637,3 +637,9 @@ portalAssistantAnswer=function(question,role){
  portalBuildKnowledge(role);
  return answer;
 };
+
+document.querySelector(".learn-pace-link")?.addEventListener("click",e=>{
+ if(!window.sealCurrentUser){e.preventDefault();document.getElementById("accountOpen")?.click();alert("سجّل الدخول أولاً لعرض تقدمك الشخصي.");}
+});
+portalMakeCompact("#announcements .empty-panel","الإعلانات والقرارات","اضغط لعرض الإعلانات المنشورة");
+portalMakeCompact("#qureo .feature-card","قسم تعليمي","اضغط لعرض التفاصيل");
