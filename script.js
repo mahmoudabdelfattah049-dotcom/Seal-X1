@@ -559,7 +559,7 @@ function portalAssistantAnswer(question,role){
  const go=(selector)=>portalOpenDetails(selector);
  const result=(text)=>text+(how?" لو تحب، اكتب اسم الجزء أو المادة بالتحديد.":"");
  if(teacher){
-  if(portalHasAny(q,["امتحان","امتحانات","اختبار","اختبارات"])){
+  if(portalHasAny(q,["امتحان","امتحانات","اختبار","اختبارات","سؤال"])){
    go("#teacherExamForm");
    return "إنشاء امتحان: اكتب اسم الامتحان والمادة والمدة، ثم اكتب السؤال والاختيارات وحدد الإجابة الصحيحة واضغط «إضافة السؤال للقائمة». كرر ذلك لكل سؤال، وبعدها اضغط «نشر الامتحان للطلاب». التصحيح والدرجات يتمان تلقائياً.";
   }
@@ -706,12 +706,7 @@ document.querySelector(".learn-pace-link")?.addEventListener("click",e=>{
 portalMakeCompact("#announcements .empty-panel","الإعلانات والقرارات","اضغط لعرض الإعلانات المنشورة");
 portalMakeCompact("#qureo .feature-card","قسم تعليمي","اضغط لعرض التفاصيل");
 
-async function portalExamAction(action,payload={}){
- const {data,error}=await db.functions.invoke("seal-admin",{body:{action,...payload}});
- if(error)throw new Error(data?.error||error.message||"تعذر تنفيذ العملية.");
- if(data?.error)throw new Error(data.error);
- return data;
-}
+async function portalExamAction(action,payload={}){return await portalAdminCall(action,payload);}
 async function portalLoadExams(){
  const box=document.getElementById("studentExamsList");if(!box||!window.sealCurrentUser)return;
  box.innerHTML='<p class="resource-loading">جاري تحميل الامتحانات المنشورة...</p>';
