@@ -44,19 +44,20 @@
       <div class="feature-grid"><article class="feature-card feature-dark"><div class="feature-icon">⌘</div><span class="card-kicker">PROGRAMMING</span><h3>افهم الفكرة،<br>مش بس الحل.</h3><p>شروحات مبسطة وملاحظات تساعدك تفهم أساسيات البرمجة وتكمل بنفسك.</p><span class="coming-label">المحتوى قيد التجهيز</span><div class="decor-code">if (learn) {<br>&nbsp; grow();<br>}</div></article><article class="feature-card"><div class="feature-icon soft">✎</div><span class="card-kicker">QUICK HELP</span><h3>مساعدة<br>QUREO</h3><p>مساحة مخصصة لتجميع الإرشادات والملفات المساعدة لكل فصل.</p><span class="coming-label">قريباً</span></article><article class="feature-card"><div class="feature-icon soft">✧</div><span class="card-kicker">YOUR PROGRESS</span><h3>اتعلم<br>على مهلك.</h3><p>راجع المفاهيم والأمثلة وارجع للمصادر وقت ما تحتاج.</p><span class="coming-label">قريباً</span></article></div>
     </section>
     <section class="content-section section-wrap" id="library">
-      <div class="section-heading"><div><div class="eyebrow">مكتبة مفتوحة ومنتقاة</div><h2>المكتبة <span>التعليمية</span></h2><p>ابحث بالمادة أو المدرس أو اسم الدرس. يوتيوب هو المصدر الافتراضي للفيديوهات.</p></div><span class="section-number">03 / VIDEO LIBRARY</span></div>
-      <div class="video-library-shell">
-        <div class="library-toolbar">
-          <label class="library-search"><span>⌕</span><input id="videoSearch" type="search" placeholder="ابحث عن مادة أو مدرس أو درس..." autocomplete="off"></label>
-          <select id="subjectFilter" aria-label="تصفية حسب المادة"><option value="all">كل المواد</option></select>
-          <select id="teacherFilter" aria-label="تصفية حسب المدرس"><option value="all">كل المدرسين</option></select>
-        </div>
-        <div class="library-subject-chips" id="subjectChips"></div>
-        <div class="library-results-head"><div><b id="libraryResultCount">—</b><span> مصدر تعليمي</span></div><a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" class="youtube-default">▶ يوتيوب — المصدر الافتراضي</a></div>
-        <div id="videoLibraryResults" class="video-library-results" aria-live="polite"></div>
-        <div class="library-note">المصادر المعروضة روابط لفيديوهات أو نتائج بحث على YouTube. بعض المدرسين يرفعون شروحات مجانية على يوتيوب، وقد يضعون مواد إضافية مدفوعة خارج الفيديو؛ لا تحتاج المكتبة إلى اشتراك للوصول إلى الروابط العامة. راجع سنة المنهج قبل الاعتماد على أي شرح.</div>
-      </div>
-    </section>
+  <div class="section-heading"><div><div class="eyebrow">SEAL X1 ACADEMY</div><h2>المكتبة <span>التعليمية</span></h2><p>اختار المادة، ثم المدرس، وشاهد كل درس في بطاقة مستقلة مع وصفه.</p></div><span class="section-number">03 / LEARN</span></div>
+  <div class="academy-layout">
+    <aside class="academy-sidebar"><div class="academy-sidebar-title">المواد الدراسية <span id="academySubjectCount">09</span></div><div id="academySubjects" class="academy-subject-list"></div></aside>
+    <div class="academy-main">
+      <div class="academy-topline"><div><span class="academy-kicker">المادة المختارة</span><h3 id="academyCurrentSubject">اختار مادة للبدء</h3><p id="academySubjectDescription">كل مادة لها مكتبتها الخاصة، مع تصنيف حسب المدرس ونوع الفيديو.</p></div><div class="academy-sort"><label for="academySort">ترتيب العرض</label><select id="academySort"><option value="recommended">الموصى به</option><option value="newest">الأحدث</option><option value="duration">الأطول أولاً</option></select></div></div>
+      <div class="academy-filters"><div id="academyTeachers" class="academy-teacher-filters"></div><div class="academy-type-filters"><button class="academy-type active" data-kind="all">الكل</button><button class="academy-type" data-kind="شرح">شرح</button><button class="academy-type" data-kind="حل وتدريب">حل وتدريب</button><button class="academy-type" data-kind="مراجعة">مراجعة</button></div></div>
+      <div class="academy-featured" id="academyFeatured"></div>
+      <div class="academy-grid-head"><h4>فيديوهات المادة</h4><span id="academyVideoCount">0 فيديو</span></div>
+      <div id="academyVideoGrid" class="academy-video-grid"></div>
+      <div class="academy-empty" id="academyEmpty" hidden>لسه بنضيف فيديوهات موثقة للمادة دي.</div>
+    </div>
+  </div>
+  <div class="academy-footnote">المكتبة تعرض روابط عامة لفيديوهات مجانية على YouTube. لا نعرض فيديو على أنه مجاني أو تابع لمدرس بعينه إلا عندما تكون بياناته ورابطه متاحة. بعض الروابط قد تقود إلى محتوى أقدم؛ راجع سنة المنهج قبل المشاهدة.</div>
+</section>
     <section class="about-band section-wrap" id="about"><div class="about-mark">SX</div><div><div class="eyebrow">ABOUT SEAL X1</div><h2>الدراسة تبقى أسهل<br><span>لما كل حاجة تبقى منظمة.</span></h2><p>Seal X1 مبادرة لتنظيم الوصول للمعلومات والمصادر التعليمية لطلاب المدرسة، بواجهة واحدة سهلة الاستخدام.</p></div><a href="#home" class="back-top">للأعلى ↑</a></section>
   </main>
   <footer><a class="footer-brand" href="#home">SEAL <span>X1</span></a><p>© <span id="year"></span> Seal X1. مساحة تعليمية للطلاب.</p><a href="#home">العودة للبداية ↑</a></footer>
