@@ -562,6 +562,9 @@ function portalAssistantAnswer(question,role){
   if(/ملف|pdf|مكتبة|مصدر/.test(q)){const library=document.querySelector(".library-collapsible");if(library)library.open=true;portalOpenDetails("#library");return "المكتبة التعليمية فيها المواد والمدرسين والفيديوهات، والملفات المنشورة تظهر أسفلها.";}
  }
  const terms=q.split(/\s+/).filter(x=>x.length>2);
+ const indexed=(window.sealPlatformKnowledge?.[role]||[]);
+ const indexedMatch=indexed.map(section=>({section,score:terms.reduce((n,term)=>n+(section.fullText.toLowerCase().includes(term)?1:0),0)})).sort((a,b)=>b.score-a.score)[0];
+ if(indexedMatch?.score&&indexedMatch.section.id){portalOpenDetails("#"+indexedMatch.section.id);return "راجعت دليل المنصة المحفوظ لرتبتك. القسم الأقرب لسؤالك هو «"+indexedMatch.section.title+"»، وفتحته لك.";}
  const candidates=[...document.querySelectorAll("main h1,main h2,main h3,main h4,main a,main button,main summary")].filter(el=>el.offsetParent!==null&&!el.closest("#adminPanel"));
  let best=null,score=0;
  for(const el of candidates){const t=(el.innerText||el.textContent||"").toLowerCase();const n=terms.reduce((v,w)=>v+(t.includes(w)?1:0),0);if(n>score){best=el;score=n;}}
