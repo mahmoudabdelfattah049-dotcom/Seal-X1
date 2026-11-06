@@ -151,7 +151,14 @@ if(db&&authCard){
  const displayNameInput=document.getElementById("studentDisplayName");
  const nameField=document.getElementById("studentNameField");
  let authMode="login";
- const internalEmail=name=>name.trim().toLowerCase()+"@accounts.sealx1.com";
+ const normalizeUsername=value=>value.normalize("NFC").trim().toLowerCase();
+ const validUsername=value=>/^[A-Za-z0-9_ء-ي٠-٩۰-۹]{3,20}$/.test(value);
+ const internalEmail=async name=>{
+  const bytes=new TextEncoder().encode(name);
+  const digest=await crypto.subtle.digest("SHA-256",bytes);
+  const hex=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+  return "u"+hex.slice(0,60)+"@accounts.sealx1.com";
+ };
  const setAuthMessage=(message,type="")=>{authMessage.textContent=message;authMessage.className="auth-message "+type;};
  function setAuthMode(mode){
   authMode=mode;
@@ -176,9 +183,9 @@ if(db&&authCard){
  }
  authForm.addEventListener("submit",async event=>{
   event.preventDefault();
-  const username=usernameInput.value.trim().toLowerCase();
+  const username=normalizeUsername(usernameInput.value);\n  usernameInput.value=username;
   const password=passwordInput.value;
-  if(!/^[a-z0-9_]{3,20}$/.test(username)){setAuthMessage("اسم المستخدم لازم يكون 3–20 حرفاً إنجليزياً أو رقماً أو _ فقط.","error");return;}
+  if(!validUsername(username)){setAuthMessage("اسم المستخدم لازم يكون من 3 إلى 20 حرفاً، ويسمح بالعربي أو الإنجليزي أو الأرقام أو _ بدون مسافات.","error");return;}
   if(password.length<8){setAuthMessage("كلمة المرور لازم تكون 8 أحرف على الأقل.","error");return;}
   authSubmit.disabled=true;authSubmit.textContent="لحظة واحدة...";
   setAuthMessage(authMode==="signup"?"جاري إنشاء حسابك...":"جاري تسجيل الدخول...");
@@ -187,7 +194,7 @@ if(db&&authCard){
    if(authMode==="signup"){
     const displayName=displayNameInput.value.trim();
     if(!displayName){setAuthMessage("اكتب الاسم الظاهر داخل المنصة.","error");return;}
-    result=await db.auth.signUp({email:internalEmail(username),password,options:{data:{username,display_name:displayName}}});
+    result=await db.auth.signUp({email:await internalEmail(username),password,options:{data:{username,display_name:displayName}}});
     if(result.error)throw result.error;
     if(!result.data.session){
       setAuthMessage("الحساب اتسجل، لكن إعداد تأكيد البريد في Supabase ما زال مفعّلاً. لازم تعطيله من إعدادات Authentication > Providers > Email حتى يعمل نظام اسم المستخدم بدون بريد.", "error");
@@ -195,7 +202,7 @@ if(db&&authCard){
     }
     setAuthMessage("تم إنشاء الحساب بنجاح!","success");
    }else{
-    result=await db.auth.signInWithPassword({email:internalEmail(username),password});
+    result=await db.auth.signInWithPassword({email:await internalEmail(username),password});
     if(result.error)throw result.error;
     setAuthMessage("تم تسجيل الدخول بنجاح.","success");
    }
@@ -203,7 +210,7 @@ if(db&&authCard){
    await refreshStudentSession();
   }catch(error){
    const msg=String(error?.message||"");
-   if(/already registered|already exists|duplicate key/i.test(msg))setAuthMessage("اسم المستخدم مستخدم بالفعل. جرّب اسماً آخر.","error");
+   if(/already registered|already exists|duplicate key|profiles_username_lower_uidx/i.test(msg))setAuthMessage("اسم المستخدم مستخدم بالفعل. جرّب اسماً آخر.","error");
    else if(/invalid login credentials/i.test(msg))setAuthMessage("اسم المستخدم أو كلمة المرور غير صحيحة.","error");
    else setAuthMessage("تعذر إكمال العملية: "+msg,"error");
   }finally{authSubmit.disabled=false;authSubmit.textContent=authMode==="signup"?"إنشاء حساب الطالب":"دخول إلى حسابي";}
