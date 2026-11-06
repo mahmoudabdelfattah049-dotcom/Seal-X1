@@ -159,6 +159,7 @@ if(db&&authCard){
   const hex=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
   return "u"+hex.slice(0,60)+"@accounts.sealx1.com";
  };
+ const legacyInternalEmail=name=>name+"@accounts.sealx1.com";
  const setAuthMessage=(message,type="")=>{authMessage.textContent=message;authMessage.className="auth-message "+type;};
  function setAuthMode(mode){
   authMode=mode;
@@ -211,6 +212,11 @@ if(db&&authCard){
     setAuthMessage("تم إنشاء الحساب بنجاح!","success");
    }else{
     result=await db.auth.signInWithPassword({email:await internalEmail(username),password});
+    if(result.error&&/invalid login credentials/i.test(String(result.error.message||""))){
+      const legacyResult=await db.auth.signInWithPassword({email:legacyInternalEmail(username),password});
+      if(!legacyResult.error)result=legacyResult;
+      else throw legacyResult.error;
+    }
     if(result.error)throw result.error;
     setAuthMessage("تم تسجيل الدخول بنجاح.","success");
    }
@@ -264,9 +270,9 @@ function portalMessageMarkup(rows,currentId,isAdmin=false){
 }
 async function portalLoadCommunity(){
  const box=document.getElementById("communityMessages");if(!box||!window.sealCurrentUser)return;
- const {data,error}=await db.from("community_messages").select("id,user_id,body,created_at,profiles(display_name,username)").order("created_at",{ascending:false}).limit(80);
+ const {data,error}=await db.from("community_feed").select("id,user_id,body,created_at,display_name,username").order("created_at",{ascending:false}).limit(80);
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل المحادثة حالياً.</p>';return;}
- const rows=(data||[]).reverse().map(x=>({...x,sender_id:x.user_id,sender_name:x.profiles?.display_name||x.profiles?.username||"طالب"}));
+ const rows=(data||[]).reverse().map(x=>({...x,sender_id:x.user_id,sender_name:x.display_name||x.username||"طالب"}));
  box.innerHTML=rows.length?rows.map(row=>'<div class="chat-bubble"><div class="chat-bubble-meta">'+portalEsc(row.sender_name)+' · '+portalEsc(portalTime(row.created_at))+'</div><p>'+portalEsc(row.body)+'</p></div>').join(""):'<p class="resource-loading">لسه مفيش رسائل. ابدأ أول نقاش.</p>';
  box.scrollTop=box.scrollHeight;
 }
