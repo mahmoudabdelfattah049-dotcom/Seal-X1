@@ -365,3 +365,6 @@ details[open]>summary .assistant-chevron{transform:rotate(180deg)}
 .arabic-assessment-file strong{font-size:9px;color:var(--accent);white-space:nowrap}
 .download-upload-panel{margin-top:15px}
 @media(max-width:650px){.download-library-filters{grid-template-columns:1fr}.download-accordion>.download-library{padding:12px}.section-accordion>summary,.arabic-assessments-panel>summary{padding:12px}.assessment-week-list{grid-template-columns:1fr}}
+
+.arabic-assessment-tools{padding:0 10px 10px}
+.arabic-assessment-tools input{width:100%;min-height:40px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);font:inherit;font-size:10px}
