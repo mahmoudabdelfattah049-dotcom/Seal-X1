@@ -38,7 +38,7 @@ function render(){
  c.lessons.forEach((x,i)=>{list+='<button type="button" class="academy-lesson-link '+(x.id===l.id?"active":"")+'" data-lesson="'+x.id+'"><span class="academy-lesson-index">'+(isDone(x.id)?"✓":String(i+1).padStart(2,"0"))+'</span><span><b>'+esc(x.title)+'</b><small>'+esc(x.time)+'</small></span></button>';});
  l.goals.forEach(x=>goals+="<li>"+esc(x)+"</li>");
  l.explain.forEach(x=>explain+="<p>"+esc(x)+"</p>");
- l.quiz.choices.forEach((x,i)=>{choices+='<button type="button" data-choice="'+i+'" class="'+(quizChecked&&quizChoice===i?"selected":"")+'" '+(quizChecked?"disabled":"")+'>'+String.fromCharCode(65+i)+". "+esc(x)+"</button>";});
+ l.quiz.choices.forEach((x,i)=>{choices+='<button type="button" data-choice="'+i+'" class="'+(quizChoice===i?"selected":"")+'" '+(quizChecked?"disabled":"")+'>'+String.fromCharCode(65+i)+". "+esc(x)+"</button>";});
  root.innerHTML=
  '<div class="academy-progress-card"><div><span class="academy-progress-kicker">رحلتك التعليمية</span><strong>'+done+' <small>/ '+total+' درس مكتمل</small></strong></div><div class="academy-progress-track"><span style="width:'+Math.round(done/total*100)+'%"></span></div><p>تقدمك محفوظ على هذا المتصفح والجهاز، ويمكنك العودة وإكمال الدروس في أي وقت.</p></div>'+
  '<div class="academy-course-tabs" role="tablist" aria-label="المسارات التعليمية">'+tabs+'</div>'+
