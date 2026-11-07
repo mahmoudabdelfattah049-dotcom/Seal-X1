@@ -322,7 +322,18 @@ if(db&&authCard){
  const usernameInput=document.getElementById("studentUsername");
  const passwordInput=document.getElementById("studentPassword");
  const displayNameInput=document.getElementById("studentDisplayName");
+ const legalNameInput=document.getElementById("studentLegalName");
+ const termsScroll=document.getElementById("signupTermsScroll");
+ const termsAccepted=document.getElementById("signupTermsAccepted");
+ const termsReadHint=document.getElementById("termsReadHint");
+ let termsReadToEnd=false;
  const nameField=document.getElementById("studentNameField");
+ termsScroll?.addEventListener("scroll",()=>{
+  if(termsScroll.scrollTop+termsScroll.clientHeight>=termsScroll.scrollHeight-8){
+   termsReadToEnd=true;termsAccepted.disabled=false;
+   if(termsReadHint)termsReadHint.textContent="تمت قراءة السياسة حتى النهاية. يمكنك الآن الموافقة للمتابعة.";
+  }
+ });
  let authMode="login";
  const normalizeUsername=value=>value.normalize("NFC").trim().toLowerCase();
  const validUsername=value=>/^[A-Za-z0-9_ء-ي٠-٩۰-۹]{3,20}$/.test(value);
@@ -339,6 +350,9 @@ if(db&&authCard){
   document.querySelectorAll("[data-auth-mode]").forEach(b=>b.classList.toggle("active",b.dataset.authMode===mode));
   nameField.hidden=mode!=="signup";
   displayNameInput.required=mode==="signup";
+  legalNameInput.required=mode==="signup";
+  if(mode==="signup"){termsReadToEnd=false;termsAccepted.checked=false;termsAccepted.disabled=true;termsScroll.scrollTop=0;termsReadHint.textContent="مرّر النص إلى نهايته لتمكين الموافقة.";}
+  else {termsReadToEnd=false;termsAccepted.checked=false;termsAccepted.disabled=true;}
   passwordInput.autocomplete=mode==="signup"?"new-password":"current-password";
   authSubmit.textContent=mode==="signup"?"إنشاء حساب الطالب":"دخول إلى حسابي";
   authHeading.textContent=mode==="signup"?"أنشئ حسابك في Seal X1":"أهلاً بك في Seal X1";
@@ -389,9 +403,16 @@ if(db&&authCard){
    let result;
    if(authMode==="signup"){
     const displayName=displayNameInput.value.trim();
+    const legalName=legalNameInput.value.trim().replace(/\\s+/g," ");
     if(!displayName){setAuthMessage("اكتب الاسم الظاهر داخل المنصة.","error");return;}
+    if(legalName.length<5||legalName.length>100||legalName.split(" ").filter(Boolean).length<3){setAuthMessage("اكتب اسمك الثلاثي المدرسي بشكل صحيح.","error");return;}
+    if(!termsReadToEnd||!termsAccepted.checked){setAuthMessage("لازم تقرأ سياسة الحساب حتى النهاية وتوافق عليها قبل إنشاء الحساب.","error");return;}
     result=await db.auth.signUp({email:await internalEmail(username),password,options:{data:{username,display_name:displayName}}});
     if(result.error)throw result.error;
+    if(result.data.session){
+      const {error:identityError}=await db.from("account_identity").insert({user_id:result.data.user.id,full_name:legalName,terms_version:"2026-11-v1"});
+      if(identityError){await db.auth.signOut();throw new Error("تم إنشاء الحساب لكن تعذر حفظ بيانات التحقق. لا تنشئ حساباً آخر؛ تواصل مع مشرف المنصة لإكمال التسجيل.");}
+    }
     if(!result.data.session){
       setAuthMessage("الحساب اتسجل، لكن إعداد تأكيد البريد في Supabase ما زال مفعّلاً. لازم تعطيله من إعدادات Authentication > Providers > Email حتى يعمل نظام اسم المستخدم بدون بريد.", "error");
       return;
@@ -523,7 +544,7 @@ async function portalLoadAdminUsers(){
    const roleLabel=u.role==="teacher"?"معلم":u.role==="student"?"طالب":u.role;
    const teacherFields=u.role==="teacher"?'<div class="teacher-verify-fields" data-teacher-fields><input data-teacher-full-name maxlength="100" value="'+portalEsc(u.teacher_full_name||"")+'" placeholder="الاسم الكامل للمدرس"><select data-teacher-subject><option value="">اختر المادة</option>'+teacherSubjects.map(s=>'<option value="'+portalEsc(s)+'" '+(u.teacher_subject===s?'selected':'')+'>'+portalEsc(s)+'</option>').join("")+'</select><button type="button" data-verify-teacher="'+portalEsc(u.id)+'">'+(u.teacher_verified?"حفظ بيانات التوثيق":"توثيق المعلم بالعلامة الزرقاء")+'</button>'+(u.teacher_verified?'<button type="button" class="danger-action" data-unverify-teacher="'+portalEsc(u.id)+'">إلغاء التوثيق</button>':"")+'</div>':"";
    const passwordControl=u.id!==window.sealCurrentUser?.id?'<div class="admin-password-reset"><label>تغيير كلمة المرور للحساب</label><input type="password" data-reset-password-input="'+portalEsc(u.id)+'" minlength="12" maxlength="72" autocomplete="new-password" placeholder="كلمة مرور مؤقتة (12 حرفاً على الأقل)"><button type="button" data-reset-password="'+portalEsc(u.id)+'">تعيين كلمة مرور جديدة</button><small>أبلغ صاحب الحساب بالكلمة الجديدة عبر وسيلة خاصة.</small></div>':"";
-   return '<article class="admin-user-row" data-admin-user-row="'+portalEsc(u.id)+'"><div class="admin-user-main"><b>'+portalEsc(u.display_name)+'</b>'+(u.teacher_verified?'<span class="verified-teacher-badge">✓ مدرس موثق</span>':'')+'<small>@'+portalEsc(u.username)+' · '+portalEsc(roleLabel)+(u.teacher_verified?' · '+portalEsc(u.teacher_subject):"")+'</small><span>فيديوهات: '+u.videos_completed+' · امتحانات: '+u.exams_completed+' · متوسط الامتحانات: '+(u.exam_average===null?'—':u.exam_average+'%')+' · آخر نشاط: '+portalEsc(portalTime(u.last_sign_in_at))+'</span></div>'+(u.role==="admin"?'<span class="admin-role-tag">ADMIN</span>':u.role==="moderator"?'<span class="admin-role-tag">MODERATOR</span>':'<div class="admin-user-actions"><select data-role-user="'+portalEsc(u.id)+'" aria-label="رتبة الحساب"><option value="student" '+(u.role==="student"?'selected':'')+'>طالب</option><option value="teacher" '+(u.role==="teacher"?'selected':'')+'>معلم</option></select><button type="button" data-save-role="'+portalEsc(u.id)+'">حفظ الرتبة</button><button type="button" data-edit-user="'+portalEsc(u.id)+'">تعديل</button><button type="button" class="danger-action" data-delete-user="'+portalEsc(u.id)+'">حذف</button>'+teacherFields+'</div>')+passwordControl+'</article>';
+   return '<article class="admin-user-row" data-admin-user-row="'+portalEsc(u.id)+'"><div class="admin-user-main"><b>'+portalEsc(u.display_name)+'</b>'+(u.teacher_verified?'<span class="verified-teacher-badge">✓ مدرس موثق</span>':'')+'<small>@'+portalEsc(u.username)+' · '+portalEsc(roleLabel)+(u.teacher_verified?' · '+portalEsc(u.teacher_subject):"")+'</small>'+(u.full_name?'<small class="admin-private-identity">الاسم الثلاثي (خاص بالإدارة): '+portalEsc(u.full_name)+'</small>':'<small class="admin-private-identity">لم يُسجل الاسم الثلاثي أو لم يوافق على السياسة</small>')+'<span>فيديوهات: '+u.videos_completed+' · امتحانات: '+u.exams_completed+' · متوسط الامتحانات: '+(u.exam_average===null?'—':u.exam_average+'%')+' · آخر نشاط: '+portalEsc(portalTime(u.last_sign_in_at))+'</span></div>'+(u.role==="admin"?'<span class="admin-role-tag">ADMIN</span>':u.role==="moderator"?'<span class="admin-role-tag">MODERATOR</span>':'<div class="admin-user-actions"><select data-role-user="'+portalEsc(u.id)+'" aria-label="رتبة الحساب"><option value="student" '+(u.role==="student"?'selected':'')+'>طالب</option><option value="teacher" '+(u.role==="teacher"?'selected':'')+'>معلم</option></select><button type="button" data-save-role="'+portalEsc(u.id)+'">حفظ الرتبة</button><button type="button" data-edit-user="'+portalEsc(u.id)+'">تعديل</button><button type="button" class="danger-action" data-delete-user="'+portalEsc(u.id)+'">حذف</button>'+teacherFields+'</div>')+passwordControl+'</article>';
   }).join(""):'<p class="resource-loading">لا توجد حسابات بعد.</p>';
  }catch(error){box.innerHTML='<p class="resource-loading">'+portalEsc(error.message)+'</p>';}
 }
