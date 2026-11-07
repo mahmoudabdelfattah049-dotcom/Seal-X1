@@ -305,3 +305,9 @@ details[open]>summary .assistant-chevron{transform:rotate(180deg)}
 .qureo-next-level-card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
 .qureo-next-level-card h3{font-size:17px;margin:0}.qureo-next-level-card p{font-size:10px;line-height:1.9;color:var(--muted);margin:0 0 5px}.qureo-solutions-link{display:inline-flex;margin-top:auto;text-decoration:none}
 @media(max-width:600px){.download-library{padding:14px}.download-library-filters,.qureo-next-level-grid{grid-template-columns:1fr}.download-resource-card{align-items:flex-start;flex-wrap:wrap}.download-resource-copy{flex-basis:calc(100% - 60px)}.download-resource-action{margin-right:57px}}
+
+.download-upload-panel{margin-top:14px;border:1px dashed #73e0c055;border-radius:14px;background:#73e0c008;padding:0 14px}
+.download-upload-panel>summary{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;cursor:pointer;list-style:none}
+.download-upload-panel>summary::-webkit-details-marker{display:none}
+.download-upload-panel>summary span:first-child{display:grid;gap:3px}.download-upload-panel>summary b{font-size:11px}.download-upload-panel>summary small{font-size:9px;color:var(--muted)}
+.download-upload-form{padding:0 0 14px}
