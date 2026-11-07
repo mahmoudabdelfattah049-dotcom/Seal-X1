@@ -382,7 +382,7 @@ details[open]>summary .assistant-chevron{transform:rotate(180deg)}
 /* Mandatory signup policy and private identity note */
 .signup-terms{margin:14px 0;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
 .signup-terms h3{margin:0 0 9px;font-size:14px;}
-.signup-terms-scroll{max-height:190px;overflow-y:auto;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);font-size:12px;line-height:1.85;overscroll-behavior:contain;}
+.signup-terms-scroll{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);font-size:12px;line-height:1.85;}
 .signup-terms-scroll p{margin:0 0 10px;}
 .signup-terms-scroll p:last-child{margin-bottom:0;}
 .terms-consent{display:flex;gap:9px;align-items:flex-start;margin-top:12px;font-size:12px;line-height:1.7;}
