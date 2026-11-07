@@ -518,3 +518,98 @@ html[dir="ltr"] .academy-lesson-topline{direction:ltr}
 .playground-pane textarea{display:block;width:100%;min-width:0;min-height:240px;resize:vertical;direction:ltr;text-align:left;tab-size:2;white-space:pre;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:12px;outline-offset:2px}
 .playground-preview{height:330px}
 @media(max-width:850px){.playground-editors{grid-template-columns:1fr}.playground-pane textarea{min-height:170px}.playground-preview{height:280px}}
+
+
+/* Consistent nested scrolling for long workspace panels */
+.admin-space .admin-users-list,
+.admin-space .admin-reports-list,
+.admin-space .essay-review-list,
+.teacher-space .admin-reports-list,
+.teacher-space .essay-review-list,
+.admin-space .exam-question-list {
+  min-height:0;
+  max-height:360px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:var(--accent2) var(--bg);
+  padding:4px 7px 4px 3px;
+  scroll-behavior:auto;
+}
+.admin-space .admin-users-list {max-height:390px}
+.admin-space .admin-reports-list,
+.teacher-space .admin-reports-list {max-height:340px}
+.admin-space .essay-review-list,
+.teacher-space .essay-review-list {max-height:390px}
+.admin-space .exam-question-list {max-height:230px}
+.admin-space .chat-messages,
+.teacher-space .chat-messages,
+.admin-space .assistant-log,
+.teacher-space .assistant-log,
+.admin-space .qureo-chat-messages,
+.teacher-space .qureo-chat-messages {
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:var(--accent2) var(--bg);
+  scroll-behavior:auto;
+}
+.admin-space .portal-card,
+.teacher-space .portal-card,
+.admin-space .admin-grid,
+.teacher-space .teacher-tools-grid {min-width:0;min-height:0}
+.admin-space .admin-user-row {align-items:flex-start}
+.admin-space .admin-user-main,
+.admin-space .admin-report,
+.teacher-space .admin-report {min-width:0;overflow-wrap:anywhere}
+.admin-space .admin-user-actions {flex-wrap:wrap}
+.admin-space .admin-users-list::-webkit-scrollbar,
+.admin-space .admin-reports-list::-webkit-scrollbar,
+.admin-space .essay-review-list::-webkit-scrollbar,
+.teacher-space .admin-reports-list::-webkit-scrollbar,
+.teacher-space .essay-review-list::-webkit-scrollbar,
+.admin-space .exam-question-list::-webkit-scrollbar,
+.admin-space .chat-messages::-webkit-scrollbar,
+.teacher-space .chat-messages::-webkit-scrollbar,
+.admin-space .assistant-log::-webkit-scrollbar,
+.teacher-space .assistant-log::-webkit-scrollbar {width:7px;height:7px}
+.admin-space .admin-users-list::-webkit-scrollbar-track,
+.admin-space .admin-reports-list::-webkit-scrollbar-track,
+.admin-space .essay-review-list::-webkit-scrollbar-track,
+.teacher-space .admin-reports-list::-webkit-scrollbar-track,
+.teacher-space .essay-review-list::-webkit-scrollbar-track,
+.admin-space .exam-question-list::-webkit-scrollbar-track,
+.admin-space .chat-messages::-webkit-scrollbar-track,
+.teacher-space .chat-messages::-webkit-scrollbar-track,
+.admin-space .assistant-log::-webkit-scrollbar-track,
+.teacher-space .assistant-log::-webkit-scrollbar-track {background:var(--bg);border-radius:20px}
+.admin-space .admin-users-list::-webkit-scrollbar-thumb,
+.admin-space .admin-reports-list::-webkit-scrollbar-thumb,
+.admin-space .essay-review-list::-webkit-scrollbar-thumb,
+.teacher-space .admin-reports-list::-webkit-scrollbar-thumb,
+.teacher-space .essay-review-list::-webkit-scrollbar-thumb,
+.admin-space .exam-question-list::-webkit-scrollbar-thumb,
+.admin-space .chat-messages::-webkit-scrollbar-thumb,
+.teacher-space .chat-messages::-webkit-scrollbar-thumb,
+.admin-space .assistant-log::-webkit-scrollbar-thumb,
+.teacher-space .assistant-log::-webkit-scrollbar-thumb {background:var(--accent2);border-radius:20px}
+@media(max-width:760px){
+ .admin-space .admin-users-list,
+ .admin-space .admin-reports-list,
+ .admin-space .essay-review-list,
+ .teacher-space .admin-reports-list,
+ .teacher-space .essay-review-list {max-height:300px}
+ .admin-space .chat-messages,
+ .teacher-space .chat-messages {height:230px;max-height:42vh}
+ .admin-space .admin-user-row {flex-wrap:wrap}
+ .admin-space .admin-user-actions {width:100%;flex-direction:row;justify-content:flex-start}
+}
+@media(max-width:420px){
+ .admin-space .admin-users-list,
+ .admin-space .admin-reports-list,
+ .admin-space .essay-review-list,
+ .teacher-space .admin-reports-list,
+ .teacher-space .essay-review-list {max-height:260px}
+}
