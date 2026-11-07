@@ -56,6 +56,7 @@ const academySubjects=[
  {name:"التربية الدينية",icon:"✦",desc:"الدروس والقيم والأنشطة المقررة."}
 ];
 const academyState={subject:"العلوم المتكاملة",teacher:"all",kind:"all",sort:"recommended",activeVideo:null};
+window.sealVideoBookmarkIds=new Set();
 const academySubjectsEl=document.getElementById("academySubjects");
 const academyTeachersEl=document.getElementById("academyTeachers");
 const academyGrid=document.getElementById("academyVideoGrid");
@@ -91,14 +92,43 @@ function academyRender(){
  if(!items.length){academyGrid.innerHTML="";academyFeatured.innerHTML="";return;}
  if(!academyState.activeVideo||!items.some(v=>v.id===academyState.activeVideo))academyState.activeVideo=items[0].id;
  const active=items.find(v=>v.id===academyState.activeVideo);
- academyFeatured.innerHTML='<div class="academy-player"><iframe src="https://www.youtube-nocookie.com/embed/'+active.id+'?rel=0" title="'+academyEsc(active.title)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="academy-feature-info"><div class="academy-video-badges"><span>'+academyEsc(active.kind)+'</span><span>'+academyEsc(active.teacher)+'</span>'+(active.older?'<span class="older-label">محتوى أقدم</span>':'<span class="fresh-label">محتوى تعليمي</span>')+'</div><h4>'+academyEsc(active.title)+'</h4><p>'+academyEsc(active.description)+'</p><a href="https://www.youtube.com/watch?v='+active.id+'" target="_blank" rel="noopener noreferrer">فتح الفيديو على YouTube ↗</a><button class="mark-watched-btn" data-mark-video="'+active.id+'" '+(window.sealCompletedVideoIds?.has(active.id)?'disabled':'')+'>'+(window.sealCompletedVideoIds?.has(active.id)?'✓ تمت المشاهدة':'✓ سجلت مشاهدة الفيديو')+'</button></div>';
- academyGrid.innerHTML=items.map(v=>'<details class="academy-video-card"><summary class="academy-video-summary"><img src="https://i.ytimg.com/vi/'+v.id+'/mqdefault.jpg" alt="" loading="lazy"><span class="academy-summary-copy"><b>'+academyEsc(v.title)+'</b><small>'+academyEsc(v.teacher)+' · '+academyEsc(v.duration)+' · '+academyEsc(v.kind)+'</small></span><span class="academy-summary-arrow">⌄</span></summary><div class="academy-card-body"><p>'+academyEsc(v.description)+'</p><div class="academy-card-footer"><span>'+(v.id===active.id?'يُعرض الآن':'جاهز للمشاهدة')+'</span><button data-video="'+v.id+'">افتح في المشغل الرئيسي</button></div></div></details>').join("");
+ academyFeatured.innerHTML='<div class="academy-player"><iframe src="https://www.youtube-nocookie.com/embed/'+active.id+'?rel=0" title="'+academyEsc(active.title)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="academy-feature-info"><div class="academy-video-badges"><span>'+academyEsc(active.kind)+'</span><span>'+academyEsc(active.teacher)+'</span>'+(active.older?'<span class="older-label">محتوى أقدم</span>':'<span class="fresh-label">محتوى تعليمي</span>')+'</div><h4>'+academyEsc(active.title)+'</h4><p>'+academyEsc(active.description)+'</p><a href="https://www.youtube.com/watch?v='+active.id+'" target="_blank" rel="noopener noreferrer">فتح الفيديو على YouTube ↗</a><button class="mark-watched-btn" data-mark-video="'+active.id+'" '+(window.sealCompletedVideoIds?.has(active.id)?'disabled':'')+'>'+(window.sealCompletedVideoIds?.has(active.id)?'✓ تمت المشاهدة':'✓ سجلت مشاهدة الفيديو')+'</button><button class="video-bookmark-btn" data-video-bookmark="'+active.id+'">'+(window.sealVideoBookmarkIds?.has(active.id)?'★ محفوظ':'☆ أضف لقائمتي')+'</button></div>';
+ academyGrid.innerHTML=items.map(v=>'<details class="academy-video-card"><summary class="academy-video-summary"><img src="https://i.ytimg.com/vi/'+v.id+'/mqdefault.jpg" alt="" loading="lazy"><span class="academy-summary-copy"><b>'+academyEsc(v.title)+'</b><small>'+academyEsc(v.teacher)+' · '+academyEsc(v.duration)+' · '+academyEsc(v.kind)+'</small></span><span class="academy-summary-arrow">⌄</span></summary><div class="academy-card-body"><p>'+academyEsc(v.description)+'</p><div class="academy-card-footer"><span>'+(v.id===active.id?'يُعرض الآن':'جاهز للمشاهدة')+'</span><button data-video="'+v.id+'">افتح في المشغل الرئيسي</button><button class="video-bookmark-btn" data-video-bookmark="'+v.id+'">'+(window.sealVideoBookmarkIds?.has(v.id)?"★ محفوظ":"☆ حفظ")+'</button></div></div></details>').join("");
+}
+
+async function portalLoadVideoBookmarks(){
+ const user=window.sealCurrentUser,box=document.getElementById("studentVideoBookmarksList");
+ if(!user){window.sealVideoBookmarkIds=new Set();if(box)box.innerHTML='<p class="resource-loading">سجّل الدخول لحفظ فيديوهاتك.</p>';if(typeof academyRender==="function")academyRender();return;}
+ if(box)box.innerHTML='<p class="resource-loading">جاري تحميل قائمتك...</p>';
+ const {data,error}=await db.from("video_bookmarks").select("video_id,created_at").eq("user_id",user.id).order("created_at",{ascending:false});
+ if(error){if(box)box.innerHTML='<p class="resource-loading">تعذر تحميل قائمتك حالياً.</p>';return;}
+ window.sealVideoBookmarkIds=new Set((data||[]).map(x=>x.video_id));
+ if(typeof academyRender==="function")academyRender();
+ portalRenderVideoBookmarks(data||[]);
+}
+function portalRenderVideoBookmarks(rows){
+ const box=document.getElementById("studentVideoBookmarksList");if(!box)return;
+ if(!window.sealCurrentUser){box.innerHTML='<p class="resource-loading">سجّل الدخول لعرض قائمتك.</p>';return;}
+ const videos=(rows||[]).map(row=>academyVideos.find(v=>v.id===row.video_id)).filter(Boolean);
+ if(!videos.length){box.innerHTML='<div class="download-empty"><b>قائمتك لسه فاضية</b><span>اضغط ☆ حفظ على أي فيديو لإضافته هنا.</span><a href="#library">تصفح الفيديوهات ↗</a></div>';return;}
+ box.innerHTML=videos.map(video=>'<article class="student-bookmark-row"><img src="https://i.ytimg.com/vi/'+video.id+'/mqdefault.jpg" alt="" loading="lazy"><div class="student-bookmark-copy"><b>'+academyEsc(video.title)+'</b><small>'+academyEsc(video.subject)+' · '+academyEsc(video.teacher)+'</small></div><button type="button" data-bookmark-play="'+video.id+'">مشاهدة</button><button type="button" class="bookmark-remove-btn" data-bookmark-remove="'+video.id+'">×</button></article>').join("");
+}
+async function portalToggleVideoBookmark(videoId){
+ const user=window.sealCurrentUser;if(!user){document.getElementById("studentAuth")?.scrollIntoView({behavior:"smooth"});return;}
+ const exists=window.sealVideoBookmarkIds.has(videoId);
+ const result=exists?await db.from("video_bookmarks").delete().eq("user_id",user.id).eq("video_id",videoId):await db.from("video_bookmarks").insert({user_id:user.id,video_id:videoId});
+ if(result.error){alert("تعذر تحديث قائمتك: "+result.error.message);return;}
+ if(exists)window.sealVideoBookmarkIds.delete(videoId);else window.sealVideoBookmarkIds.add(videoId);
+ const {data}=await db.from("video_bookmarks").select("video_id,created_at").eq("user_id",user.id).order("created_at",{ascending:false});
+ portalRenderVideoBookmarks(data||[]);if(typeof academyRender==="function")academyRender();
 }
 academySubjectsEl.addEventListener("click",e=>{const b=e.target.closest("[data-subject]");if(!b)return;academyState.subject=b.dataset.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=null;document.querySelectorAll(".academy-type").forEach(x=>x.classList.toggle("active",x.dataset.kind==="all"));academyRender();});
 academyTeachersEl.addEventListener("click",e=>{const b=e.target.closest("[data-teacher]");if(!b)return;academyState.teacher=b.dataset.teacher;academyState.activeVideo=null;academyRender();});
 document.querySelector(".academy-type-filters").addEventListener("click",e=>{const b=e.target.closest("[data-kind]");if(!b)return;academyState.kind=b.dataset.kind;academyState.activeVideo=null;document.querySelectorAll(".academy-type").forEach(x=>x.classList.toggle("active",x===b));academyRender();});
 document.getElementById("academySort").addEventListener("change",e=>{academyState.sort=e.target.value;academyRender();});
-academyGrid.addEventListener("click",e=>{const b=e.target.closest("[data-video]");if(!b)return;academyState.activeVideo=b.dataset.video;academyRender();document.getElementById("academyFeatured").scrollIntoView({behavior:"smooth",block:"nearest"});});
+academyGrid.addEventListener("click",e=>{const fav=e.target.closest("[data-video-bookmark]");if(fav){e.preventDefault();e.stopPropagation();portalToggleVideoBookmark(fav.dataset.videoBookmark);return;}const b=e.target.closest("[data-video]");if(!b)return;academyState.activeVideo=b.dataset.video;academyRender();document.getElementById("academyFeatured").scrollIntoView({behavior:"smooth",block:"nearest"});});
+document.getElementById("academyFeatured").addEventListener("click",e=>{const b=e.target.closest("[data-video-bookmark]");if(b){e.preventDefault();portalToggleVideoBookmark(b.dataset.videoBookmark);}});
+document.getElementById("studentVideoBookmarksList")?.addEventListener("click",e=>{const remove=e.target.closest("[data-bookmark-remove]"),play=e.target.closest("[data-bookmark-play]");if(remove){portalToggleVideoBookmark(remove.dataset.bookmarkRemove);return;}if(play){const video=academyVideos.find(v=>v.id===play.dataset.bookmarkPlay);if(video){academyState.subject=video.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=video.id;document.getElementById("library")?.scrollIntoView({behavior:"smooth"});academyRender();}}});
 document.getElementById("academySubjectCount").textContent=academySubjects.length;
 academyRender();
 
@@ -498,7 +528,7 @@ async function portalInitSpaces(user,profile){
  if(!logged){if(portalRealtime){db.removeChannel(portalRealtime);portalRealtime=null;}return;}
  if(isStudent){
   const name=document.getElementById("studentWelcomeName");if(name)name.textContent=profile?.display_name||profile?.username||"طالب Seal X1";
-  await Promise.all([portalLoadStudentStats(),portalLoadCommunity(),portalLoadStudentSupport(),portalLoadExams(),portalLoadLeaderboard()]);
+  await Promise.all([portalLoadStudentStats(),portalLoadCommunity(),portalLoadStudentSupport(),portalLoadExams(),portalLoadLeaderboard(),portalLoadVideoBookmarks()]);
  }
  if(isTeacher){
   const name=document.getElementById("teacherWelcomeName");if(name)name.textContent="مرحباً، "+(profile?.teacher_verified?(profile.teacher_full_name||profile.display_name):profile?.display_name||profile?.username||"معلم");
