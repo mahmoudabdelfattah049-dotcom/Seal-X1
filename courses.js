@@ -21,13 +21,45 @@ const courses=[
 {id:"css3",title:"Flexbox والتصميم المتجاوب",time:"21 دقيقة",goals:["توزع العناصر باستخدام Flexbox","تفهم justify-content و align-items","تستخدم media query"],explain:["Flexbox أداة لتوزيع العناصر داخل حاوية في صف أو عمود. display: flex يفعّلها، وjustify-content يتحكم في التوزيع على المحور الرئيسي، وalign-items على المحور العرضي.","التصميم المتجاوب يتكيف مع أحجام الشاشات. media query تسمح بتغيير القواعد عند عرض شاشة معين. ابدأ بتصميم واضح للموبايل ثم وسّعه للشاشات الأكبر."],code:'.cards {\n  display: flex;\n  gap: 16px;\n  justify-content: space-between;\n  align-items: stretch;\n}\n@media (max-width: 600px) {\n  .cards { flex-direction: column; }\n}',output:"على الشاشات الواسعة تتوزع البطاقات أفقياً، وعلى الشاشات الصغيرة تصطف رأسياً.",task:"اجعل .menu تستخدم Flexbox مع gap مقداره 12px، ثم اجعلها عمودية تحت عرض 500px.",hint:"استخدم display:flex خارج media query، وflex-direction:column داخلها.",solution:'.menu {\n  display: flex;\n  gap: 12px;\n}\n@media (max-width: 500px) {\n  .menu { flex-direction: column; }\n}',quiz:{q:"ما الذي تفعله media query؟",choices:["تشغّل JavaScript","تطبق CSS حسب شروط مثل عرض الشاشة","تنشئ قاعدة بيانات"],correct:1,why:"media query تغيّر قواعد التنسيق وفق خصائص الجهاز أو الشاشة."}}
 ]}
 ];
-let progress={};try{progress=JSON.parse(localStorage.getItem(KEY)||"{}");}catch(_){progress={};}
+let progress={},activeUser=null,progressReady=false,progressStatus="جاري تجهيز تقدمك...",saveTimer=null;
+try{progress=JSON.parse(localStorage.getItem(KEY)||"{}");}catch(_){progress={};}
 let activeCourse="js",activeLesson=null,quizChoice=null,quizChecked=false;
 const allLessons=()=>courses.flatMap(c=>c.lessons);
 const isDone=id=>Boolean(progress[id]);
 const courseDone=c=>c.lessons.filter(l=>isDone(l.id)).length;
 const esc=s=>String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-function save(){try{localStorage.setItem(KEY,JSON.stringify(progress));}catch(_){}}
+function save(){
+ if(!activeUser){try{localStorage.setItem(KEY,JSON.stringify(progress));progressStatus="التقدم كضيف محفوظ على هذا الجهاز فقط.";}catch(_){progressStatus="تعذر الحفظ على هذا الجهاز.";}return;}
+ progressStatus="جاري حفظ تقدمك على حسابك...";
+ if(saveTimer)clearTimeout(saveTimer);
+ saveTimer=setTimeout(async()=>{
+  try{
+   if(typeof db==="undefined"||!db)throw new Error("خدمة الحساب غير متاحة.");
+   const {error}=await db.from("academy_progress").upsert({user_id:activeUser.id,progress,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+   if(error)throw error;
+   progressStatus="تم حفظ تقدمك على حسابك.";
+  }catch(error){progressStatus="تعذر مزامنة التقدم. تحقق من الاتصال ثم حاول مرة أخرى.";console.error("Academy progress sync:",error);}
+  const status=root.querySelector(".academy-progress-status");if(status)status.textContent=progressStatus;
+ },450);
+}
+async function loadAccountProgress(user){
+ const nextId=user?.id||null;
+ if(activeUser?.id===nextId&&progressReady)return;
+ activeUser=user||null;progressReady=false;progressStatus=activeUser?"جاري تحميل تقدم حسابك...":"التقدم كضيف محفوظ على هذا الجهاز فقط.";
+ if(activeUser){
+  progress={};render();
+  try{
+   if(typeof db==="undefined"||!db)throw new Error("خدمة الحساب غير متاحة.");
+   const {data,error}=await db.from("academy_progress").select("progress").eq("user_id",activeUser.id).maybeSingle();
+   if(error)throw error;
+   progress=data?.progress&&typeof data.progress==="object"?data.progress:{};
+   progressStatus="تم تحميل تقدمك من حسابك.";
+  }catch(error){progress={};progressStatus="تعذر تحميل تقدم الحساب. لن يتم استيراد تقدم جهاز آخر.";console.error("Academy progress load:",error);}
+ }else{
+  try{progress=JSON.parse(localStorage.getItem(KEY)||"{}");}catch(_){progress={};}
+ }
+ progressReady=true;render();
+}
 function currentCourse(){return courses.find(c=>c.id===activeCourse)||courses[0];}
 function currentLesson(){const c=currentCourse();return c.lessons.find(l=>l.id===activeLesson)||c.lessons[0];}
 function render(){
@@ -40,7 +72,7 @@ function render(){
  l.explain.forEach(x=>explain+="<p>"+esc(x)+"</p>");
  l.quiz.choices.forEach((x,i)=>{choices+='<button type="button" data-choice="'+i+'" class="'+(quizChoice===i?"selected":"")+'" '+(quizChecked?"disabled":"")+'>'+String.fromCharCode(65+i)+". "+esc(x)+"</button>";});
  root.innerHTML=
- '<div class="academy-progress-card"><div><span class="academy-progress-kicker">رحلتك التعليمية</span><strong>'+done+' <small>/ '+total+' درس مكتمل</small></strong></div><div class="academy-progress-track"><span style="width:'+Math.round(done/total*100)+'%"></span></div><p>تقدمك محفوظ على هذا المتصفح والجهاز، ويمكنك العودة وإكمال الدروس في أي وقت.</p></div>'+
+ '<div class="academy-progress-card"><div><span class="academy-progress-kicker">رحلتك التعليمية</span><strong>'+done+' <small>/ '+total+' درس مكتمل</small></strong></div><div class="academy-progress-track"><span style="width:'+Math.round(done/total*100)+'%"></span></div><p class="academy-progress-status" aria-live="polite">'+esc(progressStatus)+'</p></div>'+
  '<div class="academy-course-tabs" role="tablist" aria-label="المسارات التعليمية">'+tabs+'</div>'+
  '<div class="academy-workspace"><aside class="academy-sidebar"><div class="academy-track-intro"><span class="academy-track-label">'+esc(c.tag)+'</span><h3>'+esc(c.name)+'</h3><p>'+esc(c.description)+'</p><small>'+esc(c.level)+' · '+c.lessons.length+' دروس حالياً</small></div><div class="academy-lesson-list">'+list+'</div><div class="academy-coming-soon"><b>المستوى التالي</b><p>سنضيف DOM و Events و Objects و Grid والحركة ومشروعات تطبيقية تدريجياً.</p></div></aside>'+
  '<article class="academy-lesson-panel"><div class="academy-lesson-topline"><span>'+esc(c.name)+' / الدرس '+(c.lessons.indexOf(l)+1)+'</span><span>'+esc(l.time)+'</span></div><h3>'+esc(l.title)+'</h3>'+
@@ -61,4 +93,8 @@ root.addEventListener("click",e=>{
  if(action==="next"){const i=c.lessons.findIndex(x=>x.id===l.id);if(i<c.lessons.length-1){activeLesson=c.lessons[i+1].id;}else{const next=courses[(courses.findIndex(x=>x.id===c.id)+1)%courses.length];activeCourse=next.id;activeLesson=next.lessons[0].id;}quizChoice=null;quizChecked=false;render();}
 });
 render();
+if(typeof db!=="undefined"&&db?.auth){
+ db.auth.getUser().then(({data})=>loadAccountProgress(data?.user||null)).catch(()=>loadAccountProgress(null));
+ db.auth.onAuthStateChange((_event,session)=>{loadAccountProgress(session?.user||null);});
+}else{loadAccountProgress(null);}
 })();
