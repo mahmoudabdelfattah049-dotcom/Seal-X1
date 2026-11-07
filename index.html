@@ -95,7 +95,18 @@
       </select>
     </div>
     <div id="downloadResults" class="download-results" aria-live="polite"><p class="resource-loading">جاري تجهيز مكتبة التحميلات...</p></div>
-    <p class="download-library-note">التحميل مجاني. رفع الملفات متاح للمدرسين الموثقين، والملفات المنشورة فقط هي التي تظهر للطلاب. لا ترفع ملفات تحتوي على بيانات شخصية أو مواد لا تملك حق نشرها.</p>
+    <details class="download-upload-panel" id="downloadUploader" hidden><summary><span><b>إضافة ملف جديد للمكتبة</b><small>لإدارة Seal X1 والمدرسين الموثقين</small></span><span class="assistant-chevron">⌄</span></summary>
+    <form id="adminResourceForm" class="admin-form teacher-resource-form download-upload-form">
+      <input id="adminResourceTitle" maxlength="160" placeholder="عنوان الملف أو المصدر" required>
+      <textarea id="adminResourceDescription" maxlength="1200" rows="3" placeholder="وصف مختصر ومحتوى الملف"></textarea>
+      <input id="adminResourceSubject" maxlength="80" placeholder="المادة (مثلاً: الرياضيات)">
+      <select id="adminResourceCategory" required aria-label="نوع الملف"><option value="pdf">ملف PDF</option><option value="summaries">مذكرة أو ملخص</option><option value="practice">أسئلة وتدريبات</option><option value="exams">امتحان</option><option value="monthly-review">مراجعة شهرية</option><option value="lessons">شرح درس</option><option value="extra">مصدر إضافي</option><option value="qureo-solutions">حلول QUREO</option></select>
+      <input id="adminResourceUrl" type="url" placeholder="رابط خارجي (اختياري)">
+      <label class="file-upload-label">ارفع PDF أو صورة أو مستند<input id="adminResourceFile" type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.ppt,.pptx,.txt"></label>
+      <button type="submit">نشر الملف مجاناً للطلاب</button><p id="adminResourceStatus" class="chat-note">الملف لن يظهر إلا بعد نجاح الرفع والنشر.</p>
+    </form>
+  </details>
+  <p class="download-library-note">التحميل مجاني. رفع الملفات متاح للمدرسين الموثقين، والملفات المنشورة فقط هي التي تظهر للطلاب. لا ترفع ملفات تحتوي على بيانات شخصية أو مواد لا تملك حق نشرها.</p>
   </div>
   <div class="academy-footnote">المكتبة تعرض روابط عامة لفيديوهات مجانية على YouTube. لا نعرض فيديو على أنه مجاني أو تابع لمدرس بعينه إلا عندما تكون بياناته ورابطه متاحة. بعض الروابط قد تقود إلى محتوى أقدم؛ راجع سنة المنهج قبل المشاهدة.</div>
 </section>
