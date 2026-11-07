@@ -337,3 +337,31 @@ details[open]>summary .assistant-chevron{transform:rotate(180deg)}
 .qureo-solutions-feature{margin-top:16px;max-width:100%;}
 .qureo-solutions-feature .qureo-solutions-link{margin-top:8px;}
 @media(max-width:900px){.desktop-nav{gap:12px}.nav-link{font-size:10px}}
+
+
+/* Seal X1 compact accordion system */
+.section-accordion{display:block;border:1px solid var(--line);border-radius:15px;background:var(--panel);overflow:hidden;margin-top:12px}
+.section-accordion>summary,.arabic-assessments-panel>summary,.assessment-subject-group>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer}
+.section-accordion>summary::-webkit-details-marker,.arabic-assessments-panel>summary::-webkit-details-marker,.assessment-subject-group>summary::-webkit-details-marker{display:none}
+.section-accordion>summary span:first-child,.arabic-assessments-panel>summary span:first-child,.assessment-subject-group>summary span:first-child{display:grid;gap:4px;min-width:0}
+.section-accordion>summary b,.arabic-assessments-panel>summary b,.assessment-subject-group>summary b{font-size:12px}
+.section-accordion>summary small,.arabic-assessments-panel>summary small,.assessment-subject-group>summary small{font-size:9px;color:var(--muted);line-height:1.6}
+.section-accordion[open]>summary,.arabic-assessments-panel[open]>summary,.assessment-subject-group[open]>summary{border-bottom:1px solid var(--line);background:var(--panel)}
+.announcement-accordion .announcement-board{padding:12px;border:0}
+.qureo-accordion .qureo-assistant-panel,.qureo-accordion .qureo-next-level-card{margin:0;border:0;border-radius:0}
+.download-accordion>.download-library{margin:0;border:0;border-radius:0;padding:16px;background:transparent}
+.download-accordion .download-library-heading{margin-bottom:12px}
+.download-library-filters{grid-template-columns:minmax(0,1fr) minmax(150px,190px) minmax(150px,210px)}
+.download-general-heading{display:grid;gap:3px;margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+.download-general-heading b{font-size:12px}.download-general-heading small{font-size:9px;color:var(--muted)}
+.arabic-assessments-panel{margin:14px 0;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--bg)}
+.arabic-assessments-intro{padding:10px 14px;font-size:10px;line-height:1.8;color:var(--muted)}
+.arabic-assessments-list{display:grid;gap:8px;padding:0 10px 10px}
+.assessment-subject-group{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.assessment-subject-group>summary{padding:11px 13px}
+.assessment-week-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px;padding:10px}
+.arabic-assessment-file{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border:1px solid var(--line);border-radius:9px;text-decoration:none;color:var(--text);background:var(--bg)}
+.arabic-assessment-file span{display:grid;gap:3px}.arabic-assessment-file b{font-size:10px}.arabic-assessment-file small{font-size:8px;color:var(--muted)}
+.arabic-assessment-file strong{font-size:9px;color:var(--accent);white-space:nowrap}
+.download-upload-panel{margin-top:15px}
+@media(max-width:650px){.download-library-filters{grid-template-columns:1fr}.download-accordion>.download-library{padding:12px}.section-accordion>summary,.arabic-assessments-panel>summary{padding:12px}.assessment-week-list{grid-template-columns:1fr}}
