@@ -332,3 +332,8 @@ details[open]>summary .assistant-chevron{transform:rotate(180deg)}
 .qureo-assistant-compose button{align-self:stretch;border:0;border-radius:11px;background:var(--accent);color:#102335;padding:0 16px;font:inherit;font-size:10px;font-weight:900;cursor:pointer}
 .qureo-assistant-disclaimer{font-size:9px;line-height:1.8;color:var(--muted);margin:10px 0 0}
 @media(max-width:600px){.qureo-assistant-panel{padding:14px}.qureo-assistant-head{flex-direction:column}.qureo-assistant-compose{grid-template-columns:1fr}.qureo-assistant-compose button{min-height:42px}.student-bookmark-row{flex-wrap:wrap}.student-bookmark-copy{flex-basis:calc(100% - 110px)}}
+
+/* Study library and QUREO navigation refinement */
+.qureo-solutions-feature{margin-top:16px;max-width:100%;}
+.qureo-solutions-feature .qureo-solutions-link{margin-top:8px;}
+@media(max-width:900px){.desktop-nav{gap:12px}.nav-link{font-size:10px}}
