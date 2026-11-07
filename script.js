@@ -224,7 +224,9 @@ sealCuratedStudyResources.push(...sealDirectAssessmentResources);
 let downloadResourcesCache=[];
 function renderArabicAssessmentResources(){
  const box=document.getElementById("downloadArabicAssessments");if(!box)return;
- const rows=sealDirectAssessmentResources.filter(item=>item.assessmentLanguage==="ar");
+ const term=(document.getElementById("downloadArabicSearch")?.value||"").trim().toLocaleLowerCase("ar");
+ const rows=sealDirectAssessmentResources.filter(item=>item.assessmentLanguage==="ar"&&(!term||[item.title,item.assessmentSubject,...(item.keywords||[])].join(" ").toLocaleLowerCase("ar").includes(term)));
+ if(!rows.length){box.innerHTML='<div class="download-empty"><b>مفيش تقييم مطابق للبحث</b><span>جرّب اسم مادة أو رقم أسبوع مختلف.</span></div>';return;}
  const groups=new Map();
  rows.forEach(item=>{const subject=item.assessmentSubject||item.subjects?.name||"مواد أخرى";if(!groups.has(subject))groups.set(subject,[]);groups.get(subject).push(item);});
  box.innerHTML=[...groups.entries()].map(([subject,items])=>{
@@ -295,6 +297,7 @@ async function loadResources(){
 document.getElementById("downloadSearch")?.addEventListener("input",renderDownloadResources);
 document.getElementById("downloadCategoryFilter")?.addEventListener("change",renderDownloadResources);
 document.getElementById("downloadSubjectFilter")?.addEventListener("change",renderDownloadResources);
+document.getElementById("downloadArabicSearch")?.addEventListener("input",renderArabicAssessmentResources);
 document.querySelectorAll("[data-resource-category]").forEach(link=>link.addEventListener("click",()=>{
  const filter=document.getElementById("downloadCategoryFilter");
  if(filter){filter.value=link.dataset.resourceCategory;renderDownloadResources();}
