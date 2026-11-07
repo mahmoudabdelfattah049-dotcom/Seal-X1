@@ -37,7 +37,7 @@ function run(){
  "(async()=>{try{",
  code,
  "}catch(error){write('خطأ:',error?.message||error)}})();"
- ].join('\\n');
+ ].join('\n');
  const blob=new Blob([runner],{type:"text/javascript"});
  const runnerUrl=URL.createObjectURL(blob);
  frame.onload=()=>{URL.revokeObjectURL(runnerUrl);};
