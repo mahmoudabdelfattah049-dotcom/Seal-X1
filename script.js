@@ -1081,3 +1081,54 @@ document.getElementById("heroAssistantJump")?.addEventListener("click", function
 });
 
 // test-seal-patch
+
+
+
+/* QUREO Coach: free local knowledge engine; no external API or user data transfer. */
+(function initSealQureoCoach(){
+ const knowledge=[
+  {keys:["if","شرط","الشروط"],title:"if و else",body:"if تختبر شرطاً. لو الشرط صحيح ينفذ الكود داخلها، ولو غير صحيح ينتقل إلى else إن كانت موجودة. يمكن وضع أوامر كثيرة داخل نفس الأقواس المعقوفة؛ لا تحتاج if جديدة لكل console.log.",code:"if (score >= 50) {\n  console.log('ناجح');\n  console.log('أحسنت');\n} else {\n  console.log('حاول مرة أخرى');\n}",tip:"else واحدة تكفي لكل if، ويمكن أن تحتوي على عدة أوامر."},
+  {keys:["&&","and","و المنطقي"],title:"العامل &&",body:"&& معناها AND (و). تكون النتيجة true فقط عندما يكون الشرطان صحيحين معاً.",code:"if (age >= 15 && score >= 50) {\n  console.log('الشروط متحققة');\n}",tip:"|| تعني OR: يكفي تحقق شرط واحد."},
+  {keys:["||","or","او المنطقي"],title:"العامل ||",body:"|| معناها OR (أو). تكون النتيجة true إذا تحقق شرط واحد على الأقل، وfalse فقط إذا كان الشرطان false.",code:"if (day === 'Friday' || day === 'Saturday') {\n  console.log('إجازة');\n}"},
+  {keys:["function","دالة","الدوال"],title:"الدوال",body:"الدالة تجمع أوامر تحت اسم واحد لإعادة استخدامها. تعريف الدالة لا يشغلها؛ يجب استدعاؤها باسمها مع ().",code:"function greet() {\n  console.log('Hello');\n}\ngreet();",tip:"return تعيد نتيجة من الدالة."},
+  {keys:["for","loop","حلق","التكرار","لوب"],title:"حلقة for",body:"for تكرر مجموعة أوامر: قيمة بداية، شرط استمرار، وتحديث للعداد.",code:"for (let i = 0; i < 5; i++) {\n  console.log(i);\n}",tip:"المثال يطبع من 0 إلى 4."},
+  {keys:["while","وايل"],title:"حلقة while",body:"while تكرر الأوامر طالما الشرط صحيح. غيّر قيمة الشرط داخل الحلقة حتى لا تستمر بلا نهاية.",code:"let count = 0;\nwhile (count < 3) {\n  console.log(count);\n  count++;\n}"},
+  {keys:["variable","متغير","let","const","var"],title:"المتغيرات",body:"المتغير يخزن قيمة باسم. استخدم let للقيمة التي قد تتغير وconst للقيمة التي لن تعيد إسنادها.",code:"let score = 10;\nscore = 15;\nconst school = 'Seal X1';",tip:"= للإسناد، و=== للمقارنة."},
+  {keys:["console.log","طباعة","اطبع","print"],title:"console.log",body:"console.log() تطبع قيمة أو نصاً. يمكنك تكرارها عدة مرات داخل نفس if أو else.",code:"console.log('First line');\nconsole.log('Second line');"},
+  {keys:["array","مصفوفة","مصفوفات","list"],title:"المصفوفات",body:"المصفوفة تخزن عدة قيم. يبدأ الفهرس من صفر، لذلك أول عنصر هو array[0].",code:"const colors = ['red', 'blue', 'green'];\nconsole.log(colors[0]);\nconsole.log(colors.length);"},
+  {keys:["==","===","مقارنة","يساوي"],title:"المقارنة والإسناد",body:"= تسند قيمة إلى متغير. === تقارن القيمتين والنوع. غالباً استخدم === للمقارنة.",code:"let score = 80;\nif (score === 80) console.log('مطابق');"},
+  {keys:["bug","error","خطأ","مش شغال","لا يعمل","debug"],title:"اكتشاف الأخطاء",body:"راجع رسالة الخطأ، أسماء المتغيرات، الأقواس وعلامات الاقتباس، شروط if، وتحديث عداد الحلقات. اختبر جزءاً صغيراً في كل مرة.",tip:"أرسل الكود مع رسالة الخطأ والنتيجة المتوقعة."},
+  {keys:["qureo","كيريو","المنصة","الفصول","chapter"],title:"QUREO المصرية",body:"QUREO بيئة تدريب على البرمجة والذكاء الاصطناعي. دخول النسخة المصرية يكون ببيانات التدريب التي توفرها وزارة التربية والتعليم. لا نفترض أن ترتيب الدورات اليابانية العامة هو نفسه منهج مصر.",tip:"أرسل نص الفصل أو التحدي كما يظهر عندك لنوثقه في Seal X1."}
+ ];
+ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ function reply(q){
+  const lower=q.toLocaleLowerCase("ar");
+  const codeLike=/console\.log|function\s|if\s*\(|else|for\s*\(|while\s*\(|let\s|const\s|=>|\{|\}/i.test(q);
+  if(codeLike){
+   const checks=[],opens=(q.match(/\{/g)||[]).length,closes=(q.match(/\}/g)||[]).length,po=(q.match(/\(/g)||[]).length,pc=(q.match(/\)/g)||[]).length;
+   if(opens!==closes)checks.push("عدد الأقواس المعقوفة غير متساوٍ: { = "+opens+" و } = "+closes+".");
+   if(po!==pc)checks.push("عدد الأقواس العادية غير متساوٍ: ( = "+po+" و ) = "+pc+".");
+   if(/\belse\b/.test(q)&&!/\bif\s*\(/.test(q))checks.push("وجدت else من غير if واضحة قبلها.");
+   if(/if\s*\([^)]*(?<![=!<>])=(?!=)[^)]*\)/.test(q))checks.push("قد تكون استخدمت = داخل شرط للمقارنة؛ استخدم === أو !==.");
+   if(/console\.log\s*['"]/.test(q))checks.push("تأكد من كتابة console.log() بالأقواس.");
+   const match=knowledge.find(k=>k.keys.some(key=>lower.includes(key.toLocaleLowerCase("ar"))));
+   let out="<b>تحليل أولي للكود</b><p>"+(checks.length?checks.map(x=>"• "+x).join("<br>"):"لم أكتشف خطأ شكلياً واضحاً في الأنماط الأساسية. هذا لا يثبت صحة المنطق؛ أحتاج نص السؤال والنتيجة المتوقعة.")+"</p>";
+   if(match)out+="<p><b>"+match.title+"</b><br>"+match.body+"</p>";
+   out+='<pre><code>'+esc(q)+'</code></pre>';return out;
+  }
+  const ranked=knowledge.map(k=>({k,score:k.keys.reduce((n,key)=>n+(lower.includes(key.toLocaleLowerCase("ar"))?Math.max(2,key.length):0),0)})).sort((a,b)=>b.score-a.score);
+  if(ranked[0]?.score){const k=ranked[0].k;return "<b>"+k.title+"</b><p>"+k.body+"</p>"+(k.code?"<pre><code>"+esc(k.code)+"</code></pre>":"")+(k.tip?"<p class='qureo-tip'>💡 "+k.tip+"</p>":"");}
+  if(/مرحبا|السلام عليكم|اهلا|أهلا|hi|hello/.test(lower))return "أهلاً بيك! اسألني عن QUREO أو JavaScript، أو الصق كود عايز تفهمه.";
+  return "السؤال ده مش موجود بشكل كافٍ في قاعدة معرفتي الحالية، ومش هخمن. ابعت نص السؤال كامل، والكود الذي كتبته، ورسالة الخطأ أو النتيجة التي ظهرت. سنضيف المحتوى الموثق لقاعدة المعرفة تدريجياً.";
+ }
+ const form=document.getElementById("qureoAssistantForm");
+ const box=document.getElementById("qureoAssistantMessages");
+ if(!form||!box)return;
+ function add(text,kind){
+  const node=document.createElement("div");node.className="qureo-chat-bubble "+kind;
+  node.innerHTML=kind==="assistant"?text:"<p>"+esc(text).replace(/\n/g,"<br>")+"</p>";
+  box.appendChild(node);box.scrollTop=box.scrollHeight;
+ }
+ form.addEventListener("submit",e=>{e.preventDefault();const input=document.getElementById("qureoAssistantInput"),q=input.value.trim();if(!q)return;add(q,"user");input.value="";add(reply(q),"assistant");});
+ document.querySelectorAll("[data-qureo-prompt]").forEach(button=>button.addEventListener("click",()=>{const input=document.getElementById("qureoAssistantInput");if(input){input.value=button.dataset.qureoPrompt;input.focus();}}));
+})();
