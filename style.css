@@ -508,3 +508,13 @@ html[dir="ltr"] .academy-lesson-topline{direction:ltr}
 .academy-editor-preview{display:block;width:100%;height:210px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .academy-editor-note{font-size:10px;line-height:1.8;color:var(--muted);margin:9px 0 0}
 @media(max-width:650px){.academy-section-body{padding:10px}.academy-editor-card{padding:11px}.academy-editor-input{min-height:165px;font-size:11px}.academy-editor-preview{height:190px}}
+
+/* Three-pane HTML/CSS/JS playground */
+.playground-editors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.playground-pane{display:grid;gap:7px;min-width:0}
+.playground-pane>span{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.playground-pane>span b{font-size:12px}
+.playground-pane>span small{font-size:10px;color:var(--muted)}
+.playground-pane textarea{display:block;width:100%;min-width:0;min-height:240px;resize:vertical;direction:ltr;text-align:left;tab-size:2;white-space:pre;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:12px;outline-offset:2px}
+.playground-preview{height:330px}
+@media(max-width:850px){.playground-editors{grid-template-columns:1fr}.playground-pane textarea{min-height:170px}.playground-preview{height:280px}}
