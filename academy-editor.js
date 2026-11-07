@@ -25,8 +25,23 @@ function run(){
  const end='</body></html>';
  if(mode==="html"){frame.srcdoc=start+code+end;label.textContent="معاينة HTML";return;}
  if(mode==="css"){frame.srcdoc=start+'<style>'+code.replace(/<\/style/gi,"<\\/style")+'</style><main><h1>مرحباً بك</h1><p>هذه صفحة تجريبية لتجربة تنسيقات CSS.</p><button>زر تجريبي</button></main>'+end;label.textContent="معاينة CSS";return;}
- const safeCode=code.replace(/<\/script/gi,"<\\/script");
- frame.srcdoc=start+'<pre id="result" style="white-space:pre-wrap;overflow-wrap:anywhere;background:#101827;color:#e7edf7;padding:12px;border-radius:8px;min-height:90px"></pre><script>const box=document.getElementById("result");const write=(...v)=>{box.textContent+=(v.map(x=>{try{return typeof x==="object"?JSON.stringify(x):String(x)}catch(_){return String(x)}}).join(" ")+"\\n").slice(0,10000)};console.log=(...v)=>write(...v);console.error=(...v)=>write("خطأ:",...v);try{'+safeCode+'}catch(e){write("خطأ: "+e.message)}</script>'+end;
+ const runner=`
+const box=document.getElementById("result");
+const write=(...values)=>{try{box.textContent+=(values.map(value=>{if(typeof value==="string")return value;try{return JSON.stringify(value)}catch(_){return String(value)}}).join(" ")+"\\n").slice(0,12000)}catch(_){box.textContent+="تعذر عرض هذه النتيجة\\n"}};
+console.log=(...values)=>write(...values);
+console.info=(...values)=>write(...values);
+console.warn=(...values)=>write("تحذير:",...values);
+console.error=(...values)=>write("خطأ:",...values);
+window.addEventListener("error",event=>write("خطأ:",event.message));
+window.addEventListener("unhandledrejection",event=>write("خطأ غير معالج:",event.reason?.message||event.reason));
+(async()=>{try{
+${code}
+}catch(error){write("خطأ:",error?.message||error)}})();
+`;
+ const blob=new Blob([runner],{type:"text/javascript"});
+ const runnerUrl=URL.createObjectURL(blob);
+ frame.onload=()=>{URL.revokeObjectURL(runnerUrl);};
+ frame.srcdoc=start+'<pre id="result" style="white-space:pre-wrap;overflow-wrap:anywhere;background:#101827;color:#e7edf7;padding:12px;border-radius:8px;min-height:90px">جاري تشغيل الكود...</pre><script src="'+runnerUrl+'"></script>'+end;
  label.textContent="نتيجة تشغيل JavaScript";
 }
 root.addEventListener("input",event=>{if(event.target.id==="academyEditorInput")drafts[mode]=event.target.value;});
