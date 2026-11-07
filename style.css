@@ -377,3 +377,15 @@ details[open]>summary .assistant-chevron{transform:rotate(180deg)}
 .admin-password-reset button{padding:9px 12px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:inherit;font-size:10px;font-weight:800;cursor:pointer}
 .admin-password-reset button:disabled{opacity:.55;cursor:wait}
 @media(max-width:520px){.admin-password-reset{grid-template-columns:1fr}.admin-password-reset button{width:100%}}
+
+
+/* Mandatory signup policy and private identity note */
+.signup-terms{margin:14px 0;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
+.signup-terms h3{margin:0 0 9px;font-size:14px;}
+.signup-terms-scroll{max-height:190px;overflow-y:auto;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);font-size:12px;line-height:1.85;overscroll-behavior:contain;}
+.signup-terms-scroll p{margin:0 0 10px;}
+.signup-terms-scroll p:last-child{margin-bottom:0;}
+.terms-consent{display:flex;gap:9px;align-items:flex-start;margin-top:12px;font-size:12px;line-height:1.7;}
+.terms-consent input{margin-top:4px;flex:0 0 auto;}
+.terms-consent input:disabled{opacity:.45;}
+.admin-private-identity{display:block!important;color:var(--muted);font-size:11px;margin-top:4px;}
