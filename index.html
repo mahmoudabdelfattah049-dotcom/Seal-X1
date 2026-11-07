@@ -20,7 +20,7 @@
     <nav class="desktop-nav" aria-label="التنقل الرئيسي">
       <a class="nav-link active" href="#home">الرئيسية</a><a class="nav-link" href="#announcements">الإعلانات</a><a class="nav-link" href="#qureo">QUREO</a><a class="nav-link" href="#qureoSmartAssistant">مساعد QUREO</a><a class="nav-link" href="#qureoSolutionsCard">حلول QUREO</a><a class="nav-link" href="#downloadLibrary">ملفات PDF</a><a class="nav-link" href="#about">عن المنصة</a><a class="nav-link" id="studentNav" href="#studentSpace" hidden>مساحة الطلاب</a><a class="nav-link" id="teacherNav" href="#teacherSpace" hidden>مساحة المعلمين</a><a class="nav-link" id="adminNav" href="#adminPanel" hidden>لوحة الإدارة</a>
     </nav>
-    <div class="top-actions"><button class="icon-btn" id="themeToggle" aria-label="تغيير المظهر" title="تغيير المظهر">☼</button><button class="menu-btn" id="menuToggle" aria-label="فتح القائمة">☰</button><button class="header-cta account-open" id="accountOpen">حساب الطالب <span>↗</span></button></div>
+    <div class="top-actions"><label class="language-picker" for="languageSelect"><span class="sr-only">Language</span><select id="languageSelect" aria-label="Choose language"><option value="ar">🇪🇬 العربية</option><option value="en">🇬🇧 English</option><option value="zh">🇨🇳 中文</option><option value="id">🇮🇩 Bahasa Indonesia</option></select></label><button class="icon-btn" id="themeToggle" aria-label="تغيير المظهر" title="تغيير المظهر">☼</button><button class="menu-btn" id="menuToggle" aria-label="فتح القائمة">☰</button><button class="header-cta account-open" id="accountOpen">حساب الطالب <span>↗</span></button></div>
   </header>
   <nav class="mobile-nav" id="mobileNav"><a href="#home">الرئيسية</a><a href="#announcements">الإعلانات</a><a href="#qureo">QUREO</a><a href="#qureoSmartAssistant">مساعد QUREO</a><a href="#qureoSolutionsCard">حلول QUREO</a><a href="#downloadLibrary">ملفات PDF</a><a href="#about">عن المنصة</a><a id="studentNavMobile" href="#studentSpace" hidden>مساحة الطلاب</a><a id="teacherNavMobile" href="#teacherSpace" hidden>مساحة المعلمين</a><a id="adminNavMobile" href="#adminPanel" hidden>لوحة الإدارة</a></nav>
   <main>
@@ -273,4 +273,5 @@
   <footer><a class="footer-brand" href="#home">SEAL <span>X1</span></a><p>© <span id="year"></span> Seal X1. مساحة تعليمية للطلاب.</p><a href="#home">العودة للبداية ↑</a></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js?v=signup-policy-v2"></script>
+  <script src="i18n.js?v=languages-v1"></script>
 </body></html>
