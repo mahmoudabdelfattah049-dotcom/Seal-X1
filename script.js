@@ -152,22 +152,52 @@ if(db){
   .subscribe(status=>console.info("School announcements realtime:",status));
 }
 
-async function loadResources(){
- const section=document.querySelector("#library");
- if(!section||!db)return;
- let container=section.querySelector("#liveResources");
- if(!container){container=document.createElement("div");container.id="liveResources";container.className="live-resources";academyGrid.after(container);}
- container.innerHTML='<p class="resource-loading">جاري تحميل الملفات المدرسية المنشورة...</p>';
- const {data,error}=await db.from("resources").select("id,title,description,teacher_name,external_url,file_path,created_at,subjects(name),resource_categories(name)").eq("status","published").eq("verified",true).order("created_at",{ascending:false}).limit(60);
- if(error){container.innerHTML='<p class="resource-loading">تعذر تحميل ملفات المدرسة حالياً.</p>';console.error("Resources:",error);return;}
- if(!data?.length){container.innerHTML='';return;}
- const cards=await Promise.all(data.map(async item=>{
-  let href=item.external_url||"",label=href?"فتح المصدر":"";
-  if(item.file_path){const {data:signed,error:signError}=await db.storage.from("resources").createSignedUrl(item.file_path,3600);if(!signError&&signed?.signedUrl){href=signed.signedUrl;label="فتح / تحميل الملف";}}
-  return '<article class="resource-item"><div class="resource-symbol">▧</div><div class="resource-copy"><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.description||"")+'</p><div class="resource-meta">'+escapeHTML(item.subjects?.name||"مصدر تعليمي")+(item.teacher_name?" · "+escapeHTML(item.teacher_name):"")+'</div></div>'+(href?'<a class="resource-link" href="'+escapeHTML(href)+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>':'<span class="resource-pending">الرابط غير متاح</span>')+'</article>';
- }));
- container.innerHTML='<h3 class="school-files-title">ملفات المدرسة المنشورة</h3>'+cards.join("");
+let downloadResourcesCache=[];
+function renderDownloadResources(){
+ const box=document.getElementById("downloadResults");if(!box)return;
+ const term=(document.getElementById("downloadSearch")?.value||"").trim().toLocaleLowerCase("ar");
+ const category=document.getElementById("downloadCategoryFilter")?.value||"";
+ const rows=downloadResourcesCache.filter(item=>{
+  const cat=item.resource_categories?.slug||"";
+  const hay=[item.title,item.description,item.teacher_name,...(item.keywords||[])].join(" ").toLocaleLowerCase("ar");
+  return (!category||cat===category)&&(!term||hay.includes(term));
+ });
+ if(!rows.length){box.innerHTML='<div class="download-empty"><b>مفيش ملفات مطابقة حالياً</b><span>جرّب تغيير البحث أو التصنيف، أو ارجع بعد إضافة ملفات جديدة.</span></div>';return;}
+ box.innerHTML=rows.map(item=>{
+  const cat=item.resource_categories?.name||"مصدر تعليمي";
+  const subject=item.subjects?.name||(item.keywords||[]).find(Boolean)||"كل المواد";
+  let href="",label="الرابط غير متاح";
+  if(item.file_path&&item.signedUrl){href=item.signedUrl;label="تحميل الملف";}
+  else if(item.external_url){href=item.external_url;label="فتح المصدر";}
+  else if(item.file_path&&!window.sealCurrentUser){href="#studentAuth";label="سجّل الدخول للتحميل";}
+  return '<article class="download-resource-card"><div class="download-file-icon">PDF</div><div class="download-resource-copy"><div class="download-resource-tags"><span>'+escapeHTML(cat)+'</span><span>'+escapeHTML(subject)+'</span></div><h4>'+escapeHTML(item.title)+'</h4><p>'+escapeHTML(item.description||"لا يوجد وصف إضافي.")+'</p><small>'+(item.teacher_name?escapeHTML(item.teacher_name)+" · ":"")+escapeHTML(dateLabel(item.created_at))+'</small></div>'+(href?'<a class="download-resource-action" href="'+escapeHTML(href)+'" '+(href.startsWith("#")?'':'target="_blank" rel="noopener noreferrer"')+'>'+label+' ↗</a>':'<span class="resource-pending">'+label+'</span>')+'</article>';
+ }).join("");
 }
+async function loadResources(){
+ const section=document.querySelector("#library"),box=document.getElementById("downloadResults");
+ if(!section||!db||!box)return;
+ box.innerHTML='<p class="resource-loading">جاري تحميل الملفات المدرسية المنشورة...</p>';
+ const {data,error}=await db.from("resources")
+  .select("id,title,description,teacher_name,external_url,file_path,created_at,keywords,resource_categories(name,slug),subjects(name)")
+  .eq("status","published").eq("verified",true).order("created_at",{ascending:false}).limit(100);
+ if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل ملفات المدرسة حالياً.</p>';console.error("Resources:",error);return;}
+ const {data:{session}}=await db.auth.getSession();
+ downloadResourcesCache=await Promise.all((data||[]).map(async item=>{
+  let signedUrl=null;
+  if(item.file_path&&session?.user){
+   const {data:signed,error:signError}=await db.storage.from("resources").createSignedUrl(item.file_path,3600);
+   if(!signError&&signed?.signedUrl)signedUrl=signed.signedUrl;
+  }
+  return {...item,signedUrl};
+ }));
+ renderDownloadResources();
+}
+document.getElementById("downloadSearch")?.addEventListener("input",renderDownloadResources);
+document.getElementById("downloadCategoryFilter")?.addEventListener("change",renderDownloadResources);
+document.querySelectorAll("[data-resource-category]").forEach(link=>link.addEventListener("click",()=>{
+ const filter=document.getElementById("downloadCategoryFilter");
+ if(filter){filter.value=link.dataset.resourceCategory;renderDownloadResources();}
+}));
 // Load immediately, then refresh all destinations every 20 seconds as a Realtime fallback.
 refreshSchoolAnnouncementViews();
 if(db)loadResources();
@@ -605,10 +635,11 @@ document.getElementById("schoolTeacherAnnouncementForm")?.addEventListener("subm
 });
 document.getElementById("teacherResourceForm")?.addEventListener("submit",async e=>{
  e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="teacher")return;
- const title=document.getElementById("teacherResourceTitle").value.trim(),description=document.getElementById("teacherResourceDescription").value.trim(),subject=document.getElementById("teacherResourceSubject").value.trim(),externalUrl=document.getElementById("teacherResourceUrl").value.trim(),file=document.getElementById("teacherResourceFile").files?.[0],status=document.getElementById("teacherResourceStatus");
+ const title=document.getElementById("teacherResourceTitle").value.trim(),description=document.getElementById("teacherResourceDescription").value.trim(),subject=document.getElementById("teacherResourceSubject").value.trim(),categorySlug=document.getElementById("teacherResourceCategory").value,externalUrl=document.getElementById("teacherResourceUrl").value.trim(),file=document.getElementById("teacherResourceFile").files?.[0],status=document.getElementById("teacherResourceStatus");
  if(!file&&!externalUrl){status.textContent="ارفع ملفاً أو أضف رابطاً خارجياً.";return;}
  if(externalUrl && !externalUrl.startsWith("https://") && !externalUrl.startsWith("http://")){status.textContent="الرابط لازم يبدأ بـ https:// أو http://";return;}
  if(file&&file.size>20*1024*1024){status.textContent="الحد الأقصى لحجم الملف 20 ميجابايت.";return;}
+ if(file&&!/\\.(pdf|png|jpe?g|docx?|pptx?|txt)$/i.test(file.name)){status.textContent="نوع الملف غير مدعوم. استخدم PDF أو صورة أو مستنداً أو عرضاً تقديمياً أو TXT.";return;}
  status.textContent="جاري رفع المصدر...";
  let filePath=null;
  try{
@@ -618,7 +649,8 @@ document.getElementById("teacherResourceForm")?.addEventListener("submit",async 
    const {error:uploadError}=await db.storage.from("resources").upload(filePath,file,{upsert:false,contentType:file.type||"application/octet-stream"});
    if(uploadError)throw uploadError;
   }
-  const {error}=await db.from("resources").insert({title,description,teacher_name:window.sealCurrentProfile?.display_name||window.sealCurrentProfile?.username||"معلم",file_path:filePath,external_url:externalUrl||null,status:"published",verified:true,keywords:subject?[subject]:[],view_count:0,created_by:user.id});
+  const {data:category}=await db.from("resource_categories").select("id").eq("slug",categorySlug).maybeSingle();
+  const {error}=await db.from("resources").insert({title,description,teacher_name:window.sealCurrentProfile?.display_name||window.sealCurrentProfile?.username||"معلم",file_path:filePath,external_url:externalUrl||null,category_id:category?.id||null,status:"published",verified:true,keywords:subject?[subject]:[],view_count:0,created_by:user.id});
   if(error){if(filePath)await db.storage.from("resources").remove([filePath]);throw error;}
   e.target.reset();status.textContent="تمت إضافة المصدر ونشره للطلاب.";await Promise.all([portalLoadTeacherResources(),loadResources()]);
  }catch(err){status.textContent="تعذر إضافة المصدر: "+(err.message||"خطأ غير معروف");}
