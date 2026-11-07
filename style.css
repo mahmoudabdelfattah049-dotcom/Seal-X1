@@ -696,3 +696,32 @@ html[dir="ltr"] .academy-lesson-topline{direction:ltr}
     min-height:200px !important;
   }
 }
+
+
+/* Admin accordions expand naturally with the document; use the page scrollbar */
+#adminPanel details.portal-collapsible[open] {
+  display:block !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+#adminPanel details.portal-collapsible[open] > summary {
+  flex:none !important;
+}
+#adminPanel details.portal-collapsible[open] > .portal-collapsible-body {
+  display:block !important;
+  flex:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow:visible !important;
+  overflow-y:visible !important;
+  overflow-x:visible !important;
+  overscroll-behavior:auto !important;
+  touch-action:auto !important;
+}
+#adminPanel details.portal-collapsible[open] > .portal-collapsible-body > .portal-card {
+  min-height:0;
+  overflow:visible;
+}
