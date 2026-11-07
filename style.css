@@ -613,3 +613,40 @@ html[dir="ltr"] .academy-lesson-topline{direction:ltr}
  .teacher-space .admin-reports-list,
  .teacher-space .essay-review-list {max-height:260px}
 }
+
+
+/* Scrollable content inside every expandable role card */
+.portal-space .portal-collapsible {
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+}
+.portal-space .portal-collapsible > summary {
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+.portal-space .portal-collapsible-body {
+  min-width:0;
+  min-height:0;
+  max-height:min(68vh, 620px);
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:var(--accent2) var(--bg);
+  scroll-behavior:auto;
+  padding:0 5px 6px 2px;
+}
+.portal-space .portal-collapsible-body > .portal-card {
+  min-width:0;
+  margin:0;
+}
+.portal-space .portal-collapsible-body::-webkit-scrollbar {width:7px;height:7px}
+.portal-space .portal-collapsible-body::-webkit-scrollbar-track {background:var(--bg);border-radius:20px}
+.portal-space .portal-collapsible-body::-webkit-scrollbar-thumb {background:var(--accent2);border-radius:20px}
+@media(max-width:760px){
+  .portal-space .portal-collapsible-body {max-height:64vh;padding-right:4px}
+  .portal-space .portal-collapsible > summary {min-height:54px}
+}
