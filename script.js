@@ -1,3 +1,7 @@
+// Shared HTML escaping helper used by resource and announcement renderers.
+function escapeHTML(value){
+ return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+}
 const themeToggle=document.getElementById("themeToggle");
 const menuToggle=document.getElementById("menuToggle");
 const mobileNav=document.getElementById("mobileNav");
