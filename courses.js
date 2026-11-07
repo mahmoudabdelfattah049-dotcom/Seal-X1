@@ -95,6 +95,6 @@ root.addEventListener("click",e=>{
 render();
 if(typeof db!=="undefined"&&db?.auth){
  db.auth.getUser().then(({data})=>loadAccountProgress(data?.user||null)).catch(()=>loadAccountProgress(null));
- db.auth.onAuthStateChange((_event,session)=>{loadAccountProgress(session?.user||null);});
+ db.auth.onAuthStateChange((_event,session)=>{setTimeout(()=>loadAccountProgress(session?.user||null),0);});
 }else{loadAccountProgress(null);}
 })();
