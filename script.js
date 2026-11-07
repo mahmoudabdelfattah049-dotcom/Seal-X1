@@ -403,7 +403,7 @@ if(db&&authCard){
    let result;
    if(authMode==="signup"){
     const displayName=displayNameInput.value.trim();
-    const legalName=legalNameInput.value.trim().replace(/\\s+/g," ");
+    const legalName=legalNameInput.value.trim().replace(/\s+/g," ");
     if(!displayName){setAuthMessage("اكتب الاسم الظاهر داخل المنصة.","error");return;}
     if(legalName.length<5||legalName.length>100||legalName.split(" ").filter(Boolean).length<3){setAuthMessage("اكتب اسمك الثلاثي المدرسي بشكل صحيح.","error");return;}
     if(!termsReadToEnd||!termsAccepted.checked){setAuthMessage("لازم تقرأ سياسة الحساب حتى النهاية وتوافق عليها قبل إنشاء الحساب.","error");return;}
