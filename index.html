@@ -58,6 +58,14 @@
         <article class="qureo-next-level-card"><span class="card-kicker">LEVEL 2 · AI TUTOR</span><h3>مساعد QUREO الذكي</h3><p>مساعد واحد لكل الرتب، متخصص في QUREO فقط: يفهم السؤال والكود، يشرح الخطأ، ويقود الطالب للحل خطوة بخطوة.</p><span class="coming-label">قيد بناء قاعدة المعرفة وربط محرك الذكاء الاصطناعي</span></article>
         <article class="qureo-next-level-card"><span class="card-kicker">COMPLETE SOLUTIONS</span><h3>حلول QUREO</h3><p>مكتبة منظمة حسب الفصل والدرس والتحدي، مع شرح الفكرة والكود وسبب صحة الحل.</p><a class="resource-link qureo-solutions-link" href="#downloadLibrary" data-resource-category="qureo-solutions">افتح حلول QUREO ↗</a></article>
       </div>
+<article class="qureo-assistant-panel" id="qureoSmartAssistant">
+<div class="qureo-assistant-head"><div><span class="card-kicker">SEAL X1 · QUREO COACH</span><h3>مساعد QUREO الذكي</h3><p>مساعد برمجة متخصص، يشرح المفاهيم ويحلل الأكواد والأسئلة النصية خطوة بخطوة.</p></div><span class="qureo-ai-status">مجاني · بدون API</span></div>
+<div class="qureo-assistant-capabilities"><span>شرح JavaScript</span><span>تحليل الأخطاء</span><span>فهم الشروط والحلقات</span><span>مفاهيم QUREO</span></div>
+<div class="qureo-chat-messages" id="qureoAssistantMessages" aria-live="polite"><div class="qureo-chat-bubble assistant"><b>أهلاً! أنا مساعد QUREO في Seal X1.</b><p>اكتب سؤالك أو الصق الكود أو نص التحدي. سأجيب بما هو موثق في قاعدة معرفتي، ولو السؤال خارجها سأوضح ذلك بدل التخمين.</p></div></div>
+<div class="qureo-suggestions"><button type="button" data-qureo-prompt="اشرح لي الفرق بين if و else">الفرق بين if و else</button><button type="button" data-qureo-prompt="اشرح && في JavaScript">معنى &&</button><button type="button" data-qureo-prompt="إزاي أستخدم function؟">الدوال</button><button type="button" data-qureo-prompt="حلل الكود ده: if (score > 10) { console.log('نجحت'); } else { console.log('حاول تاني'); }">حلل كود</button></div>
+<form id="qureoAssistantForm" class="qureo-assistant-compose"><textarea id="qureoAssistantInput" rows="3" maxlength="5000" placeholder="اكتب السؤال أو الصق الكود هنا..." required></textarea><button type="submit">اسأل المساعد ↗</button></form>
+<p class="qureo-assistant-disclaimer">الإصدار الحالي محرك تعليمي محلي مجاني قائم على قاعدة معرفة وقواعد تحليل، وليس نموذج محادثة توليديًا. لا يرسل رسائلك لخدمة خارجية. ستتوسع معرفته بإضافة محتوى فصول QUREO الموثق.</p>
+</article>
     </section>
     <section class="content-section section-wrap" id="learnAtYourPace" hidden>
       <div class="section-heading"><div><div class="eyebrow">YOUR LEARNING JOURNEY</div><h2>اتعلم <span>على مهلك</span></h2><p>لوحة تقدمك الشخصية محفوظة على حسابك، وتقدر ترجع لها في أي وقت.</p></div><span class="section-number">03 / PROGRESS</span></div>
@@ -114,8 +122,12 @@
   
     <section class="content-section section-wrap portal-space" id="studentSpace" hidden>
       <div class="section-heading"><div><div class="eyebrow">STUDENTS AREA</div><h2>مساحة <span>الطلاب</span></h2><p>محتواك الدراسي، إنجازاتك، وتواصلك مع زملائك وإدارة المنصة.</p></div><span class="section-number">04 / STUDENT</span></div>
-      <div class="student-quick-links"><a href="#library">افتح مكتبة الفيديوهات ↗</a><a href="#announcements">شاهد إعلانات المدرسة ↗</a><a href="#qureo">مركز QUREO ↗</a><a href="#studentExamsList">امتحانات المواد ↗</a><a href="#studentLeaderboardList">ترتيب المتفوقين ↗</a></div>
-      <div class="student-welcome"><div><span class="student-role-label">STUDENT SPACE</span><h3>أهلاً، <b id="studentWelcomeName">طالب Seal X1</b></h3><p>حل الامتحانات ومشاهدة الدروس بيتسجلوا تلقائياً في تقدمك.</p></div><span class="student-private-pill">مساحة خاصة بالحسابات المسجلة</span></div>
+      <div class="student-quick-links"><a href="#studentVideoBookmarks">قائمتي الخاصة ★</a><a href="#library">افتح مكتبة الفيديوهات ↗</a><a href="#announcements">شاهد إعلانات المدرسة ↗</a><a href="#qureo">مركز QUREO ↗</a><a href="#studentExamsList">امتحانات المواد ↗</a><a href="#studentLeaderboardList">ترتيب المتفوقين ↗</a></div>
+      <article class="portal-card video-bookmarks-panel" id="studentVideoBookmarks">
+<div class="portal-card-heading"><div><span class="card-kicker">MY SAVED VIDEOS</span><h3>قائمتي الخاصة</h3></div><span class="private-pill">خاصة بحسابك</span></div>
+<p class="chat-note">احفظ الفيديوهات المهمة وارجع لها في أي وقت، من أي جهاز تسجل منه الدخول.</p>
+<div id="studentVideoBookmarksList" class="student-video-bookmarks-list"><p class="resource-loading">سجّل الدخول لعرض قائمتك.</p></div></article>
+<div class="student-welcome"><div><span class="student-role-label">STUDENT SPACE</span><h3>أهلاً، <b id="studentWelcomeName">طالب Seal X1</b></h3><p>حل الامتحانات ومشاهدة الدروس بيتسجلوا تلقائياً في تقدمك.</p></div><span class="student-private-pill">مساحة خاصة بالحسابات المسجلة</span></div>
       <div class="student-tools-grid">
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">COMMUNITY</span><h3>حديث أعضاء المنصة</h3></div><span class="online-dot">مساحة جماعية</span></div><div class="chat-messages" id="communityMessages" aria-live="polite"><p class="resource-loading">جاري تحميل المحادثة...</p></div><form id="communityForm" class="chat-compose"><input id="communityInput" maxlength="1500" placeholder="اكتب رسالة محترمة للمجموعة..." required><button type="submit">إرسال</button></form><p class="chat-note">المحادثة الجماعية متاحة للمستخدمين المسجلين فقط. تجنب مشاركة أرقامك أو بياناتك الخاصة.</p></article>
         <article class="portal-card"><div class="portal-card-heading"><div><span class="card-kicker">ADMIN SUPPORT</span><h3>تواصل خاص مع الإدارة</h3></div><span class="private-pill">خاص</span></div><div class="chat-messages support-messages" id="studentSupportMessages" aria-live="polite"><p class="resource-loading">جاري تحميل رسائلك...</p></div><form id="studentSupportForm" class="chat-compose"><input id="studentSupportInput" maxlength="2000" placeholder="اكتب شكوى أو استفساراً للإدارة..." required><button type="submit">إرسال</button></form><p class="chat-note">هذه المحادثة لا يراها إلا أنت وحساب الإدارة.</p></article>
@@ -225,5 +237,5 @@
   </section>
   <footer><a class="footer-brand" href="#home">SEAL <span>X1</span></a><p>© <span id="year"></span> Seal X1. مساحة تعليمية للطلاب.</p><a href="#home">العودة للبداية ↑</a></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=security-hardening-v4"></script>
+  <script src="script.js?v=security-hardening-v5"></script>
 </body></html>
