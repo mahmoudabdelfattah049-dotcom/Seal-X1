@@ -489,3 +489,22 @@ html[dir="ltr"] .qureo-tip{border-right:0;border-left:3px solid var(--accent)}
 @media(max-width:480px){.academy-course-tabs{gap:6px}.academy-course-tab{padding:9px 7px;column-gap:7px}.academy-course-mark{width:32px;height:32px;font-size:10px}.academy-course-tab b{font-size:12px}.academy-course-tab small{font-size:9px}.academy-lesson-list{grid-template-columns:1fr}.academy-lesson-panel{padding:14px}.academy-lesson-actions>*{flex:1}.academy-progress-card{padding:14px}}
 html[dir="ltr"] .academy-course-tab,html[dir="ltr"] .academy-lesson-link,html[dir="ltr"] .academy-quiz-options button{text-align:left}
 html[dir="ltr"] .academy-lesson-topline{direction:ltr}
+
+/* Academy accordion, account-synced progress and isolated code editor */
+.academy-section-accordion{margin-top:14px}
+.academy-section-body{padding:14px;border-top:1px solid var(--line)}
+.academy-section-body>.section-heading{margin-bottom:12px}
+.academy-progress-status{font-size:11px;color:var(--muted);margin:8px 0 0}
+.academy-editor-card{margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);min-width:0}
+.academy-editor-heading,.academy-editor-output-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.academy-editor-heading>div{display:grid;gap:4px}.academy-editor-heading b{font-size:14px}.academy-editor-heading small,.academy-editor-output-head small{font-size:10px;color:var(--muted)}
+.academy-editor-heading>span{font-size:9px;border:1px solid var(--line);border-radius:20px;padding:5px 9px;color:var(--muted)}
+.academy-editor-tabs{display:flex;gap:7px;margin:13px 0 8px;flex-wrap:wrap}
+.academy-editor-tabs button,.academy-editor-actions button{border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);padding:8px 12px;font:inherit;font-size:11px;cursor:pointer}
+.academy-editor-tabs button.active,.academy-editor-actions button:first-child{background:var(--accent);border-color:var(--accent);color:#fff}
+.academy-editor-input{display:block;width:100%;min-height:190px;resize:vertical;direction:ltr;text-align:left;tab-size:2;white-space:pre;font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:12px;outline-offset:2px}
+.academy-editor-actions{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0 14px}
+.academy-editor-output-head{padding:8px 0}.academy-editor-output-head b{font-size:11px}
+.academy-editor-preview{display:block;width:100%;height:210px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.academy-editor-note{font-size:10px;line-height:1.8;color:var(--muted);margin:9px 0 0}
+@media(max-width:650px){.academy-section-body{padding:10px}.academy-editor-card{padding:11px}.academy-editor-input{min-height:165px;font-size:11px}.academy-editor-preview{height:190px}}
