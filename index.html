@@ -44,16 +44,21 @@
         <div><div class="eyebrow">SCHOOL UPDATES</div><h2 id="schoolAnnouncementsHeading">إعلانات <span>المدرسة</span></h2><p>الإعلانات المنشورة للطلاب، مرتبة حسب الأهمية والأحدث.</p></div>
         <span class="section-number">01 / SCHOOL NEWS</span>
       </div>
-      <div class="announcement-board">
-        <div class="announcement-board-heading"><span class="announcement-live-dot"></span><b>آخر الإعلانات</b><span>تحديث تلقائي</span></div>
-        <div class="empty-panel announcement-feed" id="schoolAnnouncementsFeed" aria-live="polite" aria-busy="true">
-          <div class="empty-symbol">▤</div><h3>جاري تحميل إعلانات المدرسة</h3><p>لحظات ويتم عرض آخر ما تم نشره.</p>
+      <details class="section-accordion announcement-accordion">
+        <summary><span><b>آخر الإعلانات</b><small>اضغط لعرض إعلانات المدرسة والتحديثات الجديدة</small></span><span class="assistant-chevron">⌄</span></summary>
+        <div class="announcement-board">
+          <div class="announcement-board-heading"><span class="announcement-live-dot"></span><b>آخر الإعلانات</b><span>تحديث تلقائي</span></div>
+          <div class="empty-panel announcement-feed" id="schoolAnnouncementsFeed" aria-live="polite" aria-busy="true">
+            <div class="empty-symbol">▤</div><h3>جاري تحميل إعلانات المدرسة</h3><p>لحظات ويتم عرض آخر ما تم نشره.</p>
+          </div>
         </div>
-      </div>
+      </details>
     </section>
     <section class="content-section section-wrap" id="qureo"><div class="section-heading"><div><div class="eyebrow">تعلم البرمجة خطوة بخطوة</div><h2>مركز <span>QUREO</span></h2><p>مكان منظم للمساعدة والشروحات والحلول التعليمية.</p></div><span class="section-number">02 / LEARN</span></div>
       <a class="primary-btn qureo-external-link" href="https://me-portal.qureo.education/login" target="_blank" rel="noopener noreferrer">افتح منصة QUREO الرسمية ↗</a>
-<article class="qureo-assistant-panel" id="qureoSmartAssistant">
+<details class="section-accordion qureo-accordion" id="qureoSmartAssistant">
+<summary><span><b>مساعد QUREO الذكي</b><small>شرح JavaScript وتحليل الأكواد والأخطاء — اضغط للفتح</small></span><span class="assistant-chevron">⌄</span></summary>
+<article class="qureo-assistant-panel" id="qureoSmartAssistantPanel">
 <div class="qureo-assistant-head"><div><span class="card-kicker">SEAL X1 · QUREO COACH</span><h3>مساعد QUREO الذكي</h3><p>مساعد برمجة متخصص، يشرح المفاهيم ويحلل الأكواد والأسئلة النصية خطوة بخطوة.</p></div><span class="qureo-ai-status">مجاني · بدون API</span></div>
 <div class="qureo-assistant-capabilities"><span>شرح JavaScript</span><span>تحليل الأخطاء</span><span>فهم الشروط والحلقات</span><span>مفاهيم QUREO</span></div>
 <div class="qureo-chat-messages" id="qureoAssistantMessages" aria-live="polite"><div class="qureo-chat-bubble assistant"><b>أهلاً! أنا مساعد QUREO في Seal X1.</b><p>اكتب سؤالك أو الصق الكود أو نص التحدي. سأجيب بما هو موثق في قاعدة معرفتي، ولو السؤال خارجها سأوضح ذلك بدل التخمين.</p></div></div>
@@ -61,7 +66,11 @@
 <form id="qureoAssistantForm" class="qureo-assistant-compose"><textarea id="qureoAssistantInput" rows="3" maxlength="5000" placeholder="اكتب السؤال أو الصق الكود هنا..." required></textarea><button type="submit">اسأل المساعد ↗</button></form>
 <p class="qureo-assistant-disclaimer">الإصدار الحالي محرك تعليمي محلي مجاني قائم على قاعدة معرفة وقواعد تحليل، وليس نموذج محادثة توليديًا. لا يرسل رسائلك لخدمة خارجية. ستتوسع معرفته بإضافة محتوى فصول QUREO الموثق.</p>
 </article>
-      <article class="qureo-next-level-card qureo-solutions-feature" id="qureoSolutionsCard"><span class="card-kicker">QUREO LEARNING LIBRARY</span><h3>حلول وشروحات QUREO</h3><p>دليل تعليمي مستقل يضم شروحات ومساعدات للمنصة. راجع رقم الفصل والدرس مع المطلوب في حسابك؛ المحتوى الخارجي ليس مصدراً رسمياً للوزارة.</p><a class="resource-link qureo-solutions-link" href="https://qureoeg.com/" target="_blank" rel="noopener noreferrer">افتح دليل QUREO المستقل ↗</a></article>
+</details>
+      <details class="section-accordion qureo-accordion" id="qureoSolutionsCard">
+      <summary><span><b>حلول وشروحات QUREO</b><small>دليل المساعدة الخارجي المستقل</small></span><span class="assistant-chevron">⌄</span></summary>
+      <article class="qureo-next-level-card qureo-solutions-feature" id="qureoSolutionsPanel"><span class="card-kicker">QUREO LEARNING LIBRARY</span><h3>حلول وشروحات QUREO</h3><p>دليل تعليمي مستقل يضم شروحات ومساعدات للمنصة. راجع رقم الفصل والدرس مع المطلوب في حسابك؛ المحتوى الخارجي ليس مصدراً رسمياً للوزارة.</p><a class="resource-link qureo-solutions-link" href="https://qureoeg.com/" target="_blank" rel="noopener noreferrer">افتح دليل QUREO المستقل ↗</a></article>
+      </details>
 
     </section>
     <section class="content-section section-wrap" id="learnAtYourPace" hidden>
@@ -91,14 +100,23 @@
     </div>
   </div>
   </details>
-  <div class="download-library" id="downloadLibrary">
+  <details class="section-accordion download-accordion" id="downloadLibrary">
+    <summary><span><b>مكتبة التحميلات والملفات</b><small>تقييمات الوزارة، ملفات PDF، ومصادر أولى ثانوي — اضغط لفتح المكتبة</small></span><span class="assistant-chevron">⌄</span></summary>
+  <div class="download-library">
     <div class="download-library-heading"><div><span class="academy-kicker">FREE STUDY FILES</span><h3>مكتبة <span>التحميلات</span></h3><p>مكتبة أولى ثانوي 2026/2027 – الترم الأول: تقييمات الوزارة، الكتب الرسمية، ومصادر مجانية موثوقة.</p></div><span class="download-free-pill">مجانية</span></div>
     <div class="download-library-filters">
       <input id="downloadSearch" type="search" maxlength="100" placeholder="ابحث باسم الملف أو المادة أو الأسبوع..." aria-label="ابحث في التحميلات">
+      <select id="downloadSubjectFilter" aria-label="تصفية حسب المادة"><option value="">كل المواد</option></select>
       <select id="downloadCategoryFilter" aria-label="تصفية حسب نوع الملف">
         <option value="">كل أنواع الملفات</option><option value="lessons">شرح الدروس</option><option value="summaries">الملخصات</option><option value="pdf">ملفات PDF</option><option value="exams">الامتحانات</option><option value="practice">التدريبات والأسئلة</option><option value="monthly-review">المراجعات الشهرية</option><option value="extra">مصادر إضافية</option><option value="qureo-solutions">حلول QUREO</option>
       </select>
     </div>
+    <details class="arabic-assessments-panel">
+      <summary><span><b>التقييمات العربية الحالية — كل المواد المتاحة</b><small>مجمعة حسب المادة والأسبوع، بروابط PDF مباشرة</small></span><span class="assistant-chevron">⌄</span></summary>
+      <div class="arabic-assessments-intro">دي ملفات التقييمات المتاحة باللغة العربية للصف الأول الثانوي — الترم الأول 2026/2027. افتح المادة ثم اختار الأسبوع. لو رابط مباشر ما فتحش، استخدم بوابة الوزارة الرسمية الموجودة ضمن المصادر.</div>
+      <div id="downloadArabicAssessments" class="arabic-assessments-list" aria-live="polite"><p class="resource-loading">جاري تجهيز التقييمات العربية...</p></div>
+    </details>
+    <div class="download-general-heading"><b>باقي الملفات والمصادر</b><small>ابحث أو صفِّ حسب المادة ونوع المصدر</small></div>
     <div id="downloadResults" class="download-results" aria-live="polite"><p class="resource-loading">جاري تجهيز مكتبة التحميلات...</p></div>
     <details class="download-upload-panel" id="downloadUploader" hidden><summary><span><b>إضافة ملف جديد للمكتبة</b><small>لإدارة Seal X1 والمدرسين الموثقين</small></span><span class="assistant-chevron">⌄</span></summary>
     <form id="adminResourceForm" class="admin-form teacher-resource-form download-upload-form">
@@ -113,6 +131,7 @@
   </details>
   <p class="download-library-note">التحميل مجاني. رفع الملفات متاح للمدرسين الموثقين، والملفات المنشورة فقط هي التي تظهر للطلاب. لا ترفع ملفات تحتوي على بيانات شخصية أو مواد لا تملك حق نشرها.</p>
   </div>
+  </details>
   <div class="academy-footnote">المكتبة مخصصة حالياً لأولى ثانوي 2026/2027 – الترم الأول. الروابط الرسمية تقود لمواقع الوزارة، والمصادر الخارجية موضحة بصفتها غير رسمية. لا نعيد استضافة ملفات محمية بحقوق نشر.</div>
 </section>
     <section class="about-band section-wrap" id="about"><div class="about-mark">SX</div><div><div class="eyebrow">ABOUT SEAL X1</div><h2>الدراسة تبقى أسهل<br><span>لما كل حاجة تبقى منظمة.</span></h2><p>Seal X1 مبادرة لتنظيم الوصول للمعلومات والمصادر التعليمية لطلاب المدرسة، بواجهة واحدة سهلة الاستخدام.</p></div><a href="#home" class="back-top">للأعلى ↑</a></section>
