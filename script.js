@@ -186,12 +186,39 @@ if(db){
   .subscribe(status=>console.info("School announcements realtime:",status));
 }
 
+const sealAssessmentBase="https://elearnningcontent.blob.core.windows.net/elearnningcontent/2026_2027/Secondry/Secondry1/Term1/ClassrHomeAssessmentsTest/";
+const sealAssessmentSets=[
+ {subject:"اللغة العربية",prefix:"Arabic_Sec1_TR1_",weeks:["C_W1","W2","W3","W4","W5","W6","W7"]},
+ {subject:"اللغة الإنجليزية",prefix:"English_Sec1_TR1_",weeks:["W1","W2","W3","W4","W5","W6","W7"]},
+ {subject:"الرياضيات – عربي",prefix:"Math_AR_Sec1_TR1_",weeks:["W1","W2","W3","W4","W5","W6","W7"]},
+ {subject:"الرياضيات – لغات",prefix:"Math_EN_Sec1_TR1_",weeks:["W1","W2","W3","W4","W5","W6","W7"]},
+ {subject:"العلوم المتكاملة – عربي",prefix:"Integrated_science_ARABIC_Sec1_TR1_",weeks:["W1","W2","W3","W4","W5","6W"]},
+ {subject:"العلوم المتكاملة – لغات",files:["Integrated_science_English_Sec1_TR1_W1.pdf","Integrated_science_ENGLISH_Sec1_TR1_W2.pdf","Integrated_science_ENGLISH_Sec1_TR1_W3.pdf","Integrated_science_ENGLISH_Sec1_TR1_W4.pdf","Integrated_science_ENGLISH_Sec1_TR1_W5.pdf","Integrated_science_ENGLISH_Sec1_TR1_W6.pdf"]},
+ {subject:"التاريخ",prefix:"History_Sec1_TR1_",weeks:["T__W1","W2","W3","T__W4","W5","W6","W7"]},
+ {subject:"البرمجة والذكاء الاصطناعي – عربي",prefix:"AI_AR_Sec1_TR1_",weeks:["W1","W2","W3","W4","W5","W6","W7"]},
+ {subject:"البرمجة والذكاء الاصطناعي – لغات",prefix:"AI_EN_Sec1_TR1_",weeks:["W1","W2","W3","W4","W5","W6","W7"]},
+ {subject:"التربية الدينية الإسلامية",prefix:"Islamic_AR_Sec1_TR1_",weeks:["W1","W2","W3","W4","W5","W6","W7"]},
+ {subject:"التربية الدينية المسيحية",prefix:"Christian_AR_Sec1_TR1_",weeks:["W3","W4","W5","W6","W7"]}
+];
+const sealDirectAssessmentResources=sealAssessmentSets.flatMap(set=>{
+ const files=set.files||set.weeks.map(week=>set.prefix+week+".pdf");
+ return files.map((file,index)=>{
+  const week=(set.weeks||files.map((_,i)=>"W"+(i+1)))[index];
+  return {id:"seal-assess-"+set.subject.replace(/[^\u0600-\u06FFa-z0-9]+/gi,"-")+"-"+(week||index+1),
+   title:"تقييم الوزارة – "+set.subject+" – "+(week?.replace("T__","").replace("6W","الأسبوع السادس").replace("W","الأسبوع ")||"ملف PDF"),
+   description:"ملف PDF لتقييم الصف الأول الثانوي 2026/2027 – الترم الأول. رابط مباشر على نطاق تخزين محتوى الوزارة؛ إذا تعذر فتحه، استخدم بوابة التقييمات الرسمية لاختيار المادة والأسبوع.",
+   teacher_name:"ملف تقييم · مسار محتوى الوزارة",external_url:sealAssessmentBase+file,file_path:null,
+   created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول",set.subject,"تقييم أسبوعي"],
+   resource_categories:{name:"تقييمات الوزارة",slug:"monthly-review"},subjects:{name:set.subject},signedUrl:null,curated:true};
+ });
+});
 const sealCuratedStudyResources=[
- {id:"seal-ministry-assessments-2026-27",title:"التقييمات والأداءات الرسمية – أولى ثانوي",description:"بوابة وزارة التربية والتعليم لاختيار الصف الأول الثانوي، الترم الأول، ثم المادة والأسبوع. تشمل التقييمات الأسبوعية والأداءات الصفية والمنزلية حسب الملفات المتاحة على الوزارة.",teacher_name:"وزارة التربية والتعليم · مصدر رسمي",external_url:"https://ellibrary.moe.gov.eg/Performance_Assessments",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","تقييمات أسبوعية","أداءات صفية","أداءات منزلية"],resource_categories:{name:"تقييمات الوزارة",slug:"monthly-review"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
- {id:"seal-ministry-e-learning-2026-27",title:"بوابة التعليم الإلكتروني – الكتب والمواد الرسمية",description:"المصدر الرسمي للكتب والمواد التعليمية. اختر المرحلة الثانوية ثم الصف الأول الثانوي والمادة، وتأكد من اختيار إصدار 2026/2027 والترم الأول.",teacher_name:"وزارة التربية والتعليم · مصدر رسمي",external_url:"https://moe.gov.eg/elearningenterypage/e-learning/",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","كتب الوزارة","كتب مدرسية"],resource_categories:{name:"كتب الوزارة",slug:"pdf"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
- {id:"seal-ministry-student-books",title:"المكتبة الإلكترونية للكتب الدراسية",description:"بوابة المكتبة الإلكترونية للكتب الدراسية. استخدم محددات الصف والمادة للحصول على النسخة الرسمية المتاحة.",teacher_name:"وزارة التربية والتعليم · مصدر رسمي",external_url:"https://studentbooks.moe.gov.eg/cha/",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","كتب دراسية"],resource_categories:{name:"كتب الوزارة",slug:"pdf"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
+ {id:"seal-ministry-assessments-2026-27",title:"بوابة التقييمات والأداءات الرسمية – جميع المواد",description:"المصدر الرسمي لاختيار المرحلة الثانوية، الصف الأول الثانوي، الترم الأول، ثم المادة والأسبوع. استخدمه للتحقق من أي ملف مباشر أو الوصول للمواد التي لم نضف روابطها الفردية بعد.",teacher_name:"وزارة التربية والتعليم · بوابة رسمية",external_url:"https://ellibrary.moe.gov.eg/Performance_Assessments",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","تقييمات أسبوعية","أداءات صفية","أداءات منزلية"],resource_categories:{name:"تقييمات الوزارة",slug:"monthly-review"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
+ {id:"seal-ministry-e-learning-2026-27",title:"بوابة التعليم الإلكتروني – الكتب والمواد الرسمية",description:"بوابة وزارة التربية والتعليم للكتب والمواد التعليمية. اختر الصف الأول الثانوي والمادة وإصدار 2026/2027 والترم الأول.",teacher_name:"وزارة التربية والتعليم · بوابة رسمية",external_url:"https://moe.gov.eg/elearningenterypage/e-learning/",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","كتب الوزارة"],resource_categories:{name:"كتب الوزارة",slug:"pdf"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
+ {id:"seal-ministry-student-books",title:"المكتبة الإلكترونية للكتب الدراسية",description:"بوابة الكتب الدراسية. استخدم محددات الصف والمادة للحصول على النسخة الرسمية المتاحة.",teacher_name:"وزارة التربية والتعليم · بوابة رسمية",external_url:"https://studentbooks.moe.gov.eg/cha/",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","كتب دراسية"],resource_categories:{name:"كتب الوزارة",slug:"pdf"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
  {id:"seal-qureo-independent-guide",title:"دليل شروحات ومساعدات QUREO",description:"موقع تعليمي مستقل غير تابع للوزارة أو لمنصة QUREO الرسمية. استخدمه كمصدر مساعد فقط، وتحقق من تطابق الفصل والدرس مع المطلوب في منصتك.",teacher_name:"QureoEg · مصدر مستقل",external_url:"https://qureoeg.com/",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي","QUREO","برمجة وذكاء اصطناعي"],resource_categories:{name:"حلول QUREO",slug:"qureo-solutions"},subjects:{name:"البرمجة والذكاء الاصطناعي"},signedUrl:null,curated:true}
 ];
+sealCuratedStudyResources.push(...sealDirectAssessmentResources);
 let downloadResourcesCache=[];
 function renderDownloadResources(){
  const box=document.getElementById("downloadResults");if(!box)return;
