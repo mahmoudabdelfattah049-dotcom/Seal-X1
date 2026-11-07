@@ -20,24 +20,24 @@ function run(){
  const frame=root.querySelector("#academyEditorPreview"),label=root.querySelector("#academyEditorOutput");
  if(!frame||!label)return;
  const code=String(drafts[mode]||"").slice(0,12000);
- const policy='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; style-src \'unsafe-inline\'; img-src data:; connect-src \'none\'; font-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">';
+ const policy='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src blob:; style-src \'unsafe-inline\'; img-src data:; connect-src \'none\'; font-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">';
  const start='<!doctype html><html><head><meta charset="utf-8">'+policy+'<meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="font:14px Arial,sans-serif;padding:12px;overflow-wrap:anywhere">';
  const end='</body></html>';
  if(mode==="html"){frame.srcdoc=start+code+end;label.textContent="معاينة HTML";return;}
  if(mode==="css"){frame.srcdoc=start+'<style>'+code.replace(/<\/style/gi,"<\\/style")+'</style><main><h1>مرحباً بك</h1><p>هذه صفحة تجريبية لتجربة تنسيقات CSS.</p><button>زر تجريبي</button></main>'+end;label.textContent="معاينة CSS";return;}
- const runner=`
-const box=document.getElementById("result");
-const write=(...values)=>{try{box.textContent+=(values.map(value=>{if(typeof value==="string")return value;try{return JSON.stringify(value)}catch(_){return String(value)}}).join(" ")+"\\n").slice(0,12000)}catch(_){box.textContent+="تعذر عرض هذه النتيجة\\n"}};
-console.log=(...values)=>write(...values);
-console.info=(...values)=>write(...values);
-console.warn=(...values)=>write("تحذير:",...values);
-console.error=(...values)=>write("خطأ:",...values);
-window.addEventListener("error",event=>write("خطأ:",event.message));
-window.addEventListener("unhandledrejection",event=>write("خطأ غير معالج:",event.reason?.message||event.reason));
-(async()=>{try{
-${code}
-}catch(error){write("خطأ:",error?.message||error)}})();
-`;
+ const runner=[
+ "const box=document.getElementById('result');",
+ "const write=(...values)=>{try{box.textContent+=(values.map(value=>{if(typeof value==='string')return value;try{return JSON.stringify(value)}catch(_){return String(value)}}).join(' ')+'\\n').slice(0,12000)}catch(_){box.textContent+='تعذر عرض هذه النتيجة\\n'}};",
+ "console.log=(...values)=>write(...values);",
+ "console.info=(...values)=>write(...values);",
+ "console.warn=(...values)=>write('تحذير:',...values);",
+ "console.error=(...values)=>write('خطأ:',...values);",
+ "window.addEventListener('error',event=>write('خطأ:',event.message));",
+ "window.addEventListener('unhandledrejection',event=>write('خطأ غير معالج:',event.reason?.message||event.reason));",
+ "(async()=>{try{",
+ code,
+ "}catch(error){write('خطأ:',error?.message||error)}})();"
+ ].join('\\n');
  const blob=new Blob([runner],{type:"text/javascript"});
  const runnerUrl=URL.createObjectURL(blob);
  frame.onload=()=>{URL.revokeObjectURL(runnerUrl);};
