@@ -36,6 +36,7 @@ root.addEventListener("click",event=>{
  if(event.target.closest("[data-editor-run]")){const input=root.querySelector("#academyEditorInput");if(input)drafts[mode]=input.value;run();return;}
  if(event.target.closest("[data-editor-reset]")){drafts[mode]=defaults[mode];const input=root.querySelector("#academyEditorInput");if(input)input.value=drafts[mode];return;}
 });
+document.addEventListener("click",event=>{const link=event.target.closest('a[href="#sealAcademy"]');if(link){const accordion=document.querySelector(".academy-section-accordion");if(accordion)accordion.open=true;}});
 const observer=new MutationObserver(mount);
 observer.observe(root,{childList:true});
 mount();
