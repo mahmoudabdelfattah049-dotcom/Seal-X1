@@ -2,56 +2,55 @@
 "use strict";
 const root=document.getElementById("sealAcademyRoot");
 if(!root)return;
-const defaults={
- js:'console.log("أهلاً بك في محرر Seal X1");\nconst score = 18;\nif (score >= 10) {\n  console.log("ناجح");\n} else {\n  console.log("حاول مرة أخرى");\n}',
- html:'<main>\n  <h1>صفحتي الأولى</h1>\n  <p>أنا أتعلم HTML في أكاديمية Seal X1.</p>\n  <button>ابدأ التعلم</button>\n</main>',
- css:'main {\n  max-width: 600px;\n  margin: 30px auto;\n  padding: 24px;\n  border-radius: 16px;\n  background: #eef3ff;\n  color: #172033;\n  font-family: Arial, sans-serif;\n}\nh1 { color: #2457a6; }\nbutton { padding: 10px 16px; border: 0; border-radius: 8px; }'
-};
-let mode="js",drafts={...defaults};
-const markup='<section class="academy-editor-card"><div class="academy-editor-heading"><div><b>محرر الأكواد العملي</b><small>اكتب الكود وشغّله وشاهد النتيجة مباشرة</small></div><span>Sandbox</span></div><div class="academy-editor-tabs"><button type="button" data-editor-mode="js" class="active">JavaScript</button><button type="button" data-editor-mode="html">HTML</button><button type="button" data-editor-mode="css">CSS</button></div><textarea id="academyEditorInput" class="academy-editor-input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="محرر الأكواد"></textarea><div class="academy-editor-actions"><button type="button" data-editor-run>تشغيل الكود ▶</button><button type="button" data-editor-reset>استعادة المثال</button></div><div class="academy-editor-output-head"><b id="academyEditorOutput">النتيجة</b><small>المعاينة معزولة عن حسابك وبيانات المنصة</small></div><iframe id="academyEditorPreview" class="academy-editor-preview" sandbox="allow-scripts" title="معاينة الكود" referrerpolicy="no-referrer"></iframe><p class="academy-editor-note">المحرر للتجربة التعليمية فقط. تشغيل JavaScript يتم داخل إطار معزول، مع منع طلبات الشبكة والوصول إلى بيانات المنصة.</p></section>';
+const markup=`
+<section class="academy-editor-card academy-playground" aria-label="مختبر الأكواد">
+ <div class="academy-editor-heading"><div><b>مختبر الأكواد — HTML + CSS + JavaScript</b><small>اكتب في المحررات الثلاثة معاً، ثم شغّل المشروع كصفحة واحدة.</small></div><span>تجربة حرة</span></div>
+ <div class="playground-editors">
+  <label class="playground-pane"><span><b>HTML</b><small>هيكل الصفحة</small></span><textarea data-playground="html" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="محرر HTML" placeholder="اكتب HTML هنا..."></textarea></label>
+  <label class="playground-pane"><span><b>CSS</b><small>التصميم والألوان</small></span><textarea data-playground="css" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="محرر CSS" placeholder="اكتب CSS هنا..."></textarea></label>
+  <label class="playground-pane"><span><b>JavaScript</b><small>التفاعل والبرمجة</small></span><textarea data-playground="js" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="محرر JavaScript" placeholder="اكتب JavaScript هنا..."></textarea></label>
+ </div>
+ <div class="academy-editor-actions"><button type="button" data-playground-run>تشغيل المشروع ▶</button><button type="button" data-playground-clear>مسح الكل</button><button type="button" data-playground-example>تحميل مثال بسيط</button></div>
+ <div class="academy-editor-output-head"><b>معاينة المشروع</b><small data-playground-status>المحررات فارغة — ابدأ التجربة</small></div>
+ <iframe class="academy-editor-preview playground-preview" data-playground-preview sandbox="allow-scripts" title="معاينة مشروع HTML وCSS وJavaScript" referrerpolicy="no-referrer"></iframe>
+ <p class="academy-editor-note">المختبر مستقل عن دروس الأكاديمية ولا يحتاج إلى حساب أو حفظ. التشغيل داخل إطار معزول، مع منع الاتصال بالشبكة والوصول إلى بيانات المنصة. امسح المحررات أو اتركها فارغة وقتما تحب.</p>
+</section>`;
 function mount(){
  const workspace=root.querySelector(".academy-workspace");
- if(!workspace||root.querySelector(".academy-editor-card"))return;
+ if(!workspace||root.querySelector(".academy-playground"))return;
  workspace.insertAdjacentHTML("afterend",markup);
- const input=root.querySelector("#academyEditorInput");
- if(input)input.value=drafts[mode];
+}
+function getCode(){
+ const read=name=>root.querySelector('[data-playground="'+name+'"]')?.value||"";
+ return {html:read("html"),css:read("css"),js:read("js")};
 }
 function run(){
- const frame=root.querySelector("#academyEditorPreview"),label=root.querySelector("#academyEditorOutput");
- if(!frame||!label)return;
- const code=String(drafts[mode]||"").slice(0,12000);
- const policy='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src blob:; style-src \'unsafe-inline\'; img-src data:; connect-src \'none\'; font-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">';
- const start='<!doctype html><html><head><meta charset="utf-8">'+policy+'<meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="font:14px Arial,sans-serif;padding:12px;overflow-wrap:anywhere">';
- const end='</body></html>';
- if(mode==="html"){frame.srcdoc=start+code+end;label.textContent="معاينة HTML";return;}
- if(mode==="css"){frame.srcdoc=start+'<style>'+code.replace(/<\/style/gi,"<\\/style")+'</style><main><h1>مرحباً بك</h1><p>هذه صفحة تجريبية لتجربة تنسيقات CSS.</p><button>زر تجريبي</button></main>'+end;label.textContent="معاينة CSS";return;}
+ const frame=root.querySelector("[data-playground-preview]");
+ const status=root.querySelector("[data-playground-status]");
+ if(!frame||!status)return;
+ const {html,css,js}=getCode();
+ const safeCss=css.slice(0,20000).replace(/<\\/style/gi,"<\\\\/style");
+ const pagePolicy='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src blob:; style-src \'unsafe-inline\'; img-src data:; connect-src \'none\'; font-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">';
+ const output='<pre id="seal-playground-console" style="white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;background:#101827;color:#e7edf7;padding:10px;margin:0 0 12px;border-radius:8px;font:12px/1.6 monospace;min-height:28px">Console output will appear here.</pre>';
  const runner=[
- "const box=document.getElementById('result');",
- "const write=(...values)=>{try{box.textContent+=(values.map(value=>{if(typeof value==='string')return value;try{return JSON.stringify(value)}catch(_){return String(value)}}).join(' ')+'\\n').slice(0,12000)}catch(_){box.textContent+='تعذر عرض هذه النتيجة\\n'}};",
- "console.log=(...values)=>write(...values);",
- "console.info=(...values)=>write(...values);",
- "console.warn=(...values)=>write('تحذير:',...values);",
- "console.error=(...values)=>write('خطأ:',...values);",
- "window.addEventListener('error',event=>write('خطأ:',event.message));",
- "window.addEventListener('unhandledrejection',event=>write('خطأ غير معالج:',event.reason?.message||event.reason));",
- "(async()=>{try{",
- code,
- "}catch(error){write('خطأ:',error?.message||error)}})();"
- ].join('\n');
+ "const box=document.getElementById('seal-playground-console');",
+ "const write=(...values)=>{try{box.textContent+=(values.map(value=>{if(typeof value==='string')return value;try{return JSON.stringify(value)}catch(_){return String(value)}}).join(' ')+'\\n').slice(0,10000)}catch(_){}};",
+ "console.log=(...values)=>write(...values);console.info=(...values)=>write(...values);console.warn=(...values)=>write('Warning:',...values);console.error=(...values)=>write('Error:',...values);",
+ "window.addEventListener('error',event=>write('Error:',event.message));",
+ "window.addEventListener('unhandledrejection',event=>write('Unhandled promise:',event.reason?.message||event.reason));",
+ "try{\\n"+js.slice(0,20000)+"\\n}catch(error){write('Error:',error?.message||error)}"
+ ].join('\\n');
  const blob=new Blob([runner],{type:"text/javascript"});
  const runnerUrl=URL.createObjectURL(blob);
- frame.onload=()=>{URL.revokeObjectURL(runnerUrl);};
- frame.srcdoc=start+'<pre id="result" style="white-space:pre-wrap;overflow-wrap:anywhere;background:#101827;color:#e7edf7;padding:12px;border-radius:8px;min-height:90px">جاري تشغيل الكود...</pre><script src="'+runnerUrl+'"></script>'+end;
- label.textContent="نتيجة تشغيل JavaScript";
+ frame.onload=()=>URL.revokeObjectURL(runnerUrl);
+ frame.srcdoc='<!doctype html><html><head><meta charset="utf-8">'+pagePolicy+'<meta name="viewport" content="width=device-width,initial-scale=1"><style>'+safeCss+'</style></head><body>'+output+html.slice(0,30000)+'<script src="'+runnerUrl+'"></script></body></html>';
+ status.textContent="تم تشغيل HTML وCSS وJavaScript معاً";
 }
-root.addEventListener("input",event=>{if(event.target.id==="academyEditorInput")drafts[mode]=event.target.value;});
 root.addEventListener("click",event=>{
- const tab=event.target.closest("[data-editor-mode]");
- if(tab){mode=tab.dataset.editorMode;root.querySelectorAll("[data-editor-mode]").forEach(b=>b.classList.toggle("active",b===tab));const input=root.querySelector("#academyEditorInput");if(input)input.value=drafts[mode];const label=root.querySelector("#academyEditorOutput");if(label)label.textContent="اضغط تشغيل الكود لمعاينة النتيجة.";return;}
- if(event.target.closest("[data-editor-run]")){const input=root.querySelector("#academyEditorInput");if(input)drafts[mode]=input.value;run();return;}
- if(event.target.closest("[data-editor-reset]")){drafts[mode]=defaults[mode];const input=root.querySelector("#academyEditorInput");if(input)input.value=drafts[mode];return;}
+ if(event.target.closest("[data-playground-run]")){run();return;}
+ if(event.target.closest("[data-playground-clear]")){root.querySelectorAll("[data-playground]").forEach(el=>el.value="");const frame=root.querySelector("[data-playground-preview]");if(frame)frame.srcdoc="";const status=root.querySelector("[data-playground-status]");if(status)status.textContent="تم مسح المحررات والمعاينة";return;}
+ if(event.target.closest("[data-playground-example]")){const samples={html:'<main class="card">\\n  <h1>أول مشروع لي 🚀</h1>\\n  <p>أنا أتعلم HTML وCSS وJavaScript.</p>\\n  <button id="hello">اضغط هنا</button>\\n</main>',css:'body { font-family: Arial, sans-serif; background: #eef2ff; padding: 24px; }\\n.card { max-width: 520px; margin: 30px auto; padding: 28px; text-align: center; background: white; border-radius: 18px; box-shadow: 0 8px 28px #17255422; }\\nh1 { color: #2457a6; }\\nbutton { padding: 10px 18px; border: 0; border-radius: 9px; background: #2457a6; color: white; cursor: pointer; }',js:'document.getElementById("hello").addEventListener("click", () => {\\n  console.log("أهلاً بك في مختبر Seal X1!");\\n});'};for(const [key,value] of Object.entries(samples)){const el=root.querySelector('[data-playground="'+key+'"]');if(el)el.value=value;}const status=root.querySelector("[data-playground-status]");if(status)status.textContent="تم تحميل المثال — اضغط تشغيل المشروع";return;}
 });
-document.addEventListener("click",event=>{const link=event.target.closest('a[href="#sealAcademy"]');if(link){const accordion=document.querySelector(".academy-section-accordion");if(accordion)accordion.open=true;}});
 const observer=new MutationObserver(mount);
 observer.observe(root,{childList:true});
 mount();
