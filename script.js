@@ -1080,8 +1080,6 @@ document.getElementById("heroAssistantJump")?.addEventListener("click", function
  document.getElementById("studentAuth")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
-// test-seal-patch
-
 
 
 /* QUREO Coach: free local knowledge engine; no external API or user data transfer. */
