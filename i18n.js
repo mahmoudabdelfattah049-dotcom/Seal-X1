@@ -23,8 +23,9 @@ function translateNode(node,lang){
  if(Object.prototype.hasOwnProperty.call(dict,source)){
   const leading=original.get(node).match(/^\s*/)?.[0]||"";
   const trailing=original.get(node).match(/\s*$/)?.[0]||"";
-  node.nodeValue=leading+dict[source]+trailing;
- }else if(lang==="ar")node.nodeValue=original.get(node);
+  const translated=leading+dict[source]+trailing;
+  if(node.nodeValue!==translated)node.nodeValue=translated;
+ }else if(lang==="ar"&&node.nodeValue!==original.get(node))node.nodeValue=original.get(node);
 }
 function applyLanguage(lang){
  const dict=dictionaries[lang]||{};
