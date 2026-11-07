@@ -492,6 +492,7 @@ async function portalInitSpaces(user,profile){
  portalSetVisible("studentSpace",isStudent);portalSetVisible("studentNav",isStudent);portalSetVisible("studentNavMobile",isStudent);
  portalSetVisible("teacherSpace",isTeacher);portalSetVisible("teacherNav",isTeacher);portalSetVisible("teacherNavMobile",isTeacher);
  portalSetVisible("adminPanel",isAdmin);portalSetVisible("adminNav",isAdmin);portalSetVisible("adminNavMobile",isAdmin);
+ portalSetVisible("downloadUploader",logged&&(isTeacher||isAdmin));
  portalSetVisible("learnAtYourPace",isStudent);
  portalSetVisible("studentAssistant",isStudent);portalSetVisible("teacherAssistant",isTeacher);
  if(!logged){if(portalRealtime){db.removeChannel(portalRealtime);portalRealtime=null;}return;}
@@ -633,28 +634,43 @@ document.getElementById("schoolTeacherAnnouncementForm")?.addEventListener("subm
  if(error){status.textContent="تعذر النشر: "+error.message;return;}
  e.target.reset();status.textContent="تم نشر الإعلان.";await refreshSchoolAnnouncementViews();
 });
-document.getElementById("teacherResourceForm")?.addEventListener("submit",async e=>{
- e.preventDefault();const user=window.sealCurrentUser;if(!user||window.sealCurrentProfile?.role!=="teacher")return;
- const title=document.getElementById("teacherResourceTitle").value.trim(),description=document.getElementById("teacherResourceDescription").value.trim(),subject=document.getElementById("teacherResourceSubject").value.trim(),categorySlug=document.getElementById("teacherResourceCategory").value,externalUrl=document.getElementById("teacherResourceUrl").value.trim(),file=document.getElementById("teacherResourceFile").files?.[0],status=document.getElementById("teacherResourceStatus");
+async function portalSubmitResourceForm(e,prefix){
+ e.preventDefault();
+ const user=window.sealCurrentUser,role=window.sealCurrentProfile?.role;
+ if(!user||!["teacher","admin"].includes(role)||(role==="teacher"&&!window.sealCurrentProfile?.teacher_verified))return;
+ const title=document.getElementById(prefix+"ResourceTitle").value.trim(),
+ description=document.getElementById(prefix+"ResourceDescription").value.trim(),
+ subject=document.getElementById(prefix+"ResourceSubject").value.trim(),
+ categorySlug=document.getElementById(prefix+"ResourceCategory").value,
+ externalUrl=document.getElementById(prefix+"ResourceUrl").value.trim(),
+ file=document.getElementById(prefix+"ResourceFile").files?.[0],
+ status=document.getElementById(prefix+"ResourceStatus");
  if(!file&&!externalUrl){status.textContent="ارفع ملفاً أو أضف رابطاً خارجياً.";return;}
- if(externalUrl && !externalUrl.startsWith("https://") && !externalUrl.startsWith("http://")){status.textContent="الرابط لازم يبدأ بـ https:// أو http://";return;}
+ if(externalUrl&&!externalUrl.startsWith("https://")&&!externalUrl.startsWith("http://")){status.textContent="الرابط لازم يبدأ بـ https:// أو http://";return;}
  if(file&&file.size>20*1024*1024){status.textContent="الحد الأقصى لحجم الملف 20 ميجابايت.";return;}
- if(file&&!/\\.(pdf|png|jpe?g|docx?|pptx?|txt)$/i.test(file.name)){status.textContent="نوع الملف غير مدعوم. استخدم PDF أو صورة أو مستنداً أو عرضاً تقديمياً أو TXT.";return;}
+ if(file&&!/\.(pdf|png|jpe?g|docx?|pptx?|txt)$/i.test(file.name)){status.textContent="نوع الملف غير مدعوم.";return;}
  status.textContent="جاري رفع المصدر...";
  let filePath=null;
  try{
   if(file){
    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-   filePath="teachers/"+user.id+"/"+Date.now()+"-"+safeName;
-   const {error:uploadError}=await db.storage.from("resources").upload(filePath,file,{upsert:false,contentType:file.type||"application/octet-stream"});
+   filePath=(role==="admin"?"admins/":"teachers/")+user.id+"/"+Date.now()+"-"+safeName;
+   const ext=file.name.split(".").pop().toLowerCase();
+   const mimeMap={pdf:"application/pdf",png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",doc:"application/msword",docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document",ppt:"application/vnd.ms-powerpoint",pptx:"application/vnd.openxmlformats-officedocument.presentationml.presentation",txt:"text/plain"};
+   const {error:uploadError}=await db.storage.from("resources").upload(filePath,file,{upsert:false,contentType:file.type||mimeMap[ext]||"application/pdf"});
    if(uploadError)throw uploadError;
   }
-  const {data:category}=await db.from("resource_categories").select("id").eq("slug",categorySlug).maybeSingle();
-  const {error}=await db.from("resources").insert({title,description,teacher_name:window.sealCurrentProfile?.display_name||window.sealCurrentProfile?.username||"معلم",file_path:filePath,external_url:externalUrl||null,category_id:category?.id||null,status:"published",verified:true,keywords:subject?[subject]:[],view_count:0,created_by:user.id});
+  const {data:category,error:categoryError}=await db.from("resource_categories").select("id").eq("slug",categorySlug).maybeSingle();
+  if(categoryError)throw categoryError;
+  const {error}=await db.from("resources").insert({title,description,teacher_name:role==="admin"?"إدارة Seal X1":(window.sealCurrentProfile?.display_name||window.sealCurrentProfile?.username||"معلم"),file_path:filePath,external_url:externalUrl||null,category_id:category?.id||null,status:"published",verified:true,keywords:subject?[subject]:[],view_count:0,created_by:user.id});
   if(error){if(filePath)await db.storage.from("resources").remove([filePath]);throw error;}
-  e.target.reset();status.textContent="تمت إضافة المصدر ونشره للطلاب.";await Promise.all([portalLoadTeacherResources(),loadResources()]);
+  e.target.reset();status.textContent="تمت إضافة المصدر ونشره مجاناً للطلاب.";
+  await loadResources();
+  if(role==="teacher")await portalLoadTeacherResources();
  }catch(err){status.textContent="تعذر إضافة المصدر: "+(err.message||"خطأ غير معروف");}
-});
+}
+document.getElementById("teacherResourceForm")?.addEventListener("submit",e=>portalSubmitResourceForm(e,"teacher"));
+document.getElementById("adminResourceForm")?.addEventListener("submit",e=>portalSubmitResourceForm(e,"admin"));
 document.getElementById("refreshTeacherResources")?.addEventListener("click",portalLoadTeacherResources);
 document.getElementById("refreshSchoolTeacherAnnouncements")?.addEventListener("click",portalLoadSchoolTeacherAnnouncements);
 document.getElementById("teacherResourcesList")?.addEventListener("click",async e=>{
