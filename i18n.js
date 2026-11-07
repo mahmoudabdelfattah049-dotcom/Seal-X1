@@ -59,7 +59,7 @@ applyLanguage(current);
 let scheduled=false;
 const observer=new MutationObserver(records=>{
  if(scheduled)return;scheduled=true;
- requestAnimationFrame(()=>{scheduled=false;const lang=select.value;for(const r of records){if(r.type==="characterData")translateNode(r.target,lang);for(const n of r.addedNodes||[]){if(n.nodeType===Node.TEXT_NODE)translateNode(n,lang);else if(n.nodeType===Node.ELEMENT_NODE){n.querySelectorAll("*").forEach(el=>{for(const child of el.childNodes)if(child.nodeType===Node.TEXT_NODE)translateNode(child,lang);});for(const child of n.childNodes)if(child.nodeType===Node.TEXT_NODE)translateNode(child,lang);}}});
+ requestAnimationFrame(()=>{scheduled=false;const lang=select.value;for(const r of records){if(r.type==="characterData")translateNode(r.target,lang);for(const n of r.addedNodes||[]){if(n.nodeType===Node.TEXT_NODE)translateNode(n,lang);else if(n.nodeType===Node.ELEMENT_NODE){n.querySelectorAll("*").forEach(el=>{for(const child of el.childNodes)if(child.nodeType===Node.TEXT_NODE)translateNode(child,lang);});for(const child of n.childNodes)if(child.nodeType===Node.TEXT_NODE)translateNode(child,lang);}}}});
 });
 });
 observer.observe(document.body,{subtree:true,childList:true,characterData:true});
