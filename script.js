@@ -323,17 +323,8 @@ if(db&&authCard){
  const passwordInput=document.getElementById("studentPassword");
  const displayNameInput=document.getElementById("studentDisplayName");
  const legalNameInput=document.getElementById("studentLegalName");
- const termsScroll=document.getElementById("signupTermsScroll");
  const termsAccepted=document.getElementById("signupTermsAccepted");
- const termsReadHint=document.getElementById("termsReadHint");
- let termsReadToEnd=false;
  const nameField=document.getElementById("studentNameField");
- termsScroll?.addEventListener("scroll",()=>{
-  if(termsScroll.scrollTop+termsScroll.clientHeight>=termsScroll.scrollHeight-8){
-   termsReadToEnd=true;termsAccepted.disabled=false;
-   if(termsReadHint)termsReadHint.textContent="تمت قراءة السياسة حتى النهاية. يمكنك الآن الموافقة للمتابعة.";
-  }
- });
  let authMode="login";
  const normalizeUsername=value=>value.normalize("NFC").trim().toLowerCase();
  const validUsername=value=>/^[A-Za-z0-9_ء-ي٠-٩۰-۹]{3,20}$/.test(value);
@@ -351,8 +342,8 @@ if(db&&authCard){
   nameField.hidden=mode!=="signup";
   displayNameInput.required=mode==="signup";
   legalNameInput.required=mode==="signup";
-  if(mode==="signup"){termsReadToEnd=false;termsAccepted.checked=false;termsAccepted.disabled=true;termsScroll.scrollTop=0;termsReadHint.textContent="مرّر النص إلى نهايته لتمكين الموافقة.";}
-  else {termsReadToEnd=false;termsAccepted.checked=false;termsAccepted.disabled=true;}
+  termsAccepted.checked=false;
+  termsAccepted.disabled=false;
   passwordInput.autocomplete=mode==="signup"?"new-password":"current-password";
   authSubmit.textContent=mode==="signup"?"إنشاء حساب الطالب":"دخول إلى حسابي";
   authHeading.textContent=mode==="signup"?"أنشئ حسابك في Seal X1":"أهلاً بك في Seal X1";
@@ -406,7 +397,7 @@ if(db&&authCard){
     const legalName=legalNameInput.value.trim().replace(/\s+/g," ");
     if(!displayName){setAuthMessage("اكتب الاسم الظاهر داخل المنصة.","error");return;}
     if(legalName.length<5||legalName.length>100||legalName.split(" ").filter(Boolean).length<3){setAuthMessage("اكتب اسمك الثلاثي المدرسي بشكل صحيح.","error");return;}
-    if(!termsReadToEnd||!termsAccepted.checked){setAuthMessage("لازم تقرأ سياسة الحساب حتى النهاية وتوافق عليها قبل إنشاء الحساب.","error");return;}
+    if(!termsAccepted.checked){setAuthMessage("راجع سياسة الحساب وفعّل مربع الموافقة قبل إنشاء الحساب.","error");return;}
     result=await db.auth.signUp({email:await internalEmail(username),password,options:{data:{username,display_name:displayName}}});
     if(result.error)throw result.error;
     if(result.data.session){
