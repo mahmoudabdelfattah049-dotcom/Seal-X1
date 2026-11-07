@@ -56,12 +56,19 @@ let current=localStorage.getItem("seal-x1-language")||"ar";
 if(!["ar","en","zh","id"].includes(current))current="ar";
 select.value=current;
 applyLanguage(current);
-let scheduled=false;
 const observer=new MutationObserver(records=>{
- if(scheduled)return;scheduled=true;
- requestAnimationFrame(()=>{scheduled=false;const lang=select.value;for(const r of records){if(r.type==="characterData")translateNode(r.target,lang);for(const n of r.addedNodes||[]){if(n.nodeType===Node.TEXT_NODE)translateNode(n,lang);else if(n.nodeType===Node.ELEMENT_NODE){n.querySelectorAll("*").forEach(el=>{for(const child of el.childNodes)if(child.nodeType===Node.TEXT_NODE)translateNode(child,lang);});for(const child of n.childNodes)if(child.nodeType===Node.TEXT_NODE)translateNode(child,lang);}}}});
+ const lang=select.value;
+ for(const record of records){
+  if(record.type==="characterData") translateNode(record.target,lang);
+  for(const node of record.addedNodes){
+   if(node.nodeType===Node.TEXT_NODE){translateNode(node,lang);continue;}
+   if(node.nodeType===Node.ELEMENT_NODE){
+    const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);
+    let child;
+    while((child=walker.nextNode())) translateNode(child,lang);
+   }
+  }
+ }
 });
-});
-observer.observe(document.body,{subtree:true,childList:true,characterData:true});
 select.addEventListener("change",()=>applyLanguage(select.value));
 })();
