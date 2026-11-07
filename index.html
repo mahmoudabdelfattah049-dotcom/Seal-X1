@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=signup-policy-v1">
+  <link rel="stylesheet" href="style.css?v=signup-policy-v2">
 </head>
 <body>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
@@ -249,7 +249,7 @@
           <p class="auth-hint">هذا الاسم سري، ولا يظهر للطلاب أو المعلمين أو زوار الموقع. يطلع عليه مشرف المنصة فقط للتحقق من صاحب الحساب.</p>
           <section class="signup-terms" aria-labelledby="signupTermsTitle">
             <h3 id="signupTermsTitle">سياسة الحساب والخصوصية واسترجاع كلمة المرور</h3>
-            <div class="signup-terms-scroll" id="signupTermsScroll" tabindex="0" aria-label="اقرأ سياسة الحساب كاملة">
+            <div class="signup-terms-scroll" aria-label="سياسة الحساب والخصوصية">
               <p><b>1. بيانات الحساب:</b> يُطلب منك اختيار اسم مستخدم وكلمة مرور، وإدخال اسمك الثلاثي المدرسي الحقيقي كما هو مسجل لدى المدرسة. يُنصح بمراجعته قبل إنشاء الحساب لتجنب أخطاء التحقق لاحقاً.</p>
               <p><b>2. خصوصية الاسم الحقيقي:</b> الاسم الثلاثي المدرسي يُحفظ في سجل خاص منفصل عن بيانات الملف العام، ولا يُعرض لأي طالب أو معلم أو زائر. يقتصر الاطلاع عليه على مشرف المنصة المخوّل، لغرض التحقق من ملكية الحساب وإدارة طلبات الاسترجاع.</p>
               <p><b>3. استرجاع الحساب مجاناً:</b> لا تستخدم المنصة رسائل SMS أو رسائل بريد مدفوعة لإرسال أكواد. إذا نسيت كلمة المرور، تواصل بنفسك مع مشرف المنصة في المدرسة. سيتحقق من هويتك بمطابقة اسمك مع بيانات المدرسة، ثم يعيد تعيين كلمة مرور مؤقتة ويسلمها لك بشكل مباشر. لا تُقبل طلبات تغيير كلمة المرور عبر وسيط أو رسالة من شخص آخر.</p>
@@ -258,8 +258,8 @@
               <p><b>6. الاستخدام والسلوك:</b> استخدم حسابك بنفسك، ولا تنتحل هوية طالب آخر أو تحاول الوصول إلى حساباته أو بياناته. قد تُراجع إساءة الاستخدام وفق صلاحيات إدارة المنصة.</p>
               <p><b>7. الموافقة:</b> بإنشاء الحساب، تؤكد أن بياناتك صحيحة وأنك قرأت السياسة وفهمت أن استرجاع الحساب يتم حضورياً لدى مشرف المنصة في المدرسة.</p>
             </div>
-            <label class="terms-consent"><input id="signupTermsAccepted" type="checkbox" disabled> قرأت سياسة الحساب والخصوصية واسترجاع كلمة المرور وأوافق عليها.</label>
-            <small id="termsReadHint" class="auth-hint">مرّر النص إلى نهايته لتمكين الموافقة.</small>
+            <label class="terms-consent"><input id="signupTermsAccepted" type="checkbox"> قرأت سياسة الحساب والخصوصية واسترجاع كلمة المرور وأوافق عليها.</label>
+            <small class="auth-hint">راجع البنود، ثم فعّل مربع الموافقة للمتابعة.</small>
           </section>
         </div>
         <label for="studentPassword">كلمة المرور</label><input id="studentPassword" name="password" type="password" minlength="8" autocomplete="current-password" placeholder="8 أحرف على الأقل" required>
@@ -272,5 +272,5 @@
   </section>
   <footer><a class="footer-brand" href="#home">SEAL <span>X1</span></a><p>© <span id="year"></span> Seal X1. مساحة تعليمية للطلاب.</p><a href="#home">العودة للبداية ↑</a></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=signup-policy-v1"></script>
+  <script src="script.js?v=signup-policy-v2"></script>
 </body></html>
