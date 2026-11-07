@@ -186,6 +186,12 @@ if(db){
   .subscribe(status=>console.info("School announcements realtime:",status));
 }
 
+const sealCuratedStudyResources=[
+ {id:"seal-ministry-assessments-2026-27",title:"التقييمات والأداءات الرسمية – أولى ثانوي",description:"بوابة وزارة التربية والتعليم لاختيار الصف الأول الثانوي، الترم الأول، ثم المادة والأسبوع. تشمل التقييمات الأسبوعية والأداءات الصفية والمنزلية حسب الملفات المتاحة على الوزارة.",teacher_name:"وزارة التربية والتعليم · مصدر رسمي",external_url:"https://ellibrary.moe.gov.eg/Performance_Assessments",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","تقييمات أسبوعية","أداءات صفية","أداءات منزلية"],resource_categories:{name:"تقييمات الوزارة",slug:"monthly-review"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
+ {id:"seal-ministry-e-learning-2026-27",title:"بوابة التعليم الإلكتروني – الكتب والمواد الرسمية",description:"المصدر الرسمي للكتب والمواد التعليمية. اختر المرحلة الثانوية ثم الصف الأول الثانوي والمادة، وتأكد من اختيار إصدار 2026/2027 والترم الأول.",teacher_name:"وزارة التربية والتعليم · مصدر رسمي",external_url:"https://moe.gov.eg/elearningenterypage/e-learning/",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","كتب الوزارة","كتب مدرسية"],resource_categories:{name:"كتب الوزارة",slug:"pdf"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
+ {id:"seal-ministry-student-books",title:"المكتبة الإلكترونية للكتب الدراسية",description:"بوابة المكتبة الإلكترونية للكتب الدراسية. استخدم محددات الصف والمادة للحصول على النسخة الرسمية المتاحة.",teacher_name:"وزارة التربية والتعليم · مصدر رسمي",external_url:"https://studentbooks.moe.gov.eg/cha/",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول","كتب دراسية"],resource_categories:{name:"كتب الوزارة",slug:"pdf"},subjects:{name:"جميع المواد"},signedUrl:null,curated:true},
+ {id:"seal-qureo-independent-guide",title:"دليل شروحات ومساعدات QUREO",description:"موقع تعليمي مستقل غير تابع للوزارة أو لمنصة QUREO الرسمية. استخدمه كمصدر مساعد فقط، وتحقق من تطابق الفصل والدرس مع المطلوب في منصتك.",teacher_name:"QureoEg · مصدر مستقل",external_url:"https://qureoeg.com/",file_path:null,created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي","QUREO","برمجة وذكاء اصطناعي"],resource_categories:{name:"حلول QUREO",slug:"qureo-solutions"},subjects:{name:"البرمجة والذكاء الاصطناعي"},signedUrl:null,curated:true}
+];
 let downloadResourcesCache=[];
 function renderDownloadResources(){
  const box=document.getElementById("downloadResults");if(!box)return;
@@ -210,13 +216,17 @@ function renderDownloadResources(){
 async function loadResources(){
  const section=document.querySelector("#library"),box=document.getElementById("downloadResults");
  if(!section||!db||!box)return;
- box.innerHTML='<p class="resource-loading">جاري تحميل الملفات المدرسية المنشورة...</p>';
+ box.innerHTML='<p class="resource-loading">جاري تحميل مكتبة أولى ثانوي 2026/2027...</p>';
  const {data,error}=await db.from("resources")
   .select("id,title,description,teacher_name,external_url,file_path,created_at,keywords,resource_categories(name,slug),subjects(name)")
   .eq("status","published").eq("verified",true).order("created_at",{ascending:false}).limit(100);
  if(error){box.innerHTML='<p class="resource-loading">تعذر تحميل ملفات المدرسة حالياً.</p>';console.error("Resources:",error);return;}
  const {data:{session}}=await db.auth.getSession();
- downloadResourcesCache=await Promise.all((data||[]).map(async item=>{
+ const schoolRows=(data||[]).filter(item=>{
+  const hay=[item.title,item.description,...(item.keywords||[])].join(" ");
+  return /أولى ثانوي|الصف الأول الثانوي|first secondary|sec1/i.test(hay);
+ });
+ const uploaded=await Promise.all(schoolRows.map(async item=>{
   let signedUrl=null;
   if(item.file_path&&session?.user){
    const {data:signed,error:signError}=await db.storage.from("resources").createSignedUrl(item.file_path,3600);
@@ -224,6 +234,7 @@ async function loadResources(){
   }
   return {...item,signedUrl};
  }));
+ downloadResourcesCache=[...sealCuratedStudyResources,...uploaded];
  renderDownloadResources();
 }
 document.getElementById("downloadSearch")?.addEventListener("input",renderDownloadResources);
@@ -696,7 +707,7 @@ async function portalSubmitResourceForm(e,prefix){
   }
   const {data:category,error:categoryError}=await db.from("resource_categories").select("id").eq("slug",categorySlug).maybeSingle();
   if(categoryError)throw categoryError;
-  const {error}=await db.from("resources").insert({title,description,teacher_name:role==="admin"?"إدارة Seal X1":(window.sealCurrentProfile?.display_name||window.sealCurrentProfile?.username||"معلم"),file_path:filePath,external_url:externalUrl||null,category_id:category?.id||null,status:"published",verified:true,keywords:subject?[subject]:[],view_count:0,created_by:user.id});
+  const {error}=await db.from("resources").insert({title,description,teacher_name:role==="admin"?"إدارة Seal X1":(window.sealCurrentProfile?.display_name||window.sealCurrentProfile?.username||"معلم"),file_path:filePath,external_url:externalUrl||null,category_id:category?.id||null,status:"published",verified:true,keywords:[...new Set(["أولى ثانوي 2026/2027","الترم الأول",...(subject?[subject]:[])])],view_count:0,created_by:user.id});
   if(error){if(filePath)await db.storage.from("resources").remove([filePath]);throw error;}
   e.target.reset();status.textContent="تمت إضافة المصدر ونشره مجاناً للطلاب.";
   await loadResources();
