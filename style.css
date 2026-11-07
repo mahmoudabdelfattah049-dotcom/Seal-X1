@@ -401,3 +401,91 @@ html[dir="ltr"] .qureo-chat-bubble.assistant{align-self:flex-start}
 html[dir="ltr"] .qureo-chat-bubble.user{align-self:flex-end}
 html[dir="ltr"] .qureo-tip{border-right:0;border-left:3px solid var(--accent)}
 @media(max-width:700px){.language-picker select{max-width:112px;font-size:10px;padding:5px}}
+
+
+/* Seal X1 Academy — interactive self-paced courses */
+#sealAcademy{scroll-margin-top:90px}
+#sealAcademyRoot{margin-top:22px}
+.academy-loading{padding:24px;border:1px solid var(--line);border-radius:16px;color:var(--muted)}
+.academy-progress-card{padding:19px 21px;border:1px solid var(--line);border-radius:18px;background:var(--panel);margin-bottom:16px}
+.academy-progress-card>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.academy-progress-kicker,.academy-track-label{display:block;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.04em}
+.academy-progress-card strong{font-size:23px;font-variant-numeric:tabular-nums}
+.academy-progress-card strong small{font-size:12px;color:var(--muted);font-weight:600}
+.academy-progress-track{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:13px 0 9px}
+.academy-progress-track span{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .25s ease}
+.academy-progress-card p{margin:0;color:var(--muted);font-size:11px;line-height:1.7}
+.academy-course-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 15px}
+.academy-course-tab{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;align-items:center;column-gap:11px;text-align:right;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:var(--text);cursor:pointer;font:inherit;transition:border-color .2s,transform .2s}
+.academy-course-tab:hover{transform:translateY(-2px)}
+.academy-course-tab.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.academy-course-mark{grid-row:1/3;display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--bg);font-size:12px;font-weight:900}
+.academy-course-mark.js{color:#c58b17;background:#f4e8bd}
+.academy-course-mark.html{color:#d85b36;background:#f9e0d8}
+.academy-course-mark.css{color:#3977cf;background:#dce9fc}
+.academy-course-tab b{font-size:14px}
+.academy-course-tab small{font-size:10px;color:var(--muted)}
+.academy-workspace{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.8fr);gap:14px;align-items:start}
+.academy-sidebar,.academy-lesson-panel{min-width:0;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+.academy-sidebar{overflow:hidden}
+.academy-track-intro{padding:17px;border-bottom:1px solid var(--line)}
+.academy-track-intro h3{font-size:20px;margin:5px 0}
+.academy-track-intro p{font-size:12px;line-height:1.8;color:var(--muted);margin:0 0 9px}
+.academy-track-intro>small{font-size:10px;color:var(--muted)}
+.academy-lesson-list{display:grid;gap:5px;padding:9px}
+.academy-lesson-link{display:flex;gap:10px;align-items:center;width:100%;padding:10px;border:1px solid transparent;border-radius:11px;background:transparent;color:var(--text);text-align:right;font:inherit;cursor:pointer}
+.academy-lesson-link.active{background:var(--bg);border-color:var(--line)}
+.academy-lesson-index{display:grid;place-items:center;flex:0 0 29px;height:29px;border-radius:9px;background:var(--bg);font-size:11px;font-weight:900;color:var(--muted)}
+.academy-lesson-link.active .academy-lesson-index{background:var(--accent);color:white}
+.academy-lesson-link>span:last-child{display:grid;gap:3px;min-width:0}
+.academy-lesson-link b{font-size:11px;line-height:1.55}
+.academy-lesson-link small{font-size:10px;color:var(--muted)}
+.academy-coming-soon{margin:0 9px 10px;padding:12px;border-radius:12px;background:var(--bg)}
+.academy-coming-soon b{font-size:11px}
+.academy-coming-soon p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.7}
+.academy-lesson-panel{padding:clamp(15px,3vw,25px)}
+.academy-lesson-topline{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px;font-weight:800}
+.academy-lesson-panel>h3{font-size:clamp(19px,3vw,25px);line-height:1.5;margin:8px 0 17px}
+.academy-goals{padding:13px 15px;border:1px solid var(--line);border-radius:13px;background:var(--bg)}
+.academy-goals>b{font-size:12px}
+.academy-goals ul{padding-inline-start:20px;margin:7px 0 0;display:grid;gap:5px}
+.academy-goals li{font-size:11px;line-height:1.7}
+.academy-explanation{padding:17px 2px 7px}
+.academy-explanation h4,.academy-quiz h4{font-size:14px;margin:0 0 9px}
+.academy-explanation p{font-size:12px;line-height:2;margin:0 0 9px;color:var(--text)}
+.academy-code-card{overflow:hidden;border:1px solid var(--line);border-radius:14px;margin:8px 0 15px;background:var(--bg)}
+.academy-code-head{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-bottom:1px solid var(--line);font-size:11px}
+.academy-code-head span{color:var(--muted);font-size:10px}
+.academy-code-card>pre,.academy-answer pre{margin:0;padding:15px;overflow:auto;direction:ltr;text-align:left;white-space:pre;font:12px/1.8 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text);tab-size:2}
+.academy-output{padding:11px 13px;border-top:1px solid var(--line);background:var(--panel)}
+.academy-output>b{font-size:10px;color:var(--muted)}
+.academy-output pre{margin:6px 0 0;white-space:pre-wrap;direction:ltr;text-align:left;font:11px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace}
+.academy-challenge{padding:15px;border:1px solid var(--line);border-radius:14px}
+.academy-challenge-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.academy-challenge-head span{font-size:13px;font-weight:900}
+.academy-challenge-head b{font-size:10px;color:var(--muted)}
+.academy-challenge>p{font-size:12px;line-height:1.9;margin:9px 0 12px}
+.academy-challenge details{border-top:1px solid var(--line);padding:9px 0 0;margin-top:9px}
+.academy-challenge summary{cursor:pointer;font-size:11px;font-weight:800}
+.academy-challenge details p{font-size:11px;line-height:1.8;color:var(--muted);margin:8px 0 0}
+.academy-answer pre{margin-top:8px;border-radius:10px;background:var(--bg);font-size:11px}
+.academy-quiz{margin-top:15px;padding:15px;border:1px solid var(--line);border-radius:14px}
+.academy-quiz>p{font-size:12px;line-height:1.8;margin:8px 0 12px}
+.academy-quiz-options{display:grid;gap:7px}
+.academy-quiz-options button{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);text-align:right;font:inherit;font-size:11px;cursor:pointer}
+.academy-quiz-options button.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.academy-quiz-options button:disabled{cursor:default;opacity:.85}
+.academy-quiz-feedback{font-size:11px;line-height:1.7;margin-top:10px}
+.academy-quiz-feedback p{color:var(--muted);margin:4px 0}
+.academy-quiz-feedback .correct{color:#16804a}
+.academy-quiz-feedback .incorrect{color:#c17a16}
+.academy-check-answer,.academy-complete-btn,.academy-next-btn{padding:10px 14px;border-radius:10px;border:1px solid var(--line);font:inherit;font-size:11px;font-weight:800;cursor:pointer}
+.academy-check-answer{margin-top:10px;background:var(--text);color:var(--panel)}
+.academy-check-answer:disabled{opacity:.4;cursor:not-allowed}
+.academy-lesson-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;margin-top:14px}
+.academy-complete-btn{background:var(--accent);border-color:var(--accent);color:white}
+.academy-next-btn{background:var(--bg);color:var(--text)}
+@media(max-width:760px){.academy-workspace{grid-template-columns:1fr}.academy-sidebar{order:1}.academy-lesson-panel{order:2}.academy-lesson-list{grid-template-columns:repeat(2,minmax(0,1fr))}.academy-coming-soon{margin-top:0}}
+@media(max-width:480px){.academy-course-tabs{gap:6px}.academy-course-tab{padding:9px 7px;column-gap:7px}.academy-course-mark{width:32px;height:32px;font-size:10px}.academy-course-tab b{font-size:12px}.academy-course-tab small{font-size:9px}.academy-lesson-list{grid-template-columns:1fr}.academy-lesson-panel{padding:14px}.academy-lesson-actions>*{flex:1}.academy-progress-card{padding:14px}}
+html[dir="ltr"] .academy-course-tab,html[dir="ltr"] .academy-lesson-link,html[dir="ltr"] .academy-quiz-options button{text-align:left}
+html[dir="ltr"] .academy-lesson-topline{direction:ltr}
