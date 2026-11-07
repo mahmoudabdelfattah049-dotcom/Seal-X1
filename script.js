@@ -209,6 +209,8 @@ const sealDirectAssessmentResources=sealAssessmentSets.flatMap(set=>{
    description:"ملف PDF لتقييم الصف الأول الثانوي 2026/2027 – الترم الأول. رابط مباشر على نطاق تخزين محتوى الوزارة؛ إذا تعذر فتحه، استخدم بوابة التقييمات الرسمية لاختيار المادة والأسبوع.",
    teacher_name:"ملف تقييم · مسار محتوى الوزارة",external_url:sealAssessmentBase+file,file_path:null,
    created_at:"2026-11-07T00:00:00.000Z",keywords:["أولى ثانوي 2026/2027","الترم الأول",set.subject,"تقييم أسبوعي"],
+   assessmentLanguage:(/لغات|الإنجليزية/.test(set.subject)?"en":"ar"),
+   assessmentSubject:set.subject.replace(/\s*[–-]\s*عربي$/,""),
    resource_categories:{name:"تقييمات الوزارة",slug:"monthly-review"},subjects:{name:set.subject},signedUrl:null,curated:true};
  });
 });
@@ -220,26 +222,50 @@ const sealCuratedStudyResources=[
 ];
 sealCuratedStudyResources.push(...sealDirectAssessmentResources);
 let downloadResourcesCache=[];
+function renderArabicAssessmentResources(){
+ const box=document.getElementById("downloadArabicAssessments");if(!box)return;
+ const rows=sealDirectAssessmentResources.filter(item=>item.assessmentLanguage==="ar");
+ const groups=new Map();
+ rows.forEach(item=>{const subject=item.assessmentSubject||item.subjects?.name||"مواد أخرى";if(!groups.has(subject))groups.set(subject,[]);groups.get(subject).push(item);});
+ box.innerHTML=[...groups.entries()].map(([subject,items])=>{
+  const links=items.map(item=>{
+   const week=(item.title.match(/الأسبوع\s*\S+/)||[])[0]||"ملف التقييم";
+   return '<a class="arabic-assessment-file" href="'+escapeHTML(item.external_url)+'" target="_blank" rel="noopener noreferrer"><span><b>'+escapeHTML(week)+'</b><small>PDF · تقييم الوزارة</small></span><strong>فتح الملف ↗</strong></a>';
+  }).join("");
+  return '<details class="assessment-subject-group"><summary><span><b>'+escapeHTML(subject)+'</b><small>'+items.length+' ملفات تقييم متاحة</small></span><span class="assistant-chevron">⌄</span></summary><div class="assessment-week-list">'+links+'</div></details>';
+ }).join("");
+}
 function renderDownloadResources(){
  const box=document.getElementById("downloadResults");if(!box)return;
  const term=(document.getElementById("downloadSearch")?.value||"").trim().toLocaleLowerCase("ar");
  const category=document.getElementById("downloadCategoryFilter")?.value||"";
+ const subject=document.getElementById("downloadSubjectFilter")?.value||"";
  const rows=downloadResourcesCache.filter(item=>{
+  if(item.assessmentLanguage==="ar")return false;
   const cat=item.resource_categories?.slug||"";
-  const hay=[item.title,item.description,item.teacher_name,...(item.keywords||[])].join(" ").toLocaleLowerCase("ar");
-  return (!category||cat===category)&&(!term||hay.includes(term));
+  const subjectName=item.subjects?.name||"";
+  const hay=[item.title,item.description,item.teacher_name,subjectName,...(item.keywords||[])].join(" ").toLocaleLowerCase("ar");
+  return (!category||cat===category)&&(!subject||subjectName===subject)&&(!term||hay.includes(term));
  });
- if(!rows.length){box.innerHTML='<div class="download-empty"><b>مفيش ملفات مطابقة حالياً</b><span>جرّب تغيير البحث أو التصنيف، أو ارجع بعد إضافة ملفات جديدة.</span></div>';return;}
+ if(!rows.length){box.innerHTML='<div class="download-empty"><b>مفيش ملفات مطابقة حالياً</b><span>جرّب تغيير البحث أو المادة أو التصنيف.</span></div>';return;}
  box.innerHTML=rows.map(item=>{
   const cat=item.resource_categories?.name||"مصدر تعليمي";
-  const subject=item.subjects?.name||(item.keywords||[]).find(Boolean)||"كل المواد";
+  const subjectName=item.subjects?.name||(item.keywords||[]).find(Boolean)||"كل المواد";
   let href="",label="الرابط غير متاح";
   if(item.file_path&&item.signedUrl){href=item.signedUrl;label="تحميل الملف";}
-  else if(item.external_url){href=item.external_url;label="فتح المصدر";}
+  else if(item.external_url){href=item.external_url;label=/\.pdf(?:$|[?#])/i.test(item.external_url)?"فتح PDF":"فتح المصدر";}
   else if(item.file_path&&!window.sealCurrentUser){href="#studentAuth";label="سجّل الدخول للتحميل";}
-  return '<article class="download-resource-card"><div class="download-file-icon">PDF</div><div class="download-resource-copy"><div class="download-resource-tags"><span>'+escapeHTML(cat)+'</span><span>'+escapeHTML(subject)+'</span></div><h4>'+escapeHTML(item.title)+'</h4><p>'+escapeHTML(item.description||"لا يوجد وصف إضافي.")+'</p><small>'+(item.teacher_name?escapeHTML(item.teacher_name)+" · ":"")+escapeHTML(dateLabel(item.created_at))+'</small></div>'+(href?'<a class="download-resource-action" href="'+escapeHTML(href)+'" '+(href.startsWith("#")?'':'target="_blank" rel="noopener noreferrer"')+'>'+label+' ↗</a>':'<span class="resource-pending">'+label+'</span>')+'</article>';
+  return '<article class="download-resource-card"><div class="download-file-icon">PDF</div><div class="download-resource-copy"><div class="download-resource-tags"><span>'+escapeHTML(cat)+'</span><span>'+escapeHTML(subjectName)+'</span></div><h4>'+escapeHTML(item.title)+'</h4><p>'+escapeHTML(item.description||"لا يوجد وصف إضافي.")+'</p><small>'+(item.teacher_name?escapeHTML(item.teacher_name)+" · ":"")+escapeHTML(dateLabel(item.created_at))+'</small></div>'+(href?'<a class="download-resource-action" href="'+escapeHTML(href)+'" '+(href.startsWith("#")?'':'target="_blank" rel="noopener noreferrer"')+'>'+label+' ↗</a>':'<span class="resource-pending">'+label+'</span>')+'</article>';
  }).join("");
 }
+function populateDownloadSubjectFilter(){
+ const select=document.getElementById("downloadSubjectFilter");if(!select)return;
+ const current=select.value;
+ const subjects=[...new Set(downloadResourcesCache.filter(item=>item.assessmentLanguage!=="ar").map(item=>item.subjects?.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ar"));
+ select.innerHTML='<option value="">كل المواد</option>'+subjects.map(name=>'<option value="'+escapeHTML(name)+'">'+escapeHTML(name)+'</option>').join("");
+ if(subjects.includes(current))select.value=current;
+}
+
 async function loadResources(){
  const section=document.querySelector("#library"),box=document.getElementById("downloadResults");
  if(!section||!db||!box)return;
@@ -262,10 +288,13 @@ async function loadResources(){
   return {...item,signedUrl};
  }));
  downloadResourcesCache=[...sealCuratedStudyResources,...uploaded];
+ populateDownloadSubjectFilter();
+ renderArabicAssessmentResources();
  renderDownloadResources();
 }
 document.getElementById("downloadSearch")?.addEventListener("input",renderDownloadResources);
 document.getElementById("downloadCategoryFilter")?.addEventListener("change",renderDownloadResources);
+document.getElementById("downloadSubjectFilter")?.addEventListener("change",renderDownloadResources);
 document.querySelectorAll("[data-resource-category]").forEach(link=>link.addEventListener("click",()=>{
  const filter=document.getElementById("downloadCategoryFilter");
  if(filter){filter.value=link.dataset.resourceCategory;renderDownloadResources();}
