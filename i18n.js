@@ -137,10 +137,18 @@ function translateNode(node,lang){
  const key=source.trim();
  let translated=lang==="ar"?source:(translations[lang]?.[key]??source);
  if(lang!=="ar" && !translations[lang]?.[key]){
-  let match=key.match(/^عدد الأقواس المعقوفة غير متساوٍ: \{ = (\d+) و \} = (\d+)\.$/);
-  if(match)translated=lang==="en"?\`Mismatched curly braces: { = \${match[1]} and } = \${match[2]}.\`:lang==="zh"?\`花括号数量不匹配：{ = \${match[1]}，} = \${match[2]}。\`:\`Kurung kurawal tidak seimbang: { = \${match[1]} dan } = \${match[2]}.\`;
-  match=key.match(/^عدد الأقواس العادية غير متساوٍ: \( = (\d+) و \) = (\d+)\.$/);
-  if(match)translated=lang==="en"?\`Mismatched parentheses: ( = \${match[1]} and ) = \${match[2]}.\`:lang==="zh"?\`圆括号数量不匹配：( = \${match[1]}，) = \${match[2]}。\`:\`Tanda kurung biasa tidak seimbang: ( = \${match[1]} dan ) = \${match[2]}.\`;
+  let match=key.match(/^عدد الأقواس المعقوفة غير متساوٍ: \\{ = (\\d+) و \\} = (\\d+)\\.$/);
+  if(match){
+   if(lang==="en")translated="Mismatched curly braces: { = "+match[1]+" and } = "+match[2]+".";
+   else if(lang==="zh")translated="花括号数量不匹配：{ = "+match[1]+"，} = "+match[2]+"。";
+   else translated="Kurung kurawal tidak seimbang: { = "+match[1]+" dan } = "+match[2]+".";
+  }
+  match=key.match(/^عدد الأقواس العادية غير متساوٍ: \\( = (\\d+) و \\) = (\\d+)\\.$/);
+  if(match){
+   if(lang==="en")translated="Mismatched parentheses: ( = "+match[1]+" and ) = "+match[2]+".";
+   else if(lang==="zh")translated="圆括号数量不匹配：( = "+match[1]+"，) = "+match[2]+"。";
+   else translated="Tanda kurung biasa tidak seimbang: ( = "+match[1]+" dan ) = "+match[2]+".";
+  }
  }
  const leading=source.match(/^\s*/)?.[0]||"";
  const trailing=source.match(/\s*$/)?.[0]||"";
