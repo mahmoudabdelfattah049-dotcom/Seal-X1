@@ -725,3 +725,6 @@ html[dir="ltr"] .academy-lesson-topline{direction:ltr}
   min-height:0;
   overflow:visible;
 }
+
+
+.privacy-notice{max-width:900px;margin:0 auto 18px;padding:10px 14px;border:1px solid var(--line,rgba(148,163,184,.2));border-radius:12px;font-size:12px;line-height:1.8;color:var(--muted,#94a3b8);text-align:center}
