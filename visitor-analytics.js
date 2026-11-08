@@ -30,7 +30,7 @@
   }
   let lastPath="";
   function record(){
-    const path=location.pathname.slice(0,180)||"/";if(path===lastPath)return;lastPath=path;
+    const path=(location.pathname+(location.hash||"")).slice(0,180)||"/";if(path===lastPath)return;lastPath=path;
     const body={session_id:getSessionId(),page_path:path,...deviceInfo(),language:navigator.language||"",timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||"",referrer:document.referrer||""};
     fetch(ENDPOINT,{method:"POST",mode:"cors",credentials:"omit",headers:{"apikey":PUBLIC_KEY,"Content-Type":"application/json"},body:JSON.stringify(body),keepalive:true}).catch(()=>{});
   }
