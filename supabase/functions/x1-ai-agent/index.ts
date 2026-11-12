@@ -15,9 +15,9 @@ const TOOLS=[
 Deno.serve(async(req:Request)=>{
 if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});
 if(req.method!=="POST")return json({error:"Method not allowed"},405);
-const url=Deno.env.get("SUPABASE_URL"),anon=Deno.env.get("SUPABASE_ANON_KEY"),service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),apiKey=Deno.env.get("OPENAI_API_KEY");
+const url=Deno.env.get("SUPABASE_URL"),anon=Deno.env.get("SUPABASE_ANON_KEY"),service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 if(!url||!anon||!service)return json({error:"إعدادات الخادم غير مكتملة."},500);
-if(!apiKey)return json({error:"خدمة الذكاء الاصطناعي لم تُفعّل بعد. أضف OPENAI_API_KEY في أسرار Supabase.",code:"AI_NOT_CONFIGURED"},503);
+
 const token=(req.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");if(!token)return json({error:"سجّل الدخول لاستخدام المساعد المتقدم.",code:"AUTH_REQUIRED"},401);
 let body:any;try{body=await req.json();}catch{return json({error:"صيغة الطلب غير صالحة."},400);}
 const agent=body?.agent==="qureo"||body?.agent==="general"?body.agent:"",question=cut(body?.question,12000).trim();
@@ -83,20 +83,55 @@ if(name==="find_platform_video"){const found=videos.map((v:any)=>({...v,match:sc
 if(name==="open_official_qureo_portal"){actions.push({type:"open_link",url:"https://me-portal.qureo.education/login",title:"منصة QUREO الرسمية"});return{success:true,url:"https://me-portal.qureo.education/login"};}
 return{error:"أداة غير معروفة"};}
 const available=agent==="qureo"?[TOOLS[0],TOOLS[5]]:TOOLS.slice(1);
-const model=agent==="qureo"?(Deno.env.get("X1_QUREO_MODEL")||"gpt-6.1-sol"):(Deno.env.get("X1_GENERAL_MODEL")||"gpt-6.1-terra");
-const input:any[]=[...history,{role:"user",content:[{type:"input_text",text:question}]}];let answer="",usage:any={};
-for(let turn=0;turn<5;turn++){
-const upstream=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{Authorization:"Bearer "+apiKey,"Content-Type":"application/json"},body:JSON.stringify({model,instructions,input,tools:available,tool_choice:"auto",parallel_tool_calls:false,max_output_tokens:agent==="qureo"?1800:1100,store:false,reasoning:{effort:agent==="qureo"?"high":"medium"}})});
-const raw=await upstream.text();if(!upstream.ok){console.error("X1 AI upstream",upstream.status,raw.slice(0,1000));return json({error:"تعذر الحصول على إجابة من نموذج الذكاء الاصطناعي.",code:"AI_UPSTREAM_ERROR"},502);}
-let result:any;try{result=JSON.parse(raw);}catch{return json({error:"استجابة غير مفهومة من خدمة الذكاء الاصطناعي."},502);}
-usage=result.usage||usage;const calls=(result.output||[]).filter((x:any)=>x.type==="function_call");
-if(!calls.length){answer=result.output_text||(result.output||[]).filter((x:any)=>x.type==="message").flatMap((x:any)=>x.content||[]).filter((x:any)=>x.type==="output_text").map((x:any)=>x.text).join("\n");break;}
-input.push(...(result.output||[]));for(const call of calls){let args:any={};try{args=JSON.parse(call.arguments||"{}");}catch{}const output=await runTool(call.name,args);input.push({type:"function_call_output",call_id:call.call_id,output:JSON.stringify(output)});}
+let answer="",usage:any={input_tokens:0,output_tokens:0};
+if(agent==="qureo"){
+ const qn=question.toLocaleLowerCase("ar");
+ const codeMatch=question.match(/(?:<!doctype|<html|<div|<style|function\s+\w+|const\s+\w+\s*=|let\s+\w+\s*=|document\.|console\.|if\s*\()/i);
+ const findings:string[]=[];
+ if(codeMatch){
+  const snippet=question.slice(Math.max(0,codeMatch.index||0),Math.min(question.length,(codeMatch.index||0)+5000));
+  if(/<img\b(?![^>]*\balt\s*=)/i.test(snippet))findings.push("وجدت صورة img بدون alt؛ أضف وصفاً مناسباً.");
+  if(!/<!doctype html>/i.test(snippet)&&/<html|<body/i.test(snippet))findings.push("يفضل إضافة <!DOCTYPE html> في بداية مستند HTML.");
+  if(/\bif\s*\([^)]*(?<![=!<>])=(?!=)[^)]*\)/.test(snippet))findings.push("يوجد احتمال استخدام = داخل شرط if بدلاً من === للمقارنة؛ راجع قصدك.");
+  if(/\bwhile\s*\(|\bfor\s*\(/.test(snippet))findings.push("راجع شرط توقف الحلقة وتحديث العداد لتجنب حلقة لا نهائية.");
+  if(/\bvar\b/.test(snippet))findings.push("في JavaScript الحديثة يفضّل const أو let بدلاً من var.");
+  if(/==(?!=)/.test(snippet))findings.push("يوجد استخدام ==؛ غالباً === أوضح لأنه يقارن القيمة والنوع.");
+  if(/display\s*:\s*flex/i.test(snippet))findings.push("Flexbox مفعّل؛ راجع justify-content وalign-items.");
+  if((snippet.match(/\{/g)||[]).length!==(snippet.match(/\}/g)||[]).length&&/display\s*:|color\s*:|margin\s*:/.test(snippet))findings.push("أقواس CSS المعقوفة غير متوازنة.");
+  if(!findings.length)findings.push("لم يظهر خطأ مؤكد بالفحص النصي. أرسل رسالة الخطأ والناتج المتوقع والحالي لتشخيص أدق.");
+  answer="أنا QUREO Mentor المجاني. ده فحص ساكن للكود، وليس تشغيلًا فعلياً له.\n\nنتائج الفحص:\n"+findings.map(x=>"• "+x).join("\n")+"\n\nلو تبعت الكود في رسالة منفصلة وتوضح المطلوب أقدر أحدد المشكلة بصورة أدق.";
+ }else{
+  const found=knowledge.map((x:any)=>({...x,rank:score(question,[x.title,x.category,...(x.keywords||[]),x.content].join(" "))})).filter((x:any)=>x.rank>0.04).sort((a:any,b:any)=>b.rank-a.rank).slice(0,3);
+  if(found.length)answer="أنا QUREO Mentor المجاني. وجدت في قاعدة المعرفة محتوى قريباً من سؤالك:\n\n"+found.map((x:any,i:number)=>(i+1)+". "+x.title+"\n"+cut(x.content,1000)).join("\n\n")+"\n\nأرسل مثالاً أو نص تحدي QUREO لو عايز تطبيقاً عملياً.";
+  else if(/\bhtml\b|اتش تي ام ال|وسوم/.test(qn))answer="HTML يبني هيكل الصفحة ومعناها. استخدم html وhead وbody والعناصر الدلالية مثل header وmain وsection وfooter. أضف alt للصور وlabel للحقول.";
+  else if(/\bcss\b|ستايل|تنسيق|flexbox|grid/.test(qn))answer="CSS يتحكم في شكل الصفحة وتخطيطها. Flexbox مناسب لمحور واحد، وGrid لتخطيط الصفوف والأعمدة. راجع المحددات والقيم والأقواس.";
+  else if(/\bjavascript\b|\bjs\b|جافاسكريبت|متغير|حلقة|شرط|داله/.test(qn))answer="JavaScript تضيف المنطق والتفاعل. استخدم const للقيم الثابتة وlet للقيم المتغيرة و=== للمقارنة الصارمة، وراجع شرط توقف الحلقات.";
+  else answer="أنا QUREO Mentor المجاني في X1. قاعدة المعرفة الحالية لا تحتوي على إجابة موثوقة كفاية لسؤالك. حدّد هل تقصد HTML أو CSS أو JavaScript أو أرسل نص تحدي QUREO والكود الذي كتبته.";
+ }
+}else{
+ const qn=question.toLocaleLowerCase("ar");
+ const nav=/(افتح|روح|انقل|وديني|انتقل|عايز اشوف|عايز ادخل|فين|اين|مكان|ازاي اوصل)/.test(qn);
+ const cat=await runTool("search_platform_catalog",{query:question});
+ const sections=cat?.results||[];
+ if(nav&&sections.length){
+  const target=sections[0];
+  const done=await runTool("navigate_to_section",{section_id:target.section_id});
+  answer=done?.success?"أقرب قسم لطلبك هو "+target.title+". هفتح لك القسم الآن.":"لم أتمكن من تأكيد فتح القسم. "+(target.title||"");
+ }else if(/فيديو|شرح|محاضره|درس|اعرض|شغل/.test(qn)){
+  const v=await runTool("find_platform_video",{query:question});
+  answer=v?.found?"وجدت فيديو "+v.title+" في "+v.subject+"، وهفتحه لك.":"لم أجد فيديو مطابقاً بدرجة كافية في مكتبة X1.";
+ }else if(/ملف|pdf|مذكره|مراجعه|اعلان|قرار|خبر|منشور|تحميل|كتاب|مصدر/.test(qn)){
+  const r=await runTool("search_live_resources",{query:question});
+  const rows=r?.resources||[],newsRows=r?.announcements||[];
+  answer=(rows.length||newsRows.length)?"أقرب النتائج المنشورة:\n"+rows.map((x:any)=>"• "+x.title+" "+(x.url||"")).join("\n")+"\n"+newsRows.map((x:any)=>"• "+x.title+" — "+cut(x.body,180)).join("\n"):"لم أجد ملفاً أو إعلاناً منشوراً يطابق طلبك.";
+ }else if(sections.length){
+  answer="أقرب قسم لطلبك هو "+sections[0].title+".\n"+cut(sections[0].summary||sections[0].instructions,400)+"\nاكتب «افتح القسم» لو عايز أوجهك إليه.";
+ }else answer="أنا دليل Seal X1 المجاني. أقدر أساعدك تلاقي الأقسام والفيديوهات والملفات والإعلانات المنشورة. اكتب اسم الحاجة أو المادة بصورة أوضح.";
 }
-answer=cut(answer||"لم أتمكن من تكوين إجابة نهائية. جرّب توضيح المطلوب.",12000);
-const {error:saveError}=await admin.from("x1_ai_messages").insert([{conversation_id:conversationId,user_id:user.id,role:"user",content:question},{conversation_id:conversationId,user_id:user.id,role:"assistant",content:answer,metadata:{model,actions}}]);
-if(saveError)console.error("X1 AI history save failed",saveError.message);
+answer=cut(answer||"لم أتمكن من تحديد المطلوب. وضّح سؤالك بمثال.",12000);
+const {error:saveError}=await admin.from("x1_ai_messages").insert([{conversation_id:conversationId,user_id:user.id,role:"user",content:question},{conversation_id:conversationId,user_id:user.id,role:"assistant",content:answer,metadata:{engine:"free-local-rag",actions}}]);
+if(saveError)console.error("X1 free agent history save failed",saveError.message);
 await admin.from("x1_ai_conversations").update({updated_at:new Date().toISOString()}).eq("id",conversationId).eq("user_id",user.id);
-await admin.from("x1_ai_usage_events").insert({user_id:user.id,agent,input_tokens:Number(usage.input_tokens||0),output_tokens:Number(usage.output_tokens||0)});
-return json({ok:true,agent,conversation_id:conversationId,answer,actions,usage:{input_tokens:Number(usage.input_tokens||0),output_tokens:Number(usage.output_tokens||0)}});
+await admin.from("x1_ai_usage_events").insert({user_id:user.id,agent,input_tokens:0,output_tokens:0});
+return json({ok:true,agent,conversation_id:conversationId,answer,actions,usage,engine:"free-local-rag"});
 });
