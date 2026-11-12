@@ -202,3 +202,15 @@ insert into public.x1_platform_catalog(section_id,title,summary,instructions,key
 on conflict(section_id) do update set
  title=excluded.title,summary=excluded.summary,instructions=excluded.instructions,keywords=excluded.keywords,
  allowed_roles=excluded.allowed_roles,href=excluded.href,is_active=true,updated_at=now();
+
+
+insert into public.x1_platform_catalog(section_id,title,summary,instructions,keywords,allowed_roles,href) values
+('downloadUploader','إضافة ملف جديد للمكتبة','نموذج إدارة الملفات وإضافة مصادر للطلاب.','يظهر للإدارة والمعلمين الموثقين؛ تحقق من التصنيف والملف قبل النشر.',array['رفع ملفات','إضافة ملف','المكتبة','رفع PDF'],array['teacher','admin'],'#downloadUploader'),
+('studentVideoBookmarks','قائمتي الخاصة','الفيديوهات التي حفظها الطالب للرجوع إليها لاحقاً.','متاحة للطالب المسجل؛ افتحها لتشغيل فيديو محفوظ أو إزالته من القائمة.',array['المفضلة','فيديو محفوظ','قائمتي الخاصة','bookmark'],array['student'],'#studentVideoBookmarks'),
+('studentAssistant','مساعد المنصة للطلاب','مساعد التوجيه للطالب داخل أقسام المنصة.','اسأله عن مكان الامتحانات أو الملفات أو الفيديوهات أو الدعم.',array['مساعد الطلاب','مساعد المنصة','أين أجد'],array['student'],'#studentAssistant'),
+('teacherAssistant','مساعد المنصة للمعلمين','مساعد التوجيه للمعلم في أدوات النشر وإدارة المحتوى.','اسأله عن إضافة إعلان أو ملف أو إدارة امتحان.',array['مساعد المعلمين','مساعد المنصة','إضافة إعلان','رفع ملف'],array['teacher'],'#teacherAssistant'),
+('teacherEssayReviewCard','مراجعة إجابات المقالي','صندوق مراجعة إجابات الطلاب المقالية للمعلم الموثق.','يظهر للمعلم الموثق، ويتيح مراجعة الإجابات وتسجيل الدرجة والتعليق.',array['مقالي','تصحيح','مراجعة إجابات'],array['teacher'],'#teacherEssayReviewCard'),
+('studentAuth','حساب الطالب وتسجيل الدخول','نموذج إنشاء حساب طالب أو تسجيل الدخول.','استخدم اسم المستخدم وكلمة المرور الخاصة بحساب Seal X1؛ لا تشارك بيانات الدخول مع المساعد.',array['تسجيل الدخول','إنشاء حساب','حساب الطالب'],array['public'],'#studentAuth')
+on conflict(section_id) do update set
+ title=excluded.title,summary=excluded.summary,instructions=excluded.instructions,keywords=excluded.keywords,
+ allowed_roles=excluded.allowed_roles,href=excluded.href,is_active=true,updated_at=now();
