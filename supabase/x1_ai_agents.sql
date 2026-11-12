@@ -11,9 +11,9 @@ create table if not exists public.x1_ai_knowledge (
   source_url text,
   is_published boolean not null default true,
   search_vector tsvector generated always as (
-    setweight(to_tsvector('simple', coalesce(title,'')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(array_to_string(keywords,' '),'')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(content,'')), 'B')
+    setweight(to_tsvector('simple'::regconfig, coalesce(title,'')), 'A') ||
+    setweight(to_tsvector('simple'::regconfig, coalesce(array_to_string(keywords,' '),'')), 'A') ||
+    setweight(to_tsvector('simple'::regconfig, coalesce(content,'')), 'B')
   ) stored,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
