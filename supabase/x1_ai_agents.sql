@@ -12,7 +12,6 @@ create table if not exists public.x1_ai_knowledge (
   is_published boolean not null default true,
   search_vector tsvector generated always as (
     setweight(to_tsvector('simple'::regconfig, coalesce(title,'')), 'A') ||
-    setweight(to_tsvector('simple'::regconfig, coalesce(array_to_string(keywords,' '),'')), 'A') ||
     setweight(to_tsvector('simple'::regconfig, coalesce(content,'')), 'B')
   ) stored,
   created_at timestamptz not null default now(),
@@ -125,6 +124,7 @@ as $$
       k.search_vector @@ q.tsq
       or k.title ilike '%' || left(coalesce(p_query,''), 80) || '%'
       or k.content ilike '%' || left(coalesce(p_query,''), 80) || '%'
+      or exists (select 1 from unnest(k.keywords) kw where kw ilike '%' || left(coalesce(p_query,''), 80) || '%')
     )
   order by ts_rank_cd(k.search_vector, q.tsq) desc, k.updated_at desc
   limit least(greatest(coalesce(p_limit, 8), 1), 12);
