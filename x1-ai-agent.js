@@ -68,8 +68,8 @@
     setId(agent,data.conversation_id);return data;
   }
   function localQureo(question) {
-    return typeof window.sealQureoLocalFallback==="function" ? window.sealQureoLocalFallback(question) :
-      "المساعد المتقدم يحتاج إلى تفعيل خدمة الذكاء الاصطناعي.";
+    if(typeof window.sealQureoLocalFallback!=="function")return "المساعد المتقدم يحتاج إلى تفعيل خدمة الذكاء الاصطناعي.";
+    const raw=window.sealQureoLocalFallback(question);const holder=document.createElement("div");holder.innerHTML=raw;return holder.textContent||raw;
   }
   function localGeneral(question,role) {
     return typeof window.portalAssistantAnswer==="function" ? window.portalAssistantAnswer(question,role) :
