@@ -48,6 +48,7 @@ const academyVideos=[
  ,{id:"k6acoTETUTk",subject:"الرياضيات",teacher:"م. محمد خالد البقري",title:"العلاقة بين المعاملات والجذور — جبر",description:"شرح العلاقة بين جذور المعادلة التربيعية ومعاملاتها مع تطبيقات على المسائل.",kind:"شرح",duration:"—",date:"2026-10-12",recommended:5,verified:true}
  ,{id:"8ybeGQwAnVY",subject:"الرياضيات",teacher:"مستر أمير الصياد",title:"حل تقييمات أكتوبر — رياضيات",description:"حل التقييمات الأسبوعية الخمسة الأولى في الجبر وحساب المثلثات والهندسة.",kind:"حل وتدريب",duration:"—",date:"2026-10-14",recommended:4,verified:true}
 ];
+window.sealAcademyVideos=academyVideos.map(v=>({id:v.id,subject:v.subject,teacher:v.teacher,title:v.title,description:v.description,kind:v.kind}));
 const academySubjects=[
  {name:"اللغة العربية",icon:"ع",desc:"النحو والبلاغة والقراءة والنصوص والأدب."},
  {name:"اللغة الأجنبية الأولى",icon:"EN",desc:"Vocabulary, Grammar, Reading and The Old Man and the Sea."},
@@ -135,11 +136,12 @@ document.getElementById("academyFeatured").addEventListener("click",e=>{const b=
 document.getElementById("studentVideoBookmarksList")?.addEventListener("click",e=>{const remove=e.target.closest("[data-bookmark-remove]"),play=e.target.closest("[data-bookmark-play]");if(remove){portalToggleVideoBookmark(remove.dataset.bookmarkRemove);return;}if(play){const video=academyVideos.find(v=>v.id===play.dataset.bookmarkPlay);if(video){academyState.subject=video.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=video.id;document.getElementById("library")?.scrollIntoView({behavior:"smooth"});academyRender();}}});
 document.getElementById("academySubjectCount").textContent=academySubjects.length;
 academyRender();
+window.sealOpenAcademyVideo=function(id){const v=academyVideos.find(x=>x.id===id);if(!v)return false;academyState.subject=v.subject;academyState.teacher="all";academyState.kind="all";academyState.activeVideo=v.id;const lib=document.querySelector(".library-collapsible");if(lib)lib.open=true;academyRender();document.getElementById("academyFeatured")?.scrollIntoView({behavior:"smooth",block:"center"});return true;};
 
 // Public browser client: publishable key only. RLS restricts access to published school content.
 const SUPABASE_URL="https://glhsbvgzthsmxxguefxu.supabase.co";
 const SUPABASE_KEY="sb_publishable_2BJmBVumRl6RRz1Ag9FLag_aeIFX3p8";
-const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);
+const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);window.sealX1Db=db;window.sealX1SupabaseUrl=SUPABASE_URL;
 const dateLabel=value=>{if(!value)return "";try{return new Date(value).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"});}catch{return "";}};
 function setPanelState(panel,title,body){if(!panel)return;panel.innerHTML='<div class="empty-symbol">▤</div><h3>'+escapeHTML(title)+'</h3><p>'+escapeHTML(body)+'</p>';}
 async function loadSchoolAnnouncements(){
@@ -1216,6 +1218,7 @@ document.getElementById("heroAssistantJump")?.addEventListener("click", function
   if(/مرحبا|السلام عليكم|اهلا|أهلا|hi|hello/.test(lower))return "أهلاً بيك! اسألني عن QUREO أو JavaScript، أو الصق كود عايز تفهمه.";
   return "السؤال ده مش موجود بشكل كافٍ في قاعدة معرفتي الحالية، ومش هخمن. ابعت نص السؤال كامل، والكود الذي كتبته، ورسالة الخطأ أو النتيجة التي ظهرت. سنضيف المحتوى الموثق لقاعدة المعرفة تدريجياً.";
  }
+ window.sealQureoLocalFallback=reply;
  const form=document.getElementById("qureoAssistantForm");
  const box=document.getElementById("qureoAssistantMessages");
  if(!form||!box)return;
