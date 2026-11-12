@@ -41,11 +41,11 @@ if(conversationId){const {data}=await admin.from("x1_ai_conversations").select("
 if(!conversation){const {data,error}=await admin.from("x1_ai_conversations").insert({user_id:user.id,agent,title:question.slice(0,90)}).select("id,agent").single();if(error||!data)return json({error:"تعذر بدء محادثة جديدة."},500);conversation=data;conversationId=data.id;}
 const {data:prior}=await admin.from("x1_ai_messages").select("role,content").eq("conversation_id",conversationId).eq("user_id",user.id).order("created_at",{ascending:false}).limit(12);
 const history=(prior||[]).reverse().map((m:any)=>({role:m.role,content:[{type:"input_text",text:cut(m.content,5000)}]}));
-const [catalogQ,newsQ,resourceQ]=await Promise.all([
+const [catalogQ,newsQ,resourceQ]=agent==="general"?await Promise.all([
 admin.from("x1_platform_catalog").select("section_id,title,summary,instructions,keywords,allowed_roles,href").eq("is_active",true),
 admin.from("school_announcements").select("title,body,published_at,created_at").eq("status","published").order("published_at",{ascending:false}).limit(8),
 admin.from("resources").select("id,title,description,keywords,external_url,file_path,teacher_name,resource_categories(name),subjects(name)").eq("status","published").eq("verified",true).order("created_at",{ascending:false}).limit(60)
-]);
+]):[{data:[]},{data:[]},{data:[]}];
 const catalog=(catalogQ.data||[]).filter((x:any)=>(x.allowed_roles||[]).includes("public")||(x.allowed_roles||[]).includes(role));
 const news=(newsQ.data||[]).map((x:any)=>({title:cut(x.title,160),body:cut(x.body,450),date:x.published_at||x.created_at}));
 const resources=(resourceQ.data||[]).map((x:any)=>({id:x.id,title:cut(x.title,160),description:cut(x.description,300),keywords:x.keywords||[],teacher:cut(x.teacher_name,80),category:x.resource_categories?.name||"",subject:x.subjects?.name||"",external_url:x.external_url||"",file_path:x.file_path||""}));
@@ -53,7 +53,7 @@ const videos=(Array.isArray(body?.platform_context?.videos)?body.platform_contex
 const sections=(Array.isArray(body?.platform_context?.sections)?body.platform_context.sections:[]).slice(0,35).map((s:any)=>({id:cut(s.id,80),title:cut(s.title,120),summary:cut(s.summary,300),controls:Array.isArray(s.controls)?s.controls.slice(0,25).map((x:any)=>cut(x,90)):[]}));
 const retrieved=agent==="qureo"?await admin.rpc("x1_search_ai_knowledge",{p_query:question,p_agent:"qureo",p_limit:8}):{data:[]};
 const knowledge=(retrieved.data||[]).map((x:any)=>({title:x.title,category:x.category,content:cut(x.content,1500),keywords:x.keywords||[]}));
-const context={role,catalog,news,resources:resources.map((x:any)=>({...x,file_path:x.file_path?"private storage file":""})),videos,sections,knowledge};
+const context=agent==="qureo"?{role,knowledge}:{role,catalog,news,resources:resources.map((x:any)=>({...x,file_path:x.file_path?"private storage file":""})),videos,sections};
 const instructions=agent==="qureo"?[
 "أنت QUREO Mentor، مدرس برمجة خبير لطلاب المرحلة الثانوية داخل Seal X1.",
 "تخصصك HTML وCSS وJavaScript ومهارات تحديات QUREO. أجب بالعربية المصرية الواضحة، وافهم العامية والأخطاء الإملائية.",
