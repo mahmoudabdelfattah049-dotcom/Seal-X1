@@ -728,3 +728,23 @@ html[dir="ltr"] .academy-lesson-topline{direction:ltr}
 
 
 .privacy-notice{max-width:900px;margin:0 auto 18px;padding:10px 14px;border:1px solid var(--line,rgba(148,163,184,.2));border-radius:12px;font-size:12px;line-height:1.8;color:var(--muted,#94a3b8);text-align:center}
+
+
+/* X1 AI agent response formatting */
+.x1-ai-code{
+  direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;
+  background:rgba(8,15,28,.88);color:#e5edf9;border:1px solid rgba(148,163,184,.2);
+  border-radius:12px;padding:13px;margin:10px 0;max-width:100%;overflow-x:auto;
+  font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+.qureo-chat-bubble code,.assistant-answer code{
+  direction:ltr;unicode-bidi:plaintext;background:rgba(127,127,127,.14);
+  border-radius:5px;padding:1px 5px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+.x1-ai-typing{opacity:.72;font-style:italic}
+.x1-ai-action-link{
+  display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:8px 12px;
+  border:1px solid var(--line,rgba(127,127,127,.3));border-radius:9px;
+  color:var(--accent,#8b7cf6);text-decoration:none;font-weight:700;
+}
+.x1-ai-action-link:hover{text-decoration:underline}
