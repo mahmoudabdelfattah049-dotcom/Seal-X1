@@ -111,24 +111,30 @@ language sql
 stable
 security invoker
 set search_path = public
-as $$
-  with q as (
-    select websearch_to_tsquery('simple', coalesce(nullif(left(trim(p_query), 300), ''), 'programming')) as tsq
+as $
+  with tokens as (
+    select distinct lower(token) as token
+    from regexp_split_to_table(left(coalesce(p_query,''), 300), '[[:space:][:punct:]]+') token
+    where length(token) > 1
+  ),
+  ranked as (
+    select k.*,
+      (select count(*)::real from tokens t
+       where k.search_vector @@ plainto_tsquery('simple', t.token)
+          or k.title ilike '%' || t.token || '%'
+          or k.content ilike '%' || t.token || '%'
+          or k.category ilike '%' || t.token || '%'
+          or exists (select 1 from unnest(k.keywords) kw where kw ilike '%' || t.token || '%')
+      ) as match_score
+    from public.x1_ai_knowledge k
+    where k.is_published and (k.agent = p_agent or k.agent = 'both')
   )
-  select k.id, k.slug, k.category, k.title, k.content, k.keywords, k.source_label,
-         ts_rank_cd(k.search_vector, q.tsq) as relevance
-  from public.x1_ai_knowledge k cross join q
-  where k.is_published
-    and (k.agent = p_agent or k.agent = 'both')
-    and (
-      k.search_vector @@ q.tsq
-      or k.title ilike '%' || left(coalesce(p_query,''), 80) || '%'
-      or k.content ilike '%' || left(coalesce(p_query,''), 80) || '%'
-      or exists (select 1 from unnest(k.keywords) kw where kw ilike '%' || left(coalesce(p_query,''), 80) || '%')
-    )
-  order by ts_rank_cd(k.search_vector, q.tsq) desc, k.updated_at desc
+  select r.id, r.slug, r.category, r.title, r.content, r.keywords, r.source_label, r.match_score
+  from ranked r
+  where r.match_score > 0
+  order by r.match_score desc, r.updated_at desc
   limit least(greatest(coalesce(p_limit, 8), 1), 12);
-$$;
+$;
 revoke all on function public.x1_search_ai_knowledge(text,text,integer) from public, anon, authenticated;
 grant execute on function public.x1_search_ai_knowledge(text,text,integer) to service_role;
 
