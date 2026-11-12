@@ -84,30 +84,115 @@ if(name==="find_platform_video"){const found=videos.map((v:any)=>({...v,match:sc
 if(name==="open_official_qureo_portal"){actions.push({type:"open_link",url:"https://me-portal.qureo.education/login",title:"منصة QUREO الرسمية"});return{success:true,url:"https://me-portal.qureo.education/login"};}
 return{error:"أداة غير معروفة"};}
 const available=agent==="qureo"?[TOOLS[0],TOOLS[5]]:TOOLS.slice(1);
+function extractCode(input:string){
+ const fence=String.fromCharCode(96).repeat(3);
+ const fm=input.match(new RegExp(fence+"(?:html|css|javascript|js)?\\s*([\\s\\S]*?)"+fence,"i"));
+ if(fm){const h=fm[0].match(/(?:html|css|javascript|js)/i);return {code:fm[1],hint:h?h[0].toLowerCase():""};}
+ const patterns=[/<!doctype\s+html/i,/<(?:html|head|body|div|section|main|p|h[1-6])\b/i,/\b(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*=/,/\bfunction\s+[A-Za-z_$][\w$]*\s*\(/,/\bdocument\.(?:querySelector|getElementById)/,/\b(?:display|margin|padding|color|background)\s*:/i];
+ let first=-1;
+ for(const re of patterns){const m=re.exec(input);if(m&&(first<0||m.index<first))first=m.index;}
+ return first>=0?{code:input.slice(first),hint:""}:{code:"",hint:""};
+}
+function detectCodeLanguage(code:string,hint:string){
+ if(hint==="html"||/<(?:!doctype|html|head|body|div|section|main|p|img|input)\b/i.test(code))return "HTML";
+ if(hint==="css"||/(?:^|\n)\s*(?:@media|[.#]?[A-Za-z][\w-]*\s*)\{[\s\S]*?:\s*[^;{}]+;/i.test(code)&&!/\b(?:const|let|var|function|return|document)\b/.test(code))return "CSS";
+ return "JavaScript";
+}
+function scanPairs(code:string,language:string){
+ const stack:string[]=[];const errors:string[]=[];let quote="",escape=false,lineComment=false,blockComment=false;
+ const pairs:any={")":"(","]":"[","}":"{"};
+ for(let i=0;i<code.length;i++){
+  const c=code[i],n=code[i+1];
+  if(lineComment){if(c==="\n")lineComment=false;continue;}
+  if(blockComment){if(c==="*"&&n==="/"){blockComment=false;i++;}continue;}
+  if(quote){if(escape){escape=false;continue;}if(c==="\\"){escape=true;continue;}if(c===quote)quote="";continue;}
+  if(c==="/"&&n==="*"){blockComment=true;i++;continue;}
+  if(language==="JavaScript"&&c==="/"&&n==="/"){lineComment=true;i++;continue;}
+  if(c==='"'||c==="'"||(c===String.fromCharCode(96)&&language==="JavaScript")){quote=c;continue;}
+  if(c==="("||c==="["||c==="{")stack.push(c);
+  else if(pairs[c]){const last=stack.pop();if(last!==pairs[c]){errors.push("قوس إغلاق "+c+" لا يطابق القوس السابق عند الموضع "+(i+1)+".");if(errors.length>=4)break;}}
+ }
+ if(quote)errors.push("يوجد نص بدأ بعلامة اقتباس ولم يُغلق.");
+ if(blockComment)errors.push("تعليق /* لم يتم إغلاقه.");
+ if(stack.length)errors.push("يوجد قوس أو أكثر لم يتم إغلاقه: "+stack.slice(-4).join(" "));
+ return errors;
+}
+function analyzeHtml(code:string){
+ const out:string[]=[];
+ if(!/<!doctype\s+html/i.test(code)&&/<html\b/i.test(code))out.push("المستند الكامل يحتاج <!DOCTYPE html> في بدايته.");
+ if(/<html\b/i.test(code)&&!/<\/html\s*>/i.test(code))out.push("وسم html الافتتاحي موجود ولا يظهر وسم إغلاق html.");
+ if(/<head\b/i.test(code)&&!/<\/head\s*>/i.test(code))out.push("راجع إغلاق head بالوسم </head>.");
+ if(/<body\b/i.test(code)&&!/<\/body\s*>/i.test(code))out.push("راجع إغلاق body بالوسم </body>.");
+ const imgs=code.match(/<img\b[^>]*>/gi)||[];
+ if(imgs.some(x=>!/\balt\s*=/i.test(x)))out.push("هناك صورة img بدون alt؛ أضف وصفاً نصياً أو alt=\"\" إذا كانت زخرفية.");
+ const ids=[...(code.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi))].map(x=>x[1]);
+ if(new Set(ids).size!==ids.length)out.push("يوجد id مكرر؛ يجب أن تكون قيمة id فريدة في الصفحة.");
+ const inputs=code.match(/<input\b[^>]*>/gi)||[];
+ for(const tag of inputs){const id=(tag.match(/\bid\s*=\s*["']([^"']+)["']/i)||[])[1];if(id&&!code.includes('for="'+id+'"')&&!code.includes("for='"+id+"'")&&!/\baria-label\s*=/i.test(tag)){out.push("حقل input بمعرّف "+id+" يحتاج label مرتبطاً به أو aria-label.");break;}}
+ if(/target\s*=\s*["']_blank["']/i.test(code)&&!/\brel\s*=\s*["'][^"']*noopener/i.test(code))out.push("الرابط الذي يستخدم target=\"_blank\" يفضّل أن يتضمن rel=\"noopener noreferrer\".");
+ const voids=new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
+ const stack:string[]=[];const tags=[...code.matchAll(/<!--[\s\S]*?-->|<\/?([a-z][\w:-]*)\b[^>]*>/gi)];
+ for(const match of tags){const raw=match[0],name=(match[1]||"").toLowerCase();if(!name||raw.startsWith("<!--")||voids.has(name)||/\/\s*>$/.test(raw))continue;if(/^<\//.test(raw)){const idx=stack.lastIndexOf(name);if(idx>=0)stack.splice(idx,1);else if(["div","section","main","form","ul","ol","table","tr","td","th","html","head","body"].includes(name))out.push("وسم الإغلاق </"+name+"> لا يقابله وسم افتتاحي واضح.");}else stack.push(name);}
+ if(stack.length)out.push("راجع إغلاق الوسوم التالية: "+stack.slice(-5).join(", ")+".");
+ if(!out.length)out.push("لم يظهر خلل HTML واضح في الفحوصات الأساسية؛ راجع العرض وسلوك الصفحة في المتصفح.");
+ return out;
+}
+function analyzeCss(code:string){
+ const out=scanPairs(code,"CSS");
+ if(/:\s*;/m.test(code))out.push("يوجد تصريح CSS بقيمة فارغة قبل الفاصلة المنقوطة.");
+ if(/!important/i.test(code))out.push("استخدام !important موجود؛ تأكد أنه ضروري ولا يخفي تعارضاً في أولوية المحددات.");
+ if(/display\s*:\s*flex/i.test(code))out.push("تم استخدام Flexbox؛ راجع محور justify-content ومحور align-items واتجاه flex-direction.");
+ if(/display\s*:\s*grid/i.test(code))out.push("تم استخدام Grid؛ راجع grid-template-columns وgap وسلوك الأعمدة على الشاشات الصغيرة.");
+ if(/position\s*:\s*absolute/i.test(code))out.push("يوجد position:absolute؛ تأكد أن العنصر الأب المناسب لديه موضع مرجعي مثل position:relative.");
+ if(!out.length)out.push("لم يظهر خلل بنيوي واضح في فحص CSS النصي. راجع المحددات والتحميل والنتيجة الفعلية في المتصفح.");
+ return out;
+}
+function analyzeJs(code:string){
+ const out=scanPairs(code,"JavaScript");
+ if(/\bif\s*\([^)]*(?<![=!<>])=(?!=)[^)]*\)/.test(code))out.push("يوجد احتمال إسناد = داخل شرط if؛ إذا كنت تقارن فاستخدم === أو !==.");
+ if(/(?<![=!<>])==(?!=)/.test(code))out.push("يوجد استخدام ==؛ راجع هل المقارنة الصارمة === أنسب لتجنب تحويل الأنواع.");
+ if(/\bvar\s+[A-Za-z_$]/.test(code))out.push("استخدام var موجود؛ في أغلب الأكواد الحديثة استخدم const أو let حسب الحاجة.");
+ if(/\bfor\s*\(|\bwhile\s*\(/.test(code))out.push("راجع شرط استمرار الحلقة وتحديث العداد، خصوصاً حدود < و<=، لتجنب دورة زائدة أو حلقة لا تنتهي.");
+ if(/\bconst\s+[A-Za-z_$][\w$]*\s*=/.test(code))out.push("توجد ثوابت const؛ لا يمكن إعادة إسناد المتغير نفسه، لكن يمكن تعديل محتوى كائن أو مصفوفة.");
+ if(/\bfetch\s*\(/.test(code)&&!/\bawait\s+fetch\s*\(|\.then\s*\(/.test(code))out.push("توجد fetch؛ تأكد من التعامل مع Promise وانتظار الاستجابة أو استخدام then، ثم فحص response.ok.");
+ if(/\binnerHTML\s*=/.test(code))out.push("راجع مصدر النص قبل إدخاله عبر innerHTML؛ استخدم textContent عند عرض نص كتبه المستخدم.");
+ if(/\bgetElementById\s*\(/.test(code)||/\bquerySelector\s*\(/.test(code))out.push("عند اختيار عنصر من DOM، تحقق من أن العنصر موجود قبل استخدام خصائصه أو استدعاء دواله.");
+ if(/\bconsole\.log\s*\(/.test(code))out.push("console.log مفيد لتتبع القيم أثناء التعلم، واحذف سجلات التشخيص غير اللازمة من النسخة النهائية.");
+ if(!out.length)out.push("لم يظهر خلل واضح في الفحوصات النصية الأساسية؛ هذا لا يثبت خلو الكود من الأخطاء.");
+ return out;
+}
+function summarizeJs(code:string){
+ const points:string[]=[];
+ if(/\b(?:const|let|var)\s+/.test(code))points.push("تعريف متغيرات لتخزين القيم");
+ if(/\bfunction\b|=>/.test(code))points.push("تعريف دالة أو استخدام دالة سهمية");
+ if(/\bif\b|\bswitch\b/.test(code))points.push("اتخاذ قرار باستخدام شروط");
+ if(/\bfor\b|\bwhile\b|\.forEach\s*\(/.test(code))points.push("تكرار أو المرور على مجموعة بيانات");
+ if(/\bdocument\.|addEventListener/.test(code))points.push("التعامل مع صفحة الويب أو أحداث المستخدم");
+ if(/\breturn\b/.test(code))points.push("إرجاع قيمة من دالة");
+ return points;
+}
 let answer="",usage:any={input_tokens:0,output_tokens:0};
 if(agent==="qureo"){
- const qn=question.toLocaleLowerCase("ar");
- const codeMatch=question.match(/(?:<!doctype|<html|<div|<style|function\s+\w+|const\s+\w+\s*=|let\s+\w+\s*=|document\.|console\.|if\s*\()/i);
- const findings:string[]=[];
- if(codeMatch){
-  const snippet=question.slice(Math.max(0,codeMatch.index||0),Math.min(question.length,(codeMatch.index||0)+5000));
-  if(/<img\b(?![^>]*\balt\s*=)/i.test(snippet))findings.push("وجدت صورة img بدون alt؛ أضف وصفاً مناسباً.");
-  if(!/<!doctype html>/i.test(snippet)&&/<html|<body/i.test(snippet))findings.push("يفضل إضافة <!DOCTYPE html> في بداية مستند HTML.");
-  if(/\bif\s*\([^)]*(?<![=!<>])=(?!=)[^)]*\)/.test(snippet))findings.push("يوجد احتمال استخدام = داخل شرط if بدلاً من === للمقارنة؛ راجع قصدك.");
-  if(/\bwhile\s*\(|\bfor\s*\(/.test(snippet))findings.push("راجع شرط توقف الحلقة وتحديث العداد لتجنب حلقة لا نهائية.");
-  if(/\bvar\b/.test(snippet))findings.push("في JavaScript الحديثة يفضّل const أو let بدلاً من var.");
-  if(/==(?!=)/.test(snippet))findings.push("يوجد استخدام ==؛ غالباً === أوضح لأنه يقارن القيمة والنوع.");
-  if(/display\s*:\s*flex/i.test(snippet))findings.push("Flexbox مفعّل؛ راجع justify-content وalign-items.");
-  if((snippet.match(/\{/g)||[]).length!==(snippet.match(/\}/g)||[]).length&&/display\s*:|color\s*:|margin\s*:/.test(snippet))findings.push("أقواس CSS المعقوفة غير متوازنة.");
-  if(!findings.length)findings.push("لم يظهر خطأ مؤكد بالفحص النصي. أرسل رسالة الخطأ والناتج المتوقع والحالي لتشخيص أدق.");
-  answer="أنا QUREO Mentor المجاني. ده فحص ساكن للكود، وليس تشغيلًا فعلياً له.\n\nنتائج الفحص:\n"+findings.map(x=>"• "+x).join("\n")+"\n\nلو تبعت الكود في رسالة منفصلة وتوضح المطلوب أقدر أحدد المشكلة بصورة أدق.";
+ const extracted=extractCode(question);
+ if(extracted.code.trim().length>20){
+  const lang=detectCodeLanguage(extracted.code,extracted.hint);
+  const findings=lang==="HTML"?analyzeHtml(extracted.code):lang==="CSS"?analyzeCss(extracted.code):analyzeJs(extracted.code);
+  const summary=lang==="JavaScript"?summarizeJs(extracted.code):[];
+  answer="تحليل QUREO المحلي للكود ("+lang+"):\n\n"+findings.map((x,i)=>(i+1)+". "+x).join("\n");
+  if(summary.length)answer+="\n\nمن شكل الكود، يظهر أنه يتضمن: "+summary.join("، ")+".";
+  answer+="\n\nتنبيه: ده فحص ساكن محلي، مش تشغيل للكود ولا بديل عن اختبار التحدي داخل QUREO. لو عندك رسالة خطأ أو ناتج متوقع، ابعتهما مع الكود لتضييق سبب المشكلة.";
  }else{
-  const found=knowledge.map((x:any)=>({...x,rank:score(question,[x.title,x.category,...(x.keywords||[]),x.content].join(" "))})).filter((x:any)=>x.rank>0.04).sort((a:any,b:any)=>b.rank-a.rank).slice(0,3);
-  if(found.length)answer="أنا QUREO Mentor المجاني. وجدت في قاعدة المعرفة محتوى قريباً من سؤالك:\n\n"+found.map((x:any,i:number)=>(i+1)+". "+x.title+"\n"+cut(x.content,1000)).join("\n\n")+"\n\nأرسل مثالاً أو نص تحدي QUREO لو عايز تطبيقاً عملياً.";
-  else if(/\bhtml\b|اتش تي ام ال|وسوم/.test(qn))answer="HTML يبني هيكل الصفحة ومعناها. استخدم html وhead وbody والعناصر الدلالية مثل header وmain وsection وfooter. أضف alt للصور وlabel للحقول.";
-  else if(/\bcss\b|ستايل|تنسيق|flexbox|grid/.test(qn))answer="CSS يتحكم في شكل الصفحة وتخطيطها. Flexbox مناسب لمحور واحد، وGrid لتخطيط الصفوف والأعمدة. راجع المحددات والقيم والأقواس.";
-  else if(/\bjavascript\b|\bjs\b|جافاسكريبت|متغير|حلقة|شرط|داله/.test(qn))answer="JavaScript تضيف المنطق والتفاعل. استخدم const للقيم الثابتة وlet للقيم المتغيرة و=== للمقارنة الصارمة، وراجع شرط توقف الحلقات.";
-  else answer="أنا QUREO Mentor المجاني في X1. قاعدة المعرفة الحالية لا تحتوي على إجابة موثوقة كفاية لسؤالك. حدّد هل تقصد HTML أو CSS أو JavaScript أو أرسل نص تحدي QUREO والكود الذي كتبته.";
+  const found=knowledge.map((x:any)=>({...x,rank:score(question,[x.title,x.category,...(x.keywords||[]),x.content].join(" "))})).filter((x:any)=>x.rank>0.04).sort((a:any,b:any)=>b.rank-a.rank).slice(0,4);
+  if(found.length){
+   answer="شرح من قاعدة QUREO المحلية:\n\n"+found.map((x:any,i:number)=>(i+1)+". "+x.title+"\n"+cut(x.content,1800)).join("\n\n");
+   answer+="\n\nلو عايز تطبيق على تمرين بعينه، ابعت نص السؤال أو الكود والنتيجة اللي ظهرت لك.";
+  }else{
+   const qn=norm(question);
+   if(/html|اتش تي ام ال|وسوم/.test(qn))answer="HTML مسؤولة عن هيكل الصفحة ومعنى عناصرها. ابدأ بـ doctype ثم html وhead وbody، واستخدم العناصر الدلالية مثل main وheader وnav وsection. التنسيق مكانه CSS، والتفاعل مكانه JavaScript.";
+   else if(/css|تنسيق|ستايل|flexbox|grid/.test(qn))answer="CSS مسؤولة عن المظهر والتخطيط. استخدم Flexbox للترتيب على محور واحد وGrid للصفوف والأعمدة، وافحص box model والخصوصية وmedia queries عند تشخيص التنسيق.";
+   else if(/javascript|جافاسكريبت|متغير|حلقة|شرط|داله/.test(qn))answer="JavaScript تضيف المنطق والتفاعل. ابدأ بالمتغيرات وأنواع البيانات، ثم الشروط والحلقات والدوال والمصفوفات، وبعدها DOM والأحداث. استخدم === للمقارنة الصارمة وتتبّع القيم خطوة بخطوة.";
+   else answer="أنا QUREO Mentor المحلي. لم أجد في قاعدة المعرفة الحالية مادة كافية للإجابة بثقة. اكتب اسم الموضوع أو أرسل نص التحدي/الكود، وسأحدد الجزء المناسب أو أوضح ما ينقصني.";
+  }
  }
 }else{
  const qn=question.toLocaleLowerCase("ar");
