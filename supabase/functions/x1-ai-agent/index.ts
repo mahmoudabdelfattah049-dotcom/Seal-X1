@@ -28,6 +28,7 @@ const {data:auth,error:authErr}=await userDb.auth.getUser();if(authErr||!auth?.u
 const user=auth.user;
 const {data:profile}=await admin.from("profiles").select("role,display_name,username,teacher_verified,teacher_subject").eq("id",user.id).maybeSingle();
 const role=String(profile?.role||"student");if(!["student","teacher","admin","moderator"].includes(role))return json({error:"هذه الرتبة غير مسموح لها."},403);
+if(agent==="general"&&role==="teacher"&&profile?.teacher_verified!==true)return json({error:"حساب المعلم يحتاج إلى توثيق قبل استخدام مساعد المعلمين."},403);
 if(agent==="general"&&!["student","teacher","admin"].includes(role))return json({error:"مساعد المنصة غير متاح لهذه الرتبة."},403);
 const now=Date.now();
 const [daily,short]=await Promise.all([
