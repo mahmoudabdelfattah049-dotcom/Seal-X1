@@ -57,14 +57,14 @@
     <section class="content-section section-wrap" id="qureo"><div class="section-heading"><div><div class="eyebrow">تعلم البرمجة خطوة بخطوة</div><h2>مركز <span>QUREO</span></h2><p>مكان منظم للمساعدة والشروحات والحلول التعليمية.</p></div><span class="section-number">02 / LEARN</span></div>
       <a class="primary-btn qureo-external-link" href="https://me-portal.qureo.education/login" target="_blank" rel="noopener noreferrer">افتح منصة QUREO الرسمية ↗</a>
 <details class="section-accordion qureo-accordion" id="qureoSmartAssistant">
-<summary><span><b>مساعد QUREO الذكي</b><small>شرح JavaScript وتحليل الأكواد والأخطاء — اضغط للفتح</small></span><span class="assistant-chevron">⌄</span></summary>
+<summary><span><b>مساعد QUREO البرمجي</b><small>شرح HTML وCSS وJavaScript وتحليل الأكواد والأخطاء — اضغط للفتح</small></span><span class="assistant-chevron">⌄</span></summary>
 <article class="qureo-assistant-panel" id="qureoSmartAssistantPanel">
-<div class="qureo-assistant-head"><div><span class="card-kicker">SEAL X1 · QUREO COACH</span><h3>مساعد QUREO الذكي</h3><p>مساعد برمجة متخصص، يشرح المفاهيم ويحلل الأكواد والأسئلة النصية خطوة بخطوة.</p></div><span class="qureo-ai-status">مجاني · بدون API</span></div>
-<div class="qureo-assistant-capabilities"><span>شرح JavaScript</span><span>تحليل الأخطاء</span><span>فهم الشروط والحلقات</span><span>مفاهيم QUREO</span></div>
+<div class="qureo-assistant-head"><div><span class="card-kicker">SEAL X1 · QUREO COACH</span><h3>مساعد QUREO الذكي</h3><p>مساعد برمجة متخصص، يشرح المفاهيم ويحلل الأكواد والأسئلة النصية خطوة بخطوة.</p></div><span class="qureo-ai-status">Free Coding Mentor · HTML / CSS / JS</span></div>
+<div class="qureo-assistant-capabilities"><span>HTML وتحليل البنية</span><span>CSS والتصميم المتجاوب</span><span>JavaScript والمنطق</span><span>Debugging وتتبع التنفيذ</span><span>حل تحديات QUREO</span></div>
 <div class="qureo-chat-messages" id="qureoAssistantMessages" aria-live="polite"><div class="qureo-chat-bubble assistant"><b>أهلاً! أنا مساعد QUREO في Seal X1.</b><p>اكتب سؤالك أو الصق الكود أو نص التحدي. سأجيب بما هو موثق في قاعدة معرفتي، ولو السؤال خارجها سأوضح ذلك بدل التخمين.</p></div></div>
 <div class="qureo-suggestions"><button type="button" data-qureo-prompt="اشرح لي الفرق بين if و else">الفرق بين if و else</button><button type="button" data-qureo-prompt="اشرح && في JavaScript">معنى &&</button><button type="button" data-qureo-prompt="إزاي أستخدم function؟">الدوال</button><button type="button" data-qureo-prompt="حلل الكود ده: if (score > 10) { console.log('نجحت'); } else { console.log('حاول تاني'); }">حلل كود</button></div>
-<form id="qureoAssistantForm" class="qureo-assistant-compose"><textarea id="qureoAssistantInput" rows="3" maxlength="5000" placeholder="اكتب السؤال أو الصق الكود هنا..." required></textarea><button type="submit">اسأل المساعد ↗</button></form>
-<p class="qureo-assistant-disclaimer">الإصدار الحالي محرك تعليمي محلي مجاني قائم على قاعدة معرفة وقواعد تحليل، وليس نموذج محادثة توليديًا. لا يرسل رسائلك لخدمة خارجية. ستتوسع معرفته بإضافة محتوى فصول QUREO الموثق.</p>
+<form id="qureoAssistantForm" class="qureo-assistant-compose"><textarea id="qureoAssistantInput" rows="3" maxlength="12000" placeholder="اكتب سؤالك أو الصق كود HTML / CSS / JavaScript أو نص تحدي QUREO..." required></textarea><button type="submit">اسأل المساعد ↗</button></form>
+<p class="qureo-assistant-disclaimer">المساعد يعمل بمحرك مجاني يعتمد على قاعدة معرفة محلية وقواعد تحليل للكود الشائع، ولا يستخدم API مدفوعاً ولا يشغّل الكود فعلياً. لا ترسل كلمات مرور أو بيانات شخصية، ولا نفترض أرقام فصول QUREO دون مصدر موثق.</p>
 </article>
 </details>
       <details class="section-accordion qureo-accordion" id="qureoSolutionsCard">
@@ -167,8 +167,8 @@
  <p class="chat-note">أعلى 10 طلاب حسب تقييم التقدم والامتحانات والنشاط.</p>
  <div id="studentLeaderboardList" class="leaderboard-list"><p class="resource-loading">جاري تحميل الترتيب...</p></div></article>
 </section>      <details class="assistant-panel student-assistant" id="studentAssistant">
-        <summary><span><b>مساعد المنصة للطلاب</b><small>اسأل عن أي مكان أو خدمة في الموقع</small></span><span class="assistant-chevron">⌄</span></summary>
-        <div class="assistant-body"><div class="assistant-intro">المساعد بيقرأ أقسام المنصة المتاحة للطلاب، ويقدر يوصلك للمكان أو الفيديو المطلوب.</div><div class="assistant-log" id="studentAssistantLog"><p>مثال: «أوصل لإعلانات المدرسة إزاي؟» أو «افتح فيديو الجبر».</p></div><form class="assistant-form" id="studentAssistantForm"><input id="studentAssistantInput" maxlength="300" placeholder="اكتب سؤالك هنا..." required><button type="submit">اسأل</button></form></div>
+        <summary><span><b>مساعد المنصة للطلاب</b><small>اسأل عن أي قسم أو إجراء أو مصدر داخل المنصة</small></span><span class="assistant-chevron">⌄</span></summary>
+        <div class="assistant-body"><div class="assistant-intro">المساعد بيقرأ أقسام المنصة المتاحة للطلاب، ويقدر يوصلك للمكان أو الفيديو المطلوب.</div><div class="assistant-log" id="studentAssistantLog"><p>مثال: «أوصل لإعلانات المدرسة إزاي؟» أو «افتح فيديو الجبر».</p></div><form class="assistant-form" id="studentAssistantForm"><input id="studentAssistantInput" maxlength="1500" placeholder="اكتب سؤالك حتى لو بصياغة عامية أو غير مرتبة..." required><button type="submit">اسأل</button></form></div>
       </details>
     </section>
     <section class="content-section section-wrap portal-space admin-space" id="adminPanel" hidden>
@@ -287,4 +287,5 @@
   <script src="courses.js?v=academy-v3"></script>
   <script src="academy-editor.js?v=playground-v1"></script>
   <script src="i18n.js?v=languages-v6"></script>
+  <script src="x1-ai-agent.js?v=agent-v1"></script>
 </body></html>
